@@ -81,6 +81,19 @@ node scripts/jumpmap-verify-split.mjs --skip-smoke
 node scripts/jumpmap-verify-split.mjs --skip-smoke --with-browser-e2e --browser-e2e-timeout-ms 30000
 ```
 
+빠른 preflight(권장):
+
+```bash
+cd /Users/baekjiyun/Desktop/WAN/math-net-master-quiz
+node scripts/jumpmap-r7-preflight.mjs
+```
+
+push/CI 직전 게이트(원격/운영값 정리 후):
+
+```bash
+node scripts/jumpmap-r7-preflight.mjs --release-gate
+```
+
 ## 운영 점검 (선택)
 
 - 런처 -> 점프맵 -> legacy/compat 진입 spot-check 1회
@@ -90,5 +103,6 @@ node scripts/jumpmap-verify-split.mjs --skip-smoke --with-browser-e2e --browser-
 
 - publish 반영 여부 (`public/shared/maps/jumpmap-01.json`)
 - 검증 명령 + `pass/fail`
+- readiness 요약 3줄 (`node /Users/baekjiyun/Desktop/WAN/math-net-master-quiz/scripts/jumpmap-check-split-repo-readiness.mjs --summary-lines`)
 - 푸시 커밋 해시(`main` 최신 1~2개)
 - 배포 채널/URL (설정 시)
