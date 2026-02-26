@@ -1,6 +1,6 @@
 # 놀퀴즈 Runtime (scaffold)
 
-생성 시각: 2026-02-26T07:35:36.556Z
+생성 시각: 2026-02-26T07:38:27.076Z
 소스: /Users/baekjiyun/Desktop/WAN/math-net-master-quiz
 
 ## 포함 경로
