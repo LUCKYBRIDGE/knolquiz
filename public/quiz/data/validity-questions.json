@@ -1,0 +1,2383 @@
+{
+  "version": 1,
+  "generatedAt": "2026-01-27T02:39:50.375Z",
+  "count": 132,
+  "questions": [
+    {
+      "id": "validity-valid-1",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cube-01.svg",
+      "answer": "cube-01.svg",
+      "choices": [
+        "cube-01.svg",
+        "invalid/cube-bad-10.svg",
+        "invalid/cuboid-bad-edge-02.svg",
+        "invalid/cuboid-bad-edge-06.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-2",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cube-02.svg",
+      "answer": "cube-02.svg",
+      "choices": [
+        "invalid/cuboid-bad-6f-07.svg",
+        "invalid/cuboid-bad-fold-06.svg",
+        "cube-02.svg",
+        "invalid/cube-bad-12.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-3",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cube-03.svg",
+      "answer": "cube-03.svg",
+      "choices": [
+        "invalid/cuboid-bad-fold-02.svg",
+        "cube-03.svg",
+        "invalid/cube-bad-07.svg",
+        "invalid/cuboid-bad-edge-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-4",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cube-04.svg",
+      "answer": "cube-04.svg",
+      "choices": [
+        "cube-04.svg",
+        "invalid/cuboid-bad-5f-03.svg",
+        "invalid/cuboid-bad-6f-01.svg",
+        "invalid/cuboid-bad-overlap-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-5",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cube-05.svg",
+      "answer": "cube-05.svg",
+      "choices": [
+        "invalid/cube-bad-03.svg",
+        "invalid/cuboid-bad-fold-08.svg",
+        "invalid/cuboid-bad-overlap-04.svg",
+        "cube-05.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-6",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cube-06.svg",
+      "answer": "cube-06.svg",
+      "choices": [
+        "invalid/cube-bad-12.svg",
+        "invalid/cuboid-bad-overlap-04.svg",
+        "invalid/cube-bad-09.svg",
+        "cube-06.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-7",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cube-07.svg",
+      "answer": "cube-07.svg",
+      "choices": [
+        "cube-07.svg",
+        "invalid/cuboid-bad-edge-04.svg",
+        "invalid/cuboid-bad-6f-03.svg",
+        "invalid/cuboid-bad-edge-07.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-8",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cube-08.svg",
+      "answer": "cube-08.svg",
+      "choices": [
+        "invalid/cuboid-bad-fold-03.svg",
+        "cube-08.svg",
+        "invalid/cuboid-bad-6f-07.svg",
+        "invalid/cuboid-bad-6f-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-9",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cube-09.svg",
+      "answer": "cube-09.svg",
+      "choices": [
+        "invalid/cube-bad-08.svg",
+        "invalid/cuboid-bad-overlap-01.svg",
+        "cube-09.svg",
+        "invalid/cuboid-bad-6f-05.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-10",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cube-10.svg",
+      "answer": "cube-10.svg",
+      "choices": [
+        "invalid/cuboid-bad-6f-08.svg",
+        "invalid/cube-bad-09.svg",
+        "invalid/cube-bad-04.svg",
+        "cube-10.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-11",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cube-11.svg",
+      "answer": "cube-11.svg",
+      "choices": [
+        "cube-11.svg",
+        "invalid/cuboid-bad-5f-02.svg",
+        "invalid/cuboid-bad-edge-06.svg",
+        "invalid/cuboid-bad-fold-08.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-12",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-01-01.svg",
+      "answer": "cuboid-01-01.svg",
+      "choices": [
+        "invalid/cuboid-bad-6f-06.svg",
+        "invalid/cuboid-bad-6f-04.svg",
+        "cuboid-01-01.svg",
+        "invalid/cube-bad-11.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-13",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-01-02.svg",
+      "answer": "cuboid-01-02.svg",
+      "choices": [
+        "invalid/cuboid-bad-edge-05.svg",
+        "invalid/cube-bad-08.svg",
+        "invalid/cuboid-bad-overlap-05.svg",
+        "cuboid-01-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-14",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-01-03.svg",
+      "answer": "cuboid-01-03.svg",
+      "choices": [
+        "invalid/cuboid-bad-6f-06.svg",
+        "cuboid-01-03.svg",
+        "invalid/cuboid-bad-5f-03.svg",
+        "invalid/cuboid-bad-5f-06.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-15",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-01-04.svg",
+      "answer": "cuboid-01-04.svg",
+      "choices": [
+        "cuboid-01-04.svg",
+        "invalid/cuboid-bad-overlap-01.svg",
+        "invalid/cuboid-bad-fold-02.svg",
+        "invalid/cuboid-bad-edge-08.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-16",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-01-05.svg",
+      "answer": "cuboid-01-05.svg",
+      "choices": [
+        "cuboid-01-05.svg",
+        "invalid/cuboid-bad-5f-06.svg",
+        "invalid/cuboid-bad-fold-07.svg",
+        "invalid/cuboid-bad-edge-08.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-17",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-01-06.svg",
+      "answer": "cuboid-01-06.svg",
+      "choices": [
+        "invalid/cuboid-bad-fold-05.svg",
+        "invalid/cuboid-bad-5f-03.svg",
+        "cuboid-01-06.svg",
+        "invalid/cuboid-bad-6f-04.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-18",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-02-01.svg",
+      "answer": "cuboid-02-01.svg",
+      "choices": [
+        "invalid/cuboid-bad-5f-02.svg",
+        "invalid/cuboid-bad-overlap-04.svg",
+        "cuboid-02-01.svg",
+        "invalid/cuboid-bad-fold-04.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-19",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-02-02.svg",
+      "answer": "cuboid-02-02.svg",
+      "choices": [
+        "invalid/cuboid-bad-overlap-03.svg",
+        "cuboid-02-02.svg",
+        "invalid/cuboid-bad-5f-04.svg",
+        "invalid/cuboid-bad-fold-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-20",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-02-03.svg",
+      "answer": "cuboid-02-03.svg",
+      "choices": [
+        "invalid/cuboid-bad-edge-03.svg",
+        "invalid/cuboid-bad-overlap-02.svg",
+        "cuboid-02-03.svg",
+        "invalid/cuboid-bad-6f-06.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-21",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-02-04.svg",
+      "answer": "cuboid-02-04.svg",
+      "choices": [
+        "cuboid-02-04.svg",
+        "invalid/cube-bad-08.svg",
+        "invalid/cube-bad-03.svg",
+        "invalid/cuboid-bad-6f-04.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-22",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-02-05.svg",
+      "answer": "cuboid-02-05.svg",
+      "choices": [
+        "cuboid-02-05.svg",
+        "invalid/cube-bad-15.svg",
+        "invalid/cuboid-bad-edge-05.svg",
+        "invalid/cuboid-bad-overlap-06.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-23",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-02-06.svg",
+      "answer": "cuboid-02-06.svg",
+      "choices": [
+        "invalid/cuboid-bad-5f-02.svg",
+        "invalid/cuboid-bad-5f-03.svg",
+        "invalid/cuboid-bad-overlap-06.svg",
+        "cuboid-02-06.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-24",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-03-01.svg",
+      "answer": "cuboid-03-01.svg",
+      "choices": [
+        "invalid/cuboid-bad-6f-08.svg",
+        "invalid/cube-bad-09.svg",
+        "cuboid-03-01.svg",
+        "invalid/cuboid-bad-fold-03.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-25",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-03-02.svg",
+      "answer": "cuboid-03-02.svg",
+      "choices": [
+        "invalid/cuboid-bad-6f-01.svg",
+        "invalid/cuboid-bad-edge-03.svg",
+        "invalid/cuboid-bad-6f-05.svg",
+        "cuboid-03-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-26",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-03-03.svg",
+      "answer": "cuboid-03-03.svg",
+      "choices": [
+        "invalid/cuboid-bad-edge-07.svg",
+        "invalid/cuboid-bad-6f-04.svg",
+        "invalid/cuboid-bad-6f-05.svg",
+        "cuboid-03-03.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-27",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-03-04.svg",
+      "answer": "cuboid-03-04.svg",
+      "choices": [
+        "invalid/cube-bad-15.svg",
+        "invalid/cuboid-bad-overlap-04.svg",
+        "invalid/cuboid-bad-6f-01.svg",
+        "cuboid-03-04.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-28",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-03-05.svg",
+      "answer": "cuboid-03-05.svg",
+      "choices": [
+        "invalid/cuboid-bad-edge-01.svg",
+        "invalid/cuboid-bad-fold-06.svg",
+        "cuboid-03-05.svg",
+        "invalid/cuboid-bad-overlap-08.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-29",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-03-06.svg",
+      "answer": "cuboid-03-06.svg",
+      "choices": [
+        "invalid/cuboid-bad-5f-08.svg",
+        "invalid/cuboid-bad-edge-03.svg",
+        "invalid/cuboid-bad-5f-06.svg",
+        "cuboid-03-06.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-30",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-04-01.svg",
+      "answer": "cuboid-04-01.svg",
+      "choices": [
+        "cuboid-04-01.svg",
+        "invalid/cube-bad-07.svg",
+        "invalid/cube-bad-02.svg",
+        "invalid/cube-bad-06.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-31",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-04-02.svg",
+      "answer": "cuboid-04-02.svg",
+      "choices": [
+        "invalid/cuboid-bad-overlap-08.svg",
+        "invalid/cuboid-bad-fold-07.svg",
+        "cuboid-04-02.svg",
+        "invalid/cuboid-bad-5f-03.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-32",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-04-03.svg",
+      "answer": "cuboid-04-03.svg",
+      "choices": [
+        "cuboid-04-03.svg",
+        "invalid/cuboid-bad-fold-03.svg",
+        "invalid/cube-bad-09.svg",
+        "invalid/cuboid-bad-5f-04.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-33",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-04-04.svg",
+      "answer": "cuboid-04-04.svg",
+      "choices": [
+        "invalid/cuboid-bad-overlap-03.svg",
+        "cuboid-04-04.svg",
+        "invalid/cuboid-bad-5f-07.svg",
+        "invalid/cuboid-bad-edge-05.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-34",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-04-05.svg",
+      "answer": "cuboid-04-05.svg",
+      "choices": [
+        "cuboid-04-05.svg",
+        "invalid/cuboid-bad-5f-08.svg",
+        "invalid/cube-bad-04.svg",
+        "invalid/cube-bad-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-35",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-04-06.svg",
+      "answer": "cuboid-04-06.svg",
+      "choices": [
+        "invalid/cube-bad-13.svg",
+        "invalid/cuboid-bad-6f-03.svg",
+        "invalid/cuboid-bad-5f-03.svg",
+        "cuboid-04-06.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-36",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-05-01.svg",
+      "answer": "cuboid-05-01.svg",
+      "choices": [
+        "cuboid-05-01.svg",
+        "invalid/cuboid-bad-fold-02.svg",
+        "invalid/cuboid-bad-fold-04.svg",
+        "invalid/cuboid-bad-5f-03.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-37",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-05-02.svg",
+      "answer": "cuboid-05-02.svg",
+      "choices": [
+        "invalid/cuboid-bad-edge-01.svg",
+        "invalid/cube-bad-11.svg",
+        "cuboid-05-02.svg",
+        "invalid/cuboid-bad-overlap-03.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-38",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-05-03.svg",
+      "answer": "cuboid-05-03.svg",
+      "choices": [
+        "invalid/cuboid-bad-overlap-04.svg",
+        "invalid/cuboid-bad-fold-05.svg",
+        "invalid/cube-bad-10.svg",
+        "cuboid-05-03.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-39",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-05-04.svg",
+      "answer": "cuboid-05-04.svg",
+      "choices": [
+        "invalid/cube-bad-03.svg",
+        "invalid/cuboid-bad-edge-01.svg",
+        "invalid/cuboid-bad-6f-07.svg",
+        "cuboid-05-04.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-40",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-05-05.svg",
+      "answer": "cuboid-05-05.svg",
+      "choices": [
+        "invalid/cube-bad-06.svg",
+        "invalid/cuboid-bad-fold-06.svg",
+        "cuboid-05-05.svg",
+        "invalid/cuboid-bad-overlap-05.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-41",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-05-06.svg",
+      "answer": "cuboid-05-06.svg",
+      "choices": [
+        "invalid/cuboid-bad-overlap-01.svg",
+        "invalid/cuboid-bad-6f-03.svg",
+        "invalid/cuboid-bad-fold-02.svg",
+        "cuboid-05-06.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-42",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-06-01.svg",
+      "answer": "cuboid-06-01.svg",
+      "choices": [
+        "invalid/cuboid-bad-5f-05.svg",
+        "invalid/cube-bad-08.svg",
+        "cuboid-06-01.svg",
+        "invalid/cube-bad-12.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-43",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-06-02.svg",
+      "answer": "cuboid-06-02.svg",
+      "choices": [
+        "invalid/cuboid-bad-fold-04.svg",
+        "cuboid-06-02.svg",
+        "invalid/cuboid-bad-6f-04.svg",
+        "invalid/cuboid-bad-6f-05.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-44",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-06-03.svg",
+      "answer": "cuboid-06-03.svg",
+      "choices": [
+        "invalid/cube-bad-13.svg",
+        "cuboid-06-03.svg",
+        "invalid/cuboid-bad-overlap-04.svg",
+        "invalid/cuboid-bad-fold-06.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-45",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-06-04.svg",
+      "answer": "cuboid-06-04.svg",
+      "choices": [
+        "cuboid-06-04.svg",
+        "invalid/cuboid-bad-edge-03.svg",
+        "invalid/cuboid-bad-edge-05.svg",
+        "invalid/cube-bad-12.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-46",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-06-05.svg",
+      "answer": "cuboid-06-05.svg",
+      "choices": [
+        "invalid/cuboid-bad-fold-01.svg",
+        "invalid/cube-bad-04.svg",
+        "cuboid-06-05.svg",
+        "invalid/cuboid-bad-overlap-08.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-47",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-06-06.svg",
+      "answer": "cuboid-06-06.svg",
+      "choices": [
+        "invalid/cuboid-bad-overlap-06.svg",
+        "invalid/cube-bad-09.svg",
+        "cuboid-06-06.svg",
+        "invalid/cube-bad-07.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-48",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-07-01.svg",
+      "answer": "cuboid-07-01.svg",
+      "choices": [
+        "invalid/cuboid-bad-fold-08.svg",
+        "cuboid-07-01.svg",
+        "invalid/cuboid-bad-6f-04.svg",
+        "invalid/cuboid-bad-5f-08.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-49",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-07-02.svg",
+      "answer": "cuboid-07-02.svg",
+      "choices": [
+        "invalid/cuboid-bad-edge-07.svg",
+        "cuboid-07-02.svg",
+        "invalid/cuboid-bad-overlap-05.svg",
+        "invalid/cuboid-bad-overlap-04.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-50",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-07-03.svg",
+      "answer": "cuboid-07-03.svg",
+      "choices": [
+        "invalid/cuboid-bad-5f-04.svg",
+        "invalid/cuboid-bad-overlap-08.svg",
+        "invalid/cuboid-bad-overlap-02.svg",
+        "cuboid-07-03.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-51",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-07-04.svg",
+      "answer": "cuboid-07-04.svg",
+      "choices": [
+        "invalid/cuboid-bad-6f-02.svg",
+        "invalid/cube-bad-11.svg",
+        "invalid/cuboid-bad-6f-01.svg",
+        "cuboid-07-04.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-52",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-07-05.svg",
+      "answer": "cuboid-07-05.svg",
+      "choices": [
+        "invalid/cuboid-bad-fold-03.svg",
+        "invalid/cuboid-bad-6f-06.svg",
+        "invalid/cuboid-bad-6f-02.svg",
+        "cuboid-07-05.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-53",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-07-06.svg",
+      "answer": "cuboid-07-06.svg",
+      "choices": [
+        "invalid/cube-bad-13.svg",
+        "cuboid-07-06.svg",
+        "invalid/cube-bad-08.svg",
+        "invalid/cuboid-bad-edge-06.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-54",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-08-01.svg",
+      "answer": "cuboid-08-01.svg",
+      "choices": [
+        "cuboid-08-01.svg",
+        "invalid/cuboid-bad-5f-08.svg",
+        "invalid/cuboid-bad-overlap-05.svg",
+        "invalid/cube-bad-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-55",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-08-02.svg",
+      "answer": "cuboid-08-02.svg",
+      "choices": [
+        "invalid/cuboid-bad-fold-04.svg",
+        "invalid/cube-bad-13.svg",
+        "cuboid-08-02.svg",
+        "invalid/cuboid-bad-6f-05.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-56",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-08-03.svg",
+      "answer": "cuboid-08-03.svg",
+      "choices": [
+        "invalid/cuboid-bad-5f-04.svg",
+        "invalid/cuboid-bad-5f-02.svg",
+        "invalid/cuboid-bad-6f-01.svg",
+        "cuboid-08-03.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-57",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-08-04.svg",
+      "answer": "cuboid-08-04.svg",
+      "choices": [
+        "invalid/cuboid-bad-overlap-02.svg",
+        "invalid/cuboid-bad-overlap-07.svg",
+        "cuboid-08-04.svg",
+        "invalid/cuboid-bad-fold-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-58",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-08-05.svg",
+      "answer": "cuboid-08-05.svg",
+      "choices": [
+        "invalid/cube-bad-13.svg",
+        "invalid/cuboid-bad-overlap-04.svg",
+        "invalid/cuboid-bad-edge-07.svg",
+        "cuboid-08-05.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-59",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-08-06.svg",
+      "answer": "cuboid-08-06.svg",
+      "choices": [
+        "invalid/cuboid-bad-6f-08.svg",
+        "invalid/cuboid-bad-edge-08.svg",
+        "invalid/cuboid-bad-5f-06.svg",
+        "cuboid-08-06.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-60",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-09-01.svg",
+      "answer": "cuboid-09-01.svg",
+      "choices": [
+        "invalid/cuboid-bad-fold-06.svg",
+        "invalid/cuboid-bad-overlap-01.svg",
+        "cuboid-09-01.svg",
+        "invalid/cuboid-bad-6f-08.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-61",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-09-02.svg",
+      "answer": "cuboid-09-02.svg",
+      "choices": [
+        "invalid/cube-bad-11.svg",
+        "invalid/cuboid-bad-edge-06.svg",
+        "invalid/cuboid-bad-6f-02.svg",
+        "cuboid-09-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-62",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-09-03.svg",
+      "answer": "cuboid-09-03.svg",
+      "choices": [
+        "invalid/cuboid-bad-fold-08.svg",
+        "invalid/cuboid-bad-5f-05.svg",
+        "invalid/cuboid-bad-6f-04.svg",
+        "cuboid-09-03.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-63",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-09-04.svg",
+      "answer": "cuboid-09-04.svg",
+      "choices": [
+        "invalid/cube-bad-01.svg",
+        "cuboid-09-04.svg",
+        "invalid/cuboid-bad-overlap-02.svg",
+        "invalid/cuboid-bad-fold-05.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-64",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-09-05.svg",
+      "answer": "cuboid-09-05.svg",
+      "choices": [
+        "invalid/cuboid-bad-fold-04.svg",
+        "invalid/cube-bad-10.svg",
+        "invalid/cuboid-bad-5f-04.svg",
+        "cuboid-09-05.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-65",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-09-06.svg",
+      "answer": "cuboid-09-06.svg",
+      "choices": [
+        "invalid/cuboid-bad-5f-04.svg",
+        "invalid/cuboid-bad-overlap-02.svg",
+        "invalid/cuboid-bad-6f-06.svg",
+        "cuboid-09-06.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-66",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-10-01.svg",
+      "answer": "cuboid-10-01.svg",
+      "choices": [
+        "cuboid-10-01.svg",
+        "invalid/cube-bad-12.svg",
+        "invalid/cube-bad-14.svg",
+        "invalid/cuboid-bad-6f-06.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-67",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-10-02.svg",
+      "answer": "cuboid-10-02.svg",
+      "choices": [
+        "invalid/cube-bad-11.svg",
+        "invalid/cuboid-bad-overlap-05.svg",
+        "cuboid-10-02.svg",
+        "invalid/cuboid-bad-6f-07.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-68",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-10-03.svg",
+      "answer": "cuboid-10-03.svg",
+      "choices": [
+        "invalid/cuboid-bad-6f-04.svg",
+        "cuboid-10-03.svg",
+        "invalid/cuboid-bad-fold-04.svg",
+        "invalid/cuboid-bad-overlap-03.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-69",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-10-04.svg",
+      "answer": "cuboid-10-04.svg",
+      "choices": [
+        "cuboid-10-04.svg",
+        "invalid/cube-bad-02.svg",
+        "invalid/cuboid-bad-6f-03.svg",
+        "invalid/cuboid-bad-overlap-05.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-70",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-10-05.svg",
+      "answer": "cuboid-10-05.svg",
+      "choices": [
+        "cuboid-10-05.svg",
+        "invalid/cuboid-bad-6f-04.svg",
+        "invalid/cuboid-bad-5f-08.svg",
+        "invalid/cuboid-bad-overlap-04.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-71",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-10-06.svg",
+      "answer": "cuboid-10-06.svg",
+      "choices": [
+        "invalid/cube-bad-12.svg",
+        "invalid/cuboid-bad-6f-03.svg",
+        "invalid/cuboid-bad-overlap-01.svg",
+        "cuboid-10-06.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-72",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-11-01.svg",
+      "answer": "cuboid-11-01.svg",
+      "choices": [
+        "invalid/cuboid-bad-overlap-01.svg",
+        "cuboid-11-01.svg",
+        "invalid/cuboid-bad-overlap-02.svg",
+        "invalid/cuboid-bad-6f-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-73",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-11-02.svg",
+      "answer": "cuboid-11-02.svg",
+      "choices": [
+        "invalid/cuboid-bad-overlap-07.svg",
+        "invalid/cube-bad-05.svg",
+        "cuboid-11-02.svg",
+        "invalid/cuboid-bad-fold-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-74",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-11-03.svg",
+      "answer": "cuboid-11-03.svg",
+      "choices": [
+        "invalid/cuboid-bad-edge-07.svg",
+        "invalid/cuboid-bad-overlap-04.svg",
+        "cuboid-11-03.svg",
+        "invalid/cuboid-bad-5f-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-75",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-11-04.svg",
+      "answer": "cuboid-11-04.svg",
+      "choices": [
+        "invalid/cuboid-bad-fold-08.svg",
+        "cuboid-11-04.svg",
+        "invalid/cuboid-bad-fold-05.svg",
+        "invalid/cube-bad-03.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-76",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-11-05.svg",
+      "answer": "cuboid-11-05.svg",
+      "choices": [
+        "cuboid-11-05.svg",
+        "invalid/cube-bad-04.svg",
+        "invalid/cuboid-bad-6f-04.svg",
+        "invalid/cube-bad-14.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-77",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-11-06.svg",
+      "answer": "cuboid-11-06.svg",
+      "choices": [
+        "invalid/cuboid-bad-overlap-05.svg",
+        "cuboid-11-06.svg",
+        "invalid/cuboid-bad-6f-06.svg",
+        "invalid/cuboid-bad-overlap-06.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-1",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cube-bad-01.svg",
+      "answer": "invalid/cube-bad-01.svg",
+      "choices": [
+        "cuboid-05-06.svg",
+        "invalid/cube-bad-01.svg",
+        "cuboid-10-05.svg",
+        "cuboid-09-04.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-2",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cube-bad-02.svg",
+      "answer": "invalid/cube-bad-02.svg",
+      "choices": [
+        "cuboid-08-05.svg",
+        "invalid/cube-bad-02.svg",
+        "cuboid-05-04.svg",
+        "cuboid-07-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-3",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cube-bad-03.svg",
+      "answer": "invalid/cube-bad-03.svg",
+      "choices": [
+        "cuboid-05-01.svg",
+        "invalid/cube-bad-03.svg",
+        "cuboid-09-05.svg",
+        "cuboid-05-06.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-4",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cube-bad-04.svg",
+      "answer": "invalid/cube-bad-04.svg",
+      "choices": [
+        "invalid/cube-bad-04.svg",
+        "cuboid-09-06.svg",
+        "cuboid-02-02.svg",
+        "cuboid-09-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-5",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cube-bad-05.svg",
+      "answer": "invalid/cube-bad-05.svg",
+      "choices": [
+        "invalid/cube-bad-05.svg",
+        "cuboid-01-04.svg",
+        "cuboid-02-05.svg",
+        "cuboid-10-06.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-6",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cube-bad-06.svg",
+      "answer": "invalid/cube-bad-06.svg",
+      "choices": [
+        "cube-11.svg",
+        "cuboid-04-06.svg",
+        "invalid/cube-bad-06.svg",
+        "cube-08.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-7",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cube-bad-07.svg",
+      "answer": "invalid/cube-bad-07.svg",
+      "choices": [
+        "invalid/cube-bad-07.svg",
+        "cuboid-06-03.svg",
+        "cuboid-02-03.svg",
+        "cuboid-08-05.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-8",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cube-bad-08.svg",
+      "answer": "invalid/cube-bad-08.svg",
+      "choices": [
+        "invalid/cube-bad-08.svg",
+        "cuboid-07-04.svg",
+        "cuboid-06-05.svg",
+        "cuboid-09-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-9",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cube-bad-09.svg",
+      "answer": "invalid/cube-bad-09.svg",
+      "choices": [
+        "cuboid-03-06.svg",
+        "cuboid-03-05.svg",
+        "cuboid-03-02.svg",
+        "invalid/cube-bad-09.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-10",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cube-bad-10.svg",
+      "answer": "invalid/cube-bad-10.svg",
+      "choices": [
+        "invalid/cube-bad-10.svg",
+        "cuboid-04-04.svg",
+        "cube-10.svg",
+        "cuboid-05-04.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-11",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cube-bad-11.svg",
+      "answer": "invalid/cube-bad-11.svg",
+      "choices": [
+        "cuboid-01-01.svg",
+        "cuboid-04-05.svg",
+        "cuboid-02-04.svg",
+        "invalid/cube-bad-11.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-12",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cube-bad-12.svg",
+      "answer": "invalid/cube-bad-12.svg",
+      "choices": [
+        "cuboid-02-06.svg",
+        "invalid/cube-bad-12.svg",
+        "cuboid-03-02.svg",
+        "cuboid-09-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-13",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cube-bad-13.svg",
+      "answer": "invalid/cube-bad-13.svg",
+      "choices": [
+        "cuboid-09-03.svg",
+        "cuboid-06-01.svg",
+        "invalid/cube-bad-13.svg",
+        "cuboid-02-04.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-14",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cube-bad-14.svg",
+      "answer": "invalid/cube-bad-14.svg",
+      "choices": [
+        "cuboid-02-02.svg",
+        "cube-07.svg",
+        "cube-05.svg",
+        "invalid/cube-bad-14.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-15",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cube-bad-15.svg",
+      "answer": "invalid/cube-bad-15.svg",
+      "choices": [
+        "cuboid-04-06.svg",
+        "cuboid-10-05.svg",
+        "invalid/cube-bad-15.svg",
+        "cube-05.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-16",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-5f-01.svg",
+      "answer": "invalid/cuboid-bad-5f-01.svg",
+      "choices": [
+        "cuboid-08-06.svg",
+        "cuboid-03-03.svg",
+        "cuboid-01-05.svg",
+        "invalid/cuboid-bad-5f-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-17",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-5f-02.svg",
+      "answer": "invalid/cuboid-bad-5f-02.svg",
+      "choices": [
+        "invalid/cuboid-bad-5f-02.svg",
+        "cuboid-04-01.svg",
+        "cuboid-11-05.svg",
+        "cuboid-05-03.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-18",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-5f-03.svg",
+      "answer": "invalid/cuboid-bad-5f-03.svg",
+      "choices": [
+        "cuboid-06-06.svg",
+        "invalid/cuboid-bad-5f-03.svg",
+        "cuboid-06-04.svg",
+        "cuboid-03-04.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-19",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-5f-04.svg",
+      "answer": "invalid/cuboid-bad-5f-04.svg",
+      "choices": [
+        "cuboid-05-06.svg",
+        "invalid/cuboid-bad-5f-04.svg",
+        "cuboid-05-02.svg",
+        "cuboid-06-04.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-20",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-5f-05.svg",
+      "answer": "invalid/cuboid-bad-5f-05.svg",
+      "choices": [
+        "invalid/cuboid-bad-5f-05.svg",
+        "cuboid-05-06.svg",
+        "cuboid-06-06.svg",
+        "cuboid-02-04.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-21",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-5f-06.svg",
+      "answer": "invalid/cuboid-bad-5f-06.svg",
+      "choices": [
+        "cuboid-10-05.svg",
+        "cuboid-01-02.svg",
+        "invalid/cuboid-bad-5f-06.svg",
+        "cuboid-02-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-22",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-5f-07.svg",
+      "answer": "invalid/cuboid-bad-5f-07.svg",
+      "choices": [
+        "invalid/cuboid-bad-5f-07.svg",
+        "cuboid-02-02.svg",
+        "cuboid-08-05.svg",
+        "cuboid-04-03.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-23",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-5f-08.svg",
+      "answer": "invalid/cuboid-bad-5f-08.svg",
+      "choices": [
+        "cuboid-01-06.svg",
+        "cube-10.svg",
+        "invalid/cuboid-bad-5f-08.svg",
+        "cuboid-08-05.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-24",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-6f-01.svg",
+      "answer": "invalid/cuboid-bad-6f-01.svg",
+      "choices": [
+        "cuboid-06-06.svg",
+        "cuboid-06-03.svg",
+        "cuboid-01-03.svg",
+        "invalid/cuboid-bad-6f-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-25",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-6f-02.svg",
+      "answer": "invalid/cuboid-bad-6f-02.svg",
+      "choices": [
+        "cuboid-11-01.svg",
+        "cuboid-05-04.svg",
+        "cuboid-01-03.svg",
+        "invalid/cuboid-bad-6f-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-26",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-6f-03.svg",
+      "answer": "invalid/cuboid-bad-6f-03.svg",
+      "choices": [
+        "invalid/cuboid-bad-6f-03.svg",
+        "cuboid-05-05.svg",
+        "cube-06.svg",
+        "cuboid-11-04.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-27",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-6f-04.svg",
+      "answer": "invalid/cuboid-bad-6f-04.svg",
+      "choices": [
+        "invalid/cuboid-bad-6f-04.svg",
+        "cuboid-01-06.svg",
+        "cube-07.svg",
+        "cuboid-03-05.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-28",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-6f-05.svg",
+      "answer": "invalid/cuboid-bad-6f-05.svg",
+      "choices": [
+        "cuboid-11-01.svg",
+        "cuboid-01-06.svg",
+        "invalid/cuboid-bad-6f-05.svg",
+        "cuboid-09-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-29",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-6f-06.svg",
+      "answer": "invalid/cuboid-bad-6f-06.svg",
+      "choices": [
+        "invalid/cuboid-bad-6f-06.svg",
+        "cuboid-06-03.svg",
+        "cuboid-11-01.svg",
+        "cube-06.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-30",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-6f-07.svg",
+      "answer": "invalid/cuboid-bad-6f-07.svg",
+      "choices": [
+        "cuboid-10-01.svg",
+        "invalid/cuboid-bad-6f-07.svg",
+        "cuboid-11-04.svg",
+        "cube-03.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-31",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-6f-08.svg",
+      "answer": "invalid/cuboid-bad-6f-08.svg",
+      "choices": [
+        "cube-10.svg",
+        "cube-09.svg",
+        "invalid/cuboid-bad-6f-08.svg",
+        "cube-05.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-32",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-edge-01.svg",
+      "answer": "invalid/cuboid-bad-edge-01.svg",
+      "choices": [
+        "cuboid-04-01.svg",
+        "cuboid-07-01.svg",
+        "invalid/cuboid-bad-edge-01.svg",
+        "cuboid-08-03.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-33",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-edge-02.svg",
+      "answer": "invalid/cuboid-bad-edge-02.svg",
+      "choices": [
+        "cube-02.svg",
+        "cuboid-05-05.svg",
+        "invalid/cuboid-bad-edge-02.svg",
+        "cuboid-03-05.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-34",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-edge-03.svg",
+      "answer": "invalid/cuboid-bad-edge-03.svg",
+      "choices": [
+        "invalid/cuboid-bad-edge-03.svg",
+        "cuboid-02-06.svg",
+        "cuboid-03-02.svg",
+        "cube-06.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-35",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-edge-04.svg",
+      "answer": "invalid/cuboid-bad-edge-04.svg",
+      "choices": [
+        "invalid/cuboid-bad-edge-04.svg",
+        "cuboid-10-02.svg",
+        "cube-03.svg",
+        "cuboid-01-03.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-36",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-edge-05.svg",
+      "answer": "invalid/cuboid-bad-edge-05.svg",
+      "choices": [
+        "invalid/cuboid-bad-edge-05.svg",
+        "cuboid-07-05.svg",
+        "cuboid-02-04.svg",
+        "cuboid-11-04.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-37",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-edge-06.svg",
+      "answer": "invalid/cuboid-bad-edge-06.svg",
+      "choices": [
+        "cuboid-04-01.svg",
+        "cuboid-04-02.svg",
+        "cuboid-01-04.svg",
+        "invalid/cuboid-bad-edge-06.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-38",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-edge-07.svg",
+      "answer": "invalid/cuboid-bad-edge-07.svg",
+      "choices": [
+        "invalid/cuboid-bad-edge-07.svg",
+        "cube-06.svg",
+        "cuboid-11-05.svg",
+        "cuboid-08-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-39",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-edge-08.svg",
+      "answer": "invalid/cuboid-bad-edge-08.svg",
+      "choices": [
+        "cuboid-11-04.svg",
+        "cube-03.svg",
+        "cuboid-05-04.svg",
+        "invalid/cuboid-bad-edge-08.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-40",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-fold-01.svg",
+      "answer": "invalid/cuboid-bad-fold-01.svg",
+      "choices": [
+        "cuboid-10-01.svg",
+        "cuboid-08-02.svg",
+        "invalid/cuboid-bad-fold-01.svg",
+        "cuboid-09-06.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-41",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-fold-02.svg",
+      "answer": "invalid/cuboid-bad-fold-02.svg",
+      "choices": [
+        "cuboid-03-06.svg",
+        "invalid/cuboid-bad-fold-02.svg",
+        "cuboid-06-01.svg",
+        "cuboid-05-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-42",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-fold-03.svg",
+      "answer": "invalid/cuboid-bad-fold-03.svg",
+      "choices": [
+        "cuboid-04-05.svg",
+        "cuboid-10-02.svg",
+        "cuboid-10-04.svg",
+        "invalid/cuboid-bad-fold-03.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-43",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-fold-04.svg",
+      "answer": "invalid/cuboid-bad-fold-04.svg",
+      "choices": [
+        "cuboid-10-01.svg",
+        "invalid/cuboid-bad-fold-04.svg",
+        "cube-07.svg",
+        "cuboid-06-03.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-44",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-fold-05.svg",
+      "answer": "invalid/cuboid-bad-fold-05.svg",
+      "choices": [
+        "cube-03.svg",
+        "cuboid-10-06.svg",
+        "cuboid-03-04.svg",
+        "invalid/cuboid-bad-fold-05.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-45",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-fold-06.svg",
+      "answer": "invalid/cuboid-bad-fold-06.svg",
+      "choices": [
+        "cuboid-03-02.svg",
+        "cuboid-09-02.svg",
+        "cuboid-11-04.svg",
+        "invalid/cuboid-bad-fold-06.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-46",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-fold-07.svg",
+      "answer": "invalid/cuboid-bad-fold-07.svg",
+      "choices": [
+        "cuboid-06-02.svg",
+        "invalid/cuboid-bad-fold-07.svg",
+        "cuboid-10-03.svg",
+        "cuboid-02-03.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-47",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-fold-08.svg",
+      "answer": "invalid/cuboid-bad-fold-08.svg",
+      "choices": [
+        "cuboid-06-02.svg",
+        "cube-09.svg",
+        "invalid/cuboid-bad-fold-08.svg",
+        "cuboid-11-03.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-48",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-overlap-01.svg",
+      "answer": "invalid/cuboid-bad-overlap-01.svg",
+      "choices": [
+        "cuboid-05-05.svg",
+        "cuboid-02-04.svg",
+        "cube-03.svg",
+        "invalid/cuboid-bad-overlap-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-49",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-overlap-02.svg",
+      "answer": "invalid/cuboid-bad-overlap-02.svg",
+      "choices": [
+        "invalid/cuboid-bad-overlap-02.svg",
+        "cube-02.svg",
+        "cuboid-01-06.svg",
+        "cuboid-03-05.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-50",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-overlap-03.svg",
+      "answer": "invalid/cuboid-bad-overlap-03.svg",
+      "choices": [
+        "cuboid-09-03.svg",
+        "invalid/cuboid-bad-overlap-03.svg",
+        "cuboid-08-03.svg",
+        "cuboid-08-05.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-51",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-overlap-04.svg",
+      "answer": "invalid/cuboid-bad-overlap-04.svg",
+      "choices": [
+        "cuboid-04-01.svg",
+        "invalid/cuboid-bad-overlap-04.svg",
+        "cube-02.svg",
+        "cuboid-11-06.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-52",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-overlap-05.svg",
+      "answer": "invalid/cuboid-bad-overlap-05.svg",
+      "choices": [
+        "cuboid-04-01.svg",
+        "cube-10.svg",
+        "invalid/cuboid-bad-overlap-05.svg",
+        "cube-03.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-53",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-overlap-06.svg",
+      "answer": "invalid/cuboid-bad-overlap-06.svg",
+      "choices": [
+        "cuboid-06-02.svg",
+        "cuboid-08-03.svg",
+        "invalid/cuboid-bad-overlap-06.svg",
+        "cuboid-07-03.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-54",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-overlap-07.svg",
+      "answer": "invalid/cuboid-bad-overlap-07.svg",
+      "choices": [
+        "cuboid-06-03.svg",
+        "cuboid-09-01.svg",
+        "invalid/cuboid-bad-overlap-07.svg",
+        "cuboid-03-05.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-55",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-overlap-08.svg",
+      "answer": "invalid/cuboid-bad-overlap-08.svg",
+      "choices": [
+        "cube-05.svg",
+        "cuboid-10-03.svg",
+        "invalid/cuboid-bad-overlap-08.svg",
+        "cuboid-06-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    }
+  ]
+}

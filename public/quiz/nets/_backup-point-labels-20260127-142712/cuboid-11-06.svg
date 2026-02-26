@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="360" viewBox="-24.00 -24.00 568.00 408.00" shape-rendering="crispEdges">
+<defs>
+    <pattern id="gridMinor" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e2e8f0" stroke-width="1" />
+    </pattern>
+    <pattern id="gridMajor" width="200" height="200" patternUnits="userSpaceOnUse">
+      <path d="M 200 0 L 0 0 0 200" fill="none" stroke="#cbd5e1" stroke-width="1" />
+    </pattern></defs>
+<rect width="568.00" height="408.00" fill="white" x="-24.00" y="-24.00" />
+<rect width="568.00" height="408.00" fill="url(#gridMinor)" x="-24.00" y="-24.00" />
+<rect width="568.00" height="408.00" fill="url(#gridMajor)" x="-24.00" y="-24.00" />
+<line x1="0" y1="0" x2="160" y2="0" stroke="#111111" stroke-width="3.5" stroke-linecap="square" />
+<line x1="160" y1="0" x2="160" y2="120" stroke="#111111" stroke-width="1.5" stroke-linecap="square" stroke-dasharray="6 4" />
+<line x1="160" y1="120" x2="0" y2="120" stroke="#111111" stroke-width="3.5" stroke-linecap="square" />
+<line x1="0" y1="120" x2="0" y2="0" stroke="#111111" stroke-width="3.5" stroke-linecap="square" />
+<line x1="160" y1="0" x2="240" y2="0" stroke="#111111" stroke-width="3.5" stroke-linecap="square" />
+<line x1="240" y1="0" x2="240" y2="120" stroke="#111111" stroke-width="3.5" stroke-linecap="square" />
+<line x1="240" y1="120" x2="160" y2="120" stroke="#111111" stroke-width="1.5" stroke-linecap="square" stroke-dasharray="6 4" />
+<line x1="240" y1="120" x2="240" y2="280" stroke="#111111" stroke-width="1.5" stroke-linecap="square" stroke-dasharray="6 4" />
+<line x1="240" y1="280" x2="160" y2="280" stroke="#111111" stroke-width="3.5" stroke-linecap="square" />
+<line x1="160" y1="280" x2="160" y2="120" stroke="#111111" stroke-width="3.5" stroke-linecap="square" />
+<line x1="240" y1="120" x2="360" y2="120" stroke="#111111" stroke-width="3.5" stroke-linecap="square" />
+<line x1="360" y1="120" x2="360" y2="280" stroke="#111111" stroke-width="3.5" stroke-linecap="square" />
+<line x1="360" y1="280" x2="240" y2="280" stroke="#111111" stroke-width="1.5" stroke-linecap="square" stroke-dasharray="6 4" />
+<line x1="360" y1="280" x2="360" y2="360" stroke="#111111" stroke-width="1.5" stroke-linecap="square" stroke-dasharray="6 4" />
+<line x1="360" y1="360" x2="240" y2="360" stroke="#111111" stroke-width="3.5" stroke-linecap="square" />
+<line x1="240" y1="360" x2="240" y2="280" stroke="#111111" stroke-width="3.5" stroke-linecap="square" />
+<line x1="360" y1="280" x2="520" y2="280" stroke="#111111" stroke-width="3.5" stroke-linecap="square" />
+<line x1="520" y1="280" x2="520" y2="360" stroke="#111111" stroke-width="3.5" stroke-linecap="square" />
+<line x1="520" y1="360" x2="360" y2="360" stroke="#111111" stroke-width="3.5" stroke-linecap="square" />
+<g data-point-labels="true" font-family="sans-serif" font-size="14" font-weight="700" fill="#111111" text-anchor="middle" dominant-baseline="middle"><text x="-7.99" y="-6.01">ㄱ</text><text x="152.03" y="113.96">ㄴ</text><text x="155.58" y="-8.97">ㄷ</text><text x="238.04" y="110.19">ㄹ</text><text x="239.26" y="-9.97">ㅁ</text><text x="368.29" y="114.40">ㅂ</text><text x="529.49" y="283.16">ㅅ</text><text x="528.44" y="365.36">ㅇ</text><text x="367.67" y="286.42">ㅈ</text><text x="365.31" y="368.47">ㅊ</text><text x="239.16" y="369.96">ㅍ</text><text x="238.41" y="289.87">ㅌ</text><text x="152.71" y="286.85">ㅎ</text></g></svg>

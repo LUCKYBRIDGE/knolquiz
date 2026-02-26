@@ -1,0 +1,164 @@
+const STORAGE_KEY = 'jumpmap.launcher.setup.v1';
+
+const GAME_LABELS = {
+  jumpmap: '점프맵',
+  'basic-quiz': '기본 모드(퀴즈)'
+};
+
+const QUIZ_PRESET_LABELS = {
+  'jumpmap-net-30': '전개도 학습 30문제',
+  'jumpmap-net-12': '전개도 학습 12문제',
+  'cube-only-24': '정육면체 중심 24문제',
+  'cuboid-only-24': '직육면체 중심 24문제'
+};
+
+const CHARACTER_LABELS = {
+  sejong: '세종'
+};
+
+const readLauncherSetup = () => {
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' ? parsed : null;
+  } catch (error) {
+    console.warn('[PlayRouter] failed to read launcher setup', error);
+    return null;
+  }
+};
+
+const normalizeSetup = (setup) => {
+  if (!setup || typeof setup !== 'object') return null;
+  const players = Math.max(1, Math.min(6, Math.round(Number(setup.players) || 1)));
+  const gameMode = typeof setup.gameMode === 'string' ? setup.gameMode : 'jumpmap';
+  const quizPresetId = typeof setup.quizPresetId === 'string' ? setup.quizPresetId : 'jumpmap-net-30';
+  const characterId = typeof setup.characterId === 'string' && setup.characterId.trim()
+    ? setup.characterId.trim()
+    : 'sejong';
+  const jumpmapStartPointId = typeof setup.jumpmapStartPointId === 'string'
+    ? setup.jumpmapStartPointId
+    : '';
+  const playerNames = Array.isArray(setup.playerNames) ? setup.playerNames.slice(0, 6) : [];
+  const playerTags = Array.isArray(setup.playerTags) ? setup.playerTags.slice(0, 6) : [];
+  while (playerNames.length < players) playerNames.push(`사용자${playerNames.length + 1}`);
+  while (playerTags.length < players) playerTags.push('');
+  const normalizedNames = playerNames.slice(0, players).map((name, index) => {
+    const trimmed = typeof name === 'string' ? name.trim() : '';
+    return trimmed || `사용자${index + 1}`;
+  });
+  const normalizedTags = playerTags.slice(0, players).map((tag) => {
+    if (typeof tag !== 'string') return '';
+    return tag.trim();
+  });
+  return {
+    ...setup,
+    players,
+    gameMode,
+    quizPresetId,
+    characterId,
+    jumpmapStartPointId,
+    playerNames: normalizedNames,
+    playerTags: normalizedTags
+  };
+};
+
+const getStartTargetUrl = (setup) => {
+  if (!setup) return null;
+  if (setup.gameMode === 'jumpmap') {
+    const url = new URL('../jumpmap-play/', window.location.href);
+    url.searchParams.set('launchMode', 'play');
+    url.searchParams.set('fromLauncher', '1');
+    return url;
+  }
+  if (setup.gameMode === 'basic-quiz') {
+    const url = new URL('../quiz/', window.location.href);
+    url.searchParams.set('launchMode', 'play');
+    url.searchParams.set('fromLauncher', '1');
+    return url;
+  }
+  return null;
+};
+
+const renderSummary = (box, setup) => {
+  if (!box) return;
+  box.innerHTML = '';
+  const rows = [
+    ['플레이 인원', `${setup.players}명`],
+    ['게임', GAME_LABELS[setup.gameMode] || setup.gameMode],
+    ['퀴즈', QUIZ_PRESET_LABELS[setup.quizPresetId] || setup.quizPresetId],
+    ['캐릭터', setup.gameMode === 'jumpmap' ? (CHARACTER_LABELS[setup.characterId] || setup.characterId) : '사용 안 함'],
+    ['스타트 후보', setup.gameMode === 'jumpmap' ? (setup.jumpmapStartPointId || '시작지점') : '해당 없음'],
+    [
+      '플레이어 이름',
+      setup.playerNames
+        .map((name, idx) => {
+          const tag = setup.playerTags?.[idx];
+          return tag ? `${name}(${tag})` : name;
+        })
+        .join(', ')
+    ]
+  ];
+  rows.forEach(([key, value]) => {
+    const row = document.createElement('div');
+    row.className = 'summary-row';
+    const k = document.createElement('div');
+    k.className = 'k';
+    k.textContent = key;
+    const v = document.createElement('div');
+    v.className = 'v';
+    v.textContent = value;
+    row.append(k, v);
+    box.appendChild(row);
+  });
+};
+
+const setStatus = (text) => {
+  const el = document.getElementById('status-text');
+  if (el) el.textContent = text;
+};
+
+const showError = (message) => {
+  const errorBox = document.getElementById('error-box');
+  if (!errorBox) return;
+  errorBox.textContent = message;
+  errorBox.classList.add('show');
+};
+
+const clearError = () => {
+  const errorBox = document.getElementById('error-box');
+  if (!errorBox) return;
+  errorBox.textContent = '';
+  errorBox.classList.remove('show');
+};
+
+const startRouting = () => {
+  clearError();
+  const setup = normalizeSetup(readLauncherSetup());
+  const summaryBox = document.getElementById('summary-box');
+  if (!setup) {
+    setStatus('런처 설정을 찾지 못했습니다');
+    if (summaryBox) summaryBox.innerHTML = '';
+    showError('런처에서 인원/퀴즈/게임을 먼저 선택한 뒤 시작해 주세요.');
+    return;
+  }
+
+  renderSummary(summaryBox, setup);
+  const targetUrl = getStartTargetUrl(setup);
+  if (!targetUrl) {
+    setStatus('알 수 없는 게임 모드입니다');
+    showError(`지원하지 않는 게임 모드: ${setup.gameMode}`);
+    return;
+  }
+
+  setStatus('게임 화면으로 이동하는 중...');
+  window.setTimeout(() => {
+    window.location.replace(targetUrl.toString());
+  }, 200);
+};
+
+document.getElementById('retry-btn')?.addEventListener('click', () => {
+  startRouting();
+});
+
+startRouting();

@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>놀퀴즈 - 점프맵 런타임</title>
+    <style>
+      :root {
+        --ink: #1b2d4d;
+        --muted: #5f6f8f;
+        --line: rgba(27, 45, 77, 0.18);
+        --paper: rgba(251, 247, 236, 0.96);
+        --bg-1: #eee5cf;
+        --bg-2: #ddd1b7;
+        --accent: #5c83d8;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; }
+      body {
+        font-family: "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 14% 16%, rgba(255,255,255,0.5), transparent 42%),
+          radial-gradient(circle at 84% 18%, rgba(255,255,255,0.38), transparent 46%),
+          linear-gradient(180deg, var(--bg-1), var(--bg-2));
+      }
+      body.runtime-play-clean .panel {
+        width: min(540px, 100%);
+        border: none;
+        box-shadow: none;
+        background: transparent;
+        padding: 10px;
+      }
+      body.runtime-play-clean h1,
+      body.runtime-play-clean main > p,
+      body.runtime-play-clean .summary-wrap,
+      body.runtime-play-clean .log,
+      body.runtime-play-clean .native-stage,
+      body.runtime-play-clean .impl-controls,
+      body.runtime-play-clean .actions {
+        display: none !important;
+      }
+      body.runtime-play-clean .status {
+        margin-top: 0;
+      }
+      body.play-mode .shell {
+        padding: 0;
+      }
+      body.play-mode .panel {
+        width: 100%;
+        max-width: none;
+        min-height: 100vh;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        background: transparent;
+        padding: 0;
+      }
+      body.play-mode h1,
+      body.play-mode main > p,
+      body.play-mode .summary-wrap,
+      body.play-mode .log,
+      body.play-mode .impl-controls,
+      body.play-mode .actions {
+        display: none !important;
+      }
+      body.play-mode .status {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        z-index: 30;
+        margin: 0;
+        border-radius: 10px;
+        padding: 8px 10px;
+        font-size: 12px;
+        background: rgba(255, 255, 255, 0.82);
+      }
+      .shell {
+        min-height: 100%;
+        display: grid;
+        place-items: center;
+        padding: 20px;
+      }
+      .panel {
+        width: min(720px, 100%);
+        border-radius: 18px;
+        border: 2px solid rgba(27, 45, 77, 0.25);
+        background: var(--paper);
+        box-shadow: 0 14px 36px rgba(27, 45, 77, 0.14);
+        padding: 18px;
+      }
+      h1 {
+        margin: 0;
+        font-size: clamp(22px, 2.8vw, 30px);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+      }
+      p {
+        margin: 8px 0 0;
+        line-height: 1.45;
+        color: var(--muted);
+      }
+      .status {
+        margin-top: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.72);
+        padding: 10px 14px;
+        font-weight: 800;
+      }
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: var(--accent);
+        box-shadow: 0 0 0 5px rgba(92,131,216,0.14);
+        animation: pulse 1.5s ease-in-out infinite;
+      }
+      .error {
+        margin-top: 12px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(170, 30, 30, 0.25);
+        background: rgba(255, 236, 236, 0.85);
+        color: #7c1f1f;
+        font-weight: 700;
+        display: none;
+      }
+      .error.show { display: block; }
+      .summary-wrap {
+        margin-top: 14px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .card {
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.62);
+        padding: 12px;
+      }
+      .card h2 {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 900;
+        letter-spacing: -0.01em;
+      }
+      .rows {
+        margin-top: 8px;
+        display: grid;
+        gap: 6px;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 110px 1fr;
+        gap: 8px;
+        padding: 6px 8px;
+        border-radius: 10px;
+        background: rgba(255,255,255,0.55);
+        border: 1px solid rgba(27, 45, 77, 0.07);
+      }
+      .row .k {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .row .v {
+        font-size: 13px;
+        font-weight: 800;
+        overflow-wrap: anywhere;
+      }
+      .log {
+        margin-top: 12px;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.65);
+        padding: 10px;
+        display: grid;
+        gap: 6px;
+      }
+      .log-row {
+        display: flex;
+        gap: 8px;
+        align-items: baseline;
+        font-size: 12px;
+      }
+      .log-row .tag {
+        min-width: 48px;
+        color: var(--muted);
+        font-weight: 700;
+      }
+      .log-row .msg {
+        font-weight: 700;
+        overflow-wrap: anywhere;
+      }
+      .native-stage {
+        margin-top: 12px;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.65);
+        padding: 10px;
+        display: none;
+      }
+      .native-stage.show {
+        display: block;
+      }
+      body.play-mode .native-stage {
+        display: block;
+        border: none;
+        border-radius: 0;
+        background: transparent;
+        padding: 0;
+        margin: 0;
+      }
+      .native-stage-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+      body.play-mode .native-stage-head {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 25;
+        margin: 0;
+        padding: 8px 10px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.78);
+        border: 1px solid rgba(27, 45, 77, 0.16);
+      }
+      .native-stage-head h2 {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 900;
+      }
+      body.play-mode .native-stage-head h2 {
+        font-size: 13px;
+      }
+      .native-stage-meta {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+      }
+      body.play-mode .native-stage-meta {
+        font-size: 11px;
+      }
+      .native-preview-wrap {
+        position: relative;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(27, 45, 77, 0.12);
+        background:
+          linear-gradient(0deg, rgba(255,255,255,0.5), rgba(255,255,255,0.5)),
+          repeating-linear-gradient(
+            0deg,
+            rgba(27,45,77,0.05) 0,
+            rgba(27,45,77,0.05) 1px,
+            transparent 1px,
+            transparent 20px
+          ),
+          repeating-linear-gradient(
+            90deg,
+            rgba(27,45,77,0.05) 0,
+            rgba(27,45,77,0.05) 1px,
+            transparent 1px,
+            transparent 20px
+          );
+      }
+      body.play-mode .native-preview-wrap {
+        border: none;
+        border-radius: 0;
+        height: 100vh;
+      }
+      .native-preview-canvas {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 16 / 9;
+      }
+      body.play-mode .native-preview-canvas {
+        height: 100%;
+        aspect-ratio: auto;
+      }
+      .native-preview-overlay {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      .native-preview-camera-frame {
+        position: absolute;
+        left: 0;
+        top: 0;
+        border: 2px dashed rgba(14, 165, 233, 0.95);
+        background: rgba(14, 165, 233, 0.06);
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.45);
+        display: none;
+      }
+      .native-preview-camera-frame.show {
+        display: block;
+      }
+      .native-preview-camera-label {
+        position: absolute;
+        left: 4px;
+        top: -28px;
+        border-radius: 8px;
+        background: rgba(14, 165, 233, 0.92);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 900;
+        line-height: 1;
+        padding: 6px 8px;
+        white-space: nowrap;
+      }
+      .native-preview-player {
+        position: absolute;
+        left: 0;
+        top: 0;
+        transform-origin: top left;
+        pointer-events: none;
+      }
+      .native-preview-player.hidden {
+        display: none;
+      }
+      .native-preview-player-hitbox {
+        position: absolute;
+        inset: 0;
+        border: 2px solid rgba(59, 130, 246, 0.95);
+        background: rgba(59, 130, 246, 0.12);
+        box-sizing: border-box;
+      }
+      .native-preview-player-sprite {
+        position: absolute;
+        left: 0;
+        top: 0;
+        image-rendering: pixelated;
+        transform-origin: top left;
+      }
+      .native-play-controls {
+        display: none;
+      }
+      body.play-mode .native-play-controls {
+        display: flex;
+        position: fixed;
+        left: 16px;
+        right: 16px;
+        bottom: 16px;
+        z-index: 40;
+        justify-content: space-between;
+        align-items: end;
+        pointer-events: none;
+      }
+      .native-dpad,
+      .native-jump-wrap {
+        display: flex;
+        gap: 10px;
+        pointer-events: auto;
+      }
+      .native-play-btn {
+        width: 74px;
+        height: 74px;
+        border-radius: 16px;
+        border: 2px solid rgba(27, 45, 77, 0.9);
+        background: rgba(255, 255, 255, 0.9);
+        color: var(--ink);
+        font-weight: 900;
+        font-size: 28px;
+        box-shadow: 0 6px 16px rgba(27, 45, 77, 0.24);
+        user-select: none;
+      }
+      .native-play-btn.jump {
+        width: 110px;
+        font-size: 27px;
+      }
+      .native-play-btn:active,
+      .native-play-btn.is-active {
+        transform: translateY(2px);
+        background: rgba(249, 221, 115, 0.95);
+      }
+      .actions {
+        margin-top: 14px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .btn {
+        border: 2px solid rgba(27, 45, 77, 0.85);
+        border-radius: 14px;
+        background: #fff;
+        padding: 10px 14px;
+        color: var(--ink);
+        font-weight: 800;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      .btn.primary {
+        background: linear-gradient(180deg, #f9dd73, #caa33a);
+        border-color: #9f7f24;
+        color: #3e2a00;
+      }
+      .btn[disabled] {
+        opacity: 0.55;
+        cursor: default;
+        pointer-events: none;
+      }
+      .impl-controls {
+        margin-top: 10px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .impl-controls label {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--ink);
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.6);
+        border-radius: 12px;
+        padding: 8px 10px;
+      }
+      .impl-controls select {
+        font: inherit;
+        color: inherit;
+        border: 1px solid rgba(27, 45, 77, 0.25);
+        background: #fff;
+        border-radius: 8px;
+        padding: 4px 8px;
+      }
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.14); opacity: 0.7; }
+      }
+      @media (max-width: 760px) {
+        .summary-wrap { grid-template-columns: 1fr; }
+        .row { grid-template-columns: 88px 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <main class="panel" aria-live="polite">
+        <h1>점프맵 런타임 준비</h1>
+        <p>
+          운영용 점프맵 런타임 경계입니다. 현재는 기존 플레이 모드 구현체로 연결하지만,
+          이후 이 경계 내부를 독립 런타임으로 교체할 예정입니다.
+        </p>
+        <div class="status">
+          <span class="dot" aria-hidden="true"></span>
+          <span id="status-text">점프맵 런타임을 준비하는 중...</span>
+        </div>
+        <div class="summary-wrap">
+          <section class="card" aria-labelledby="runtime-setup-title">
+            <h2 id="runtime-setup-title">런처 설정</h2>
+            <div class="rows" id="setup-summary-rows"></div>
+          </section>
+          <section class="card" aria-labelledby="runtime-map-title">
+            <h2 id="runtime-map-title">운영 맵 상태</h2>
+            <div class="rows" id="map-summary-rows"></div>
+          </section>
+        </div>
+        <section class="log" aria-label="런타임 준비 로그" id="status-log"></section>
+        <section class="native-stage" id="native-stage-panel" aria-label="독립 런타임 프리뷰">
+          <div class="native-stage-head">
+            <h2>독립 런타임 프리뷰 (플레이스홀더)</h2>
+            <div class="native-stage-meta" id="native-stage-meta">미초기화</div>
+          </div>
+          <div class="native-preview-wrap">
+            <canvas
+              id="native-preview-canvas"
+              class="native-preview-canvas"
+              width="960"
+              height="540"
+            ></canvas>
+            <div id="native-preview-overlay" class="native-preview-overlay" aria-hidden="true">
+              <div id="native-preview-camera-frame" class="native-preview-camera-frame">
+                <div class="native-preview-camera-label">실시간 카메라</div>
+              </div>
+              <div id="native-preview-player" class="native-preview-player hidden">
+                <div id="native-preview-player-hitbox" class="native-preview-player-hitbox"></div>
+                <img
+                  id="native-preview-player-sprite"
+                  class="native-preview-player-sprite"
+                  alt=""
+                  draggable="false"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="native-play-controls" aria-label="네이티브 플레이 조작">
+            <div class="native-dpad">
+              <button id="native-left-btn" class="native-play-btn" type="button" aria-label="왼쪽 이동">◀</button>
+              <button id="native-right-btn" class="native-play-btn" type="button" aria-label="오른쪽 이동">▶</button>
+            </div>
+            <div class="native-jump-wrap">
+              <button id="native-jump-btn" class="native-play-btn jump" type="button" aria-label="점프">점프</button>
+            </div>
+          </div>
+        </section>
+        <div id="error-box" class="error"></div>
+        <div class="impl-controls" aria-label="런타임 구현체 선택">
+          <label>
+            런타임 구현체
+            <select id="runtime-impl-select">
+              <option value="legacy">레거시 플레이 (에디터 기반)</option>
+              <option value="native">독립 런타임 (플레이스홀더)</option>
+              <option value="shell">실험 셸 유지 (준비 상태 확인)</option>
+            </select>
+          </label>
+          <button class="btn" id="apply-runtime-impl-btn" type="button">구현체 적용</button>
+        </div>
+        <div class="actions">
+          <button class="btn primary" id="launch-now-btn" type="button" disabled>레거시 플레이 시작</button>
+          <a class="btn" href="../play/">플레이 라우터로</a>
+          <a class="btn" href="../">런처로</a>
+        </div>
+      </main>
+    </div>
+    <script type="module" src="./app.js"></script>
+  </body>
+  </html>

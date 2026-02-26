@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>놀퀴즈 - 점프맵 레거시 Compat Target</title>
+    <style>
+      html, body {
+        margin: 0;
+        height: 100%;
+      }
+      body {
+        display: grid;
+        place-items: center;
+        background: #eee4c9;
+        color: #223149;
+        font-family: "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+        padding: 16px;
+      }
+      .panel {
+        width: min(560px, 100%);
+        border-radius: 14px;
+        border: 1px solid rgba(34, 49, 73, 0.15);
+        background: rgba(255, 255, 255, 0.88);
+        box-shadow: 0 10px 28px rgba(34, 49, 73, 0.10);
+        padding: 14px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 16px;
+      }
+      p {
+        margin: 8px 0 0;
+        font-size: 13px;
+        color: #55647c;
+        line-height: 1.45;
+      }
+      .row {
+        margin-top: 8px;
+        font-size: 11px;
+        color: #55647c;
+        word-break: break-all;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="panel" aria-live="polite">
+      <h1>레거시 Compat Target 로딩 중...</h1>
+      <p id="status-text">에디터 페이지를 runtime 경로에서 호환 로드할 준비를 하고 있습니다.</p>
+      <div class="row" id="target-row" hidden></div>
+    </section>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

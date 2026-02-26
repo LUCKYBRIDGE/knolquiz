@@ -1,0 +1,746 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>놀퀴즈 - 게임 시작</title>
+    <style>
+      :root {
+        --paper: #f4efe3;
+        --panel: rgba(255, 250, 240, 0.95);
+        --line: #2f261f;
+        --accent: #d0a62e;
+        --accent-dark: #9d7411;
+        --soft: #d8ccaf;
+        --ink: #1e1a16;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Noto Serif KR", "Apple SD Gothic Neo", "Malgun Gothic", serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 12% 8%, rgba(255, 248, 230, 0.9), transparent 38%),
+          radial-gradient(circle at 92% 86%, rgba(214, 189, 126, 0.22), transparent 36%),
+          linear-gradient(180deg, #f7f1e4 0%, #efe7d5 45%, #e6ddc9 100%);
+      }
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.18;
+        background-image:
+          linear-gradient(90deg, rgba(88, 66, 44, 0.15) 1px, transparent 1px),
+          linear-gradient(0deg, rgba(88, 66, 44, 0.08) 1px, transparent 1px);
+        background-size: 28px 28px;
+      }
+      main {
+        width: min(1160px, calc(100% - 24px));
+        margin: 18px auto 28px;
+        display: grid;
+        gap: 14px;
+      }
+      .hero {
+        background: var(--panel);
+        border: 3px solid var(--line);
+        border-radius: 18px;
+        padding: 18px 20px 16px;
+        box-shadow: 0 10px 24px rgba(41, 29, 19, 0.12);
+      }
+      .hero h1 {
+        margin: 0;
+        font-size: clamp(26px, 3vw, 38px);
+        line-height: 1.1;
+      }
+      .hero p {
+        margin: 8px 0 0;
+        color: #4f4338;
+        font-size: 15px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 14px;
+      }
+      .panel {
+        background: var(--panel);
+        border: 3px solid var(--line);
+        border-radius: 18px;
+        padding: 14px;
+        box-shadow: 0 10px 22px rgba(41, 29, 19, 0.1);
+      }
+      .panel h2 {
+        margin: 0 0 10px;
+        font-size: 20px;
+      }
+      .section {
+        border: 2px solid rgba(47, 38, 31, 0.24);
+        border-radius: 14px;
+        padding: 12px;
+        background: rgba(255, 253, 248, 0.78);
+      }
+      .section + .section { margin-top: 12px; }
+      .section-title {
+        font-weight: 900;
+        margin: 0 0 10px;
+        font-size: 15px;
+      }
+      .player-buttons,
+      .game-buttons {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 8px;
+      }
+      .game-buttons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .game-card {
+        display: grid;
+        grid-template-rows: auto auto 1fr;
+        gap: 8px;
+        align-content: start;
+        text-align: left;
+        padding: 10px;
+        min-height: 184px;
+      }
+      .game-card-poster {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+        border-radius: 10px;
+        border: 2px solid rgba(47, 38, 31, 0.18);
+        background: linear-gradient(180deg, #f3eee6 0%, #e7dfd2 100%);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      }
+      .game-card-poster.is-placeholder {
+        display: grid;
+        place-items: center;
+        padding: 8px;
+        text-align: center;
+        font-weight: 800;
+        font-size: 12px;
+        color: #675447;
+        line-height: 1.35;
+      }
+      .game-card-title {
+        font-weight: 900;
+        font-size: 15px;
+        color: #2f261f;
+        line-height: 1.2;
+      }
+      .game-card-desc {
+        font-size: 12px;
+        color: #5d4b3b;
+        line-height: 1.35;
+      }
+      .seg-btn {
+        border: 2px solid var(--line);
+        background: #fffaf0;
+        border-radius: 12px;
+        min-height: 46px;
+        font-weight: 800;
+        font-size: 16px;
+        cursor: pointer;
+        box-shadow: 0 3px 0 rgba(63, 46, 26, 0.18);
+      }
+      .seg-btn:hover { transform: translateY(-1px); }
+      .seg-btn.is-active {
+        background: linear-gradient(180deg, #fff3c4 0%, #f0c74b 100%);
+        box-shadow: 0 2px 0 rgba(63, 46, 26, 0.18) inset;
+      }
+      .seg-btn.game-card.is-active .game-card-poster {
+        border-color: rgba(97, 71, 21, 0.45);
+      }
+      .field-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .field {
+        display: grid;
+        gap: 6px;
+      }
+      .field label {
+        font-weight: 800;
+        font-size: 13px;
+        color: #42352a;
+      }
+      .field input,
+      .field select {
+        width: 100%;
+        border: 2px solid rgba(47, 38, 31, 0.7);
+        border-radius: 10px;
+        background: #fff;
+        min-height: 42px;
+        padding: 8px 10px;
+        font: inherit;
+      }
+      .names-list {
+        display: grid;
+        gap: 8px;
+        max-height: 264px;
+        overflow: auto;
+        padding-right: 2px;
+      }
+      .name-row {
+        display: grid;
+        grid-template-columns: 78px 1fr 72px;
+        gap: 8px;
+        align-items: center;
+      }
+      .name-tag {
+        border: 2px solid rgba(47, 38, 31, 0.5);
+        border-radius: 10px;
+        background: #fff;
+        min-height: 42px;
+        padding: 8px 8px;
+        font: inherit;
+        text-align: center;
+      }
+      .name-badge {
+        border-radius: 10px;
+        text-align: center;
+        padding: 8px 6px;
+        font-weight: 900;
+        border: 2px solid rgba(47, 38, 31, 0.2);
+        color: #33281f;
+        background: #f5edda;
+      }
+      .quiz-presets {
+        display: grid;
+        gap: 8px;
+      }
+      .quiz-item {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 10px;
+        align-items: start;
+        border: 2px solid rgba(47, 38, 31, 0.18);
+        border-radius: 12px;
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.75);
+      }
+      .quiz-item.is-selected {
+        border-color: rgba(208, 166, 46, 0.9);
+        box-shadow: inset 0 0 0 1px rgba(208, 166, 46, 0.35);
+        background: rgba(255, 248, 221, 0.82);
+      }
+      .quiz-item-title {
+        font-weight: 900;
+      }
+      .quiz-item-desc {
+        font-size: 13px;
+        color: #5a4b3e;
+        margin-top: 2px;
+      }
+      .summary {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: 1fr;
+      }
+      .summary-box {
+        border-radius: 14px;
+        border: 2px dashed rgba(47, 38, 31, 0.3);
+        background: rgba(255, 255, 255, 0.68);
+        padding: 12px;
+        font-size: 14px;
+        line-height: 1.4;
+      }
+      .summary-box strong { font-weight: 900; }
+      .actions {
+        display: grid;
+        gap: 10px;
+      }
+      .start-btn,
+      .tool-link {
+        width: 100%;
+        border: 3px solid var(--line);
+        border-radius: 14px;
+        text-decoration: none;
+        color: inherit;
+        background: #fff;
+        padding: 12px 14px;
+        font: inherit;
+        font-weight: 900;
+        cursor: pointer;
+      }
+      .start-btn {
+        min-height: 62px;
+        font-size: 22px;
+        background: linear-gradient(180deg, #fff4c9 0%, #f0c74b 100%);
+        box-shadow: 0 5px 0 rgba(97, 68, 21, 0.24);
+      }
+      .start-btn:hover { transform: translateY(-1px); }
+      .tool-links {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .tool-link {
+        text-align: center;
+        background: #fffaf0;
+        box-shadow: 0 3px 0 rgba(97, 68, 21, 0.12);
+      }
+      .note {
+        font-size: 12px;
+        color: #5b4c3e;
+      }
+      .hidden { display: none !important; }
+      @media (max-width: 980px) {
+        .grid { grid-template-columns: 1fr; }
+      }
+      @media (max-width: 720px) {
+        main { width: calc(100% - 12px); margin-top: 8px; }
+        .hero { padding: 14px; }
+        .player-buttons { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .game-buttons { grid-template-columns: 1fr; }
+        .field-grid { grid-template-columns: 1fr; }
+        .tool-links { grid-template-columns: 1fr; }
+        .start-btn { font-size: 19px; min-height: 56px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero">
+        <h1>퀴즈 게임 시작</h1>
+        <p>인원, 퀴즈, 게임을 먼저 고르고 바로 시작합니다. 점프맵 선택 시 캐릭터도 고를 수 있습니다(현재 1종).</p>
+      </section>
+
+      <section class="grid">
+        <section class="panel">
+          <h2>게임 시작 설정</h2>
+
+          <div class="section">
+            <div class="section-title">1. 플레이 인원</div>
+            <div class="player-buttons" id="player-buttons"></div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">2. 퀴즈 선택</div>
+            <div class="quiz-presets" id="quiz-presets"></div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">3. 게임 선택</div>
+            <div class="game-buttons" id="game-buttons"></div>
+          </div>
+
+          <div class="section" id="character-section">
+            <div class="section-title">4. 캐릭터 선택 (점프맵)</div>
+            <div class="field-grid">
+              <div class="field">
+                <label for="character-select">캐릭터</label>
+                <select id="character-select">
+                  <option value="sejong">세종 (기본)</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="startpoint-select">시작 위치</label>
+                <select id="startpoint-select">
+                  <option value="">시작 지점(기본)</option>
+                </select>
+              </div>
+            </div>
+            <p class="note" id="startpoint-note">운영 맵에서 시작 위치 목록을 불러오는 중입니다.</p>
+          </div>
+
+          <div class="section">
+            <div class="section-title">플레이어 이름 (로컬 저장)</div>
+            <div class="names-list" id="names-list"></div>
+          </div>
+        </section>
+
+        <section class="panel summary">
+          <h2>시작 요약</h2>
+          <div class="summary-box" id="summary-box"></div>
+          <div class="actions">
+            <button class="start-btn" id="start-btn" type="button">바로 시작</button>
+            <div class="tool-links">
+              <a class="tool-link" href="./jumpmap-editor/">맵 에디터 (개발도구)</a>
+              <a class="tool-link" href="./quiz/">퀴즈 앱 (개발도구)</a>
+              <a class="tool-link" href="./play/records/">로컬 기록 보기</a>
+            </div>
+            <div class="note">현재 점프맵 런타임 분리 작업 중입니다. 사용자 플레이는 운영 경로를 우선 사용하고, 일부 경계 구간은 레거시 호환 모드로 연결됩니다.</div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      (function () {
+        const STORAGE_KEY = 'jumpmap.launcher.setup.v1';
+        const PLAYER_COLORS = ['#ffe3e3', '#e0ebff', '#e5f8e9', '#fff4c8', '#f2e5ff', '#dff7f8'];
+        const PLAYER_TEXT_COLORS = ['#b91c1c', '#1d4ed8', '#15803d', '#a16207', '#7e22ce', '#0f766e'];
+        const PLAYER_OPTIONS = [1, 2, 3, 4, 5, 6];
+        const GAME_OPTIONS = [
+          {
+            id: 'jumpmap',
+            label: '점프맵',
+            desc: '퀴즈로 게이지를 채우며 점프맵을 오르는 모드',
+            poster: './quiz_poster/quiz_poster_jumpmap.jpeg'
+          },
+          {
+            id: 'basic-quiz',
+            label: '기본 모드(퀴즈)',
+            desc: '퀴즈만 바로 진행하는 기본 학습 모드',
+            poster: ''
+          }
+        ];
+        const QUIZ_PRESETS = [
+          {
+            id: 'jumpmap-net-30',
+            title: '전개도 학습 30문제 (점프맵 기본 추천)',
+            desc: '30문제 · 전개도 유형 균형 · 점프맵 게이지 충전에 적합'
+          },
+          {
+            id: 'jumpmap-net-12',
+            title: '전개도 학습 12문제 (짧은 라운드)',
+            desc: '12문제 · 빠른 반복 테스트용'
+          },
+          {
+            id: 'cube-only-24',
+            title: '정육면체 중심 24문제',
+            desc: '정육면체 전개도 중심 출제'
+          },
+          {
+            id: 'cuboid-only-24',
+            title: '직육면체 중심 24문제',
+            desc: '직육면체 전개도 중심 출제'
+          }
+        ];
+        const RUNTIME_MAP_CANDIDATES = [
+          './shared/maps/jumpmap-01.json',
+          '/__jumpmap/runtime-map.json'
+        ];
+
+        const defaultSetup = () => ({
+          version: 1,
+          players: 1,
+          gameMode: 'jumpmap',
+          quizPresetId: 'jumpmap-net-30',
+          characterId: 'sejong',
+          jumpmapStartPointId: '',
+          playerNames: ['사용자1'],
+          playerTags: ['']
+        });
+
+        const state = loadSetup();
+        state.runtimeMapInfo = {
+          loaded: false,
+          source: '',
+          savePoints: []
+        };
+        normalizeState(state);
+
+        const els = {
+          playerButtons: document.getElementById('player-buttons'),
+          quizPresets: document.getElementById('quiz-presets'),
+          gameButtons: document.getElementById('game-buttons'),
+          namesList: document.getElementById('names-list'),
+          summaryBox: document.getElementById('summary-box'),
+          startBtn: document.getElementById('start-btn'),
+          characterSection: document.getElementById('character-section'),
+          characterSelect: document.getElementById('character-select'),
+          startPointSelect: document.getElementById('startpoint-select')
+          ,
+          startPointNote: document.getElementById('startpoint-note')
+        };
+
+        renderAll();
+        loadRuntimeMapStartPoints();
+
+        els.startBtn.addEventListener('click', () => {
+          state.savedAt = new Date().toISOString();
+          saveSetup(state);
+          const playUrl = new URL('./play/', window.location.href);
+          playUrl.searchParams.set('fromLauncher', '1');
+          playUrl.searchParams.set('launchMode', 'play');
+          window.location.href = playUrl.toString();
+        });
+
+        els.characterSelect.addEventListener('change', (e) => {
+          state.characterId = String(e.target.value || 'sejong');
+          persistAndRefresh();
+        });
+        els.startPointSelect.addEventListener('change', (e) => {
+          state.jumpmapStartPointId = String(e.target.value || '');
+          persistAndRefresh();
+        });
+
+        function loadSetup() {
+          try {
+            const raw = window.localStorage.getItem(STORAGE_KEY);
+            if (!raw) return defaultSetup();
+            const parsed = JSON.parse(raw);
+            return parsed && typeof parsed === 'object' ? { ...defaultSetup(), ...parsed } : defaultSetup();
+          } catch (error) {
+            console.warn('[Launcher] setup load failed', error);
+            return defaultSetup();
+          }
+        }
+
+        function saveSetup(setup) {
+          try {
+            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(setup));
+          } catch (error) {
+            console.warn('[Launcher] setup save failed', error);
+          }
+        }
+
+        function normalizeState(target) {
+          target.players = Math.max(1, Math.min(6, Math.round(Number(target.players) || 1)));
+          if (!GAME_OPTIONS.some((item) => item.id === target.gameMode)) target.gameMode = 'jumpmap';
+          if (!QUIZ_PRESETS.some((item) => item.id === target.quizPresetId)) target.quizPresetId = QUIZ_PRESETS[0].id;
+          if (typeof target.characterId !== 'string' || !target.characterId.trim()) target.characterId = 'sejong';
+          if (!Array.isArray(target.playerNames)) target.playerNames = [];
+          if (!Array.isArray(target.playerTags)) target.playerTags = [];
+          target.playerNames = target.playerNames.slice(0, 6);
+          target.playerTags = target.playerTags.slice(0, 6);
+          while (target.playerNames.length < target.players) {
+            target.playerNames.push(`사용자${target.playerNames.length + 1}`);
+          }
+          while (target.playerTags.length < target.players) {
+            target.playerTags.push('');
+          }
+          target.playerNames = target.playerNames.slice(0, target.players).map((name, idx) => {
+            const trimmed = typeof name === 'string' ? name.trim() : '';
+            return trimmed || `사용자${idx + 1}`;
+          });
+          target.playerTags = target.playerTags.slice(0, target.players).map((tag) => {
+            if (typeof tag !== 'string') return '';
+            return tag.trim();
+          });
+          target.jumpmapStartPointId = typeof target.jumpmapStartPointId === 'string' ? target.jumpmapStartPointId : '';
+        }
+
+        function persistAndRefresh() {
+          normalizeState(state);
+          saveSetup(state);
+          renderAll();
+        }
+
+        function renderAll() {
+          renderPlayerButtons();
+          renderQuizPresets();
+          renderGameButtons();
+          renderNameInputs();
+          renderGameConditional();
+          renderSummary();
+        }
+
+        function renderPlayerButtons() {
+          els.playerButtons.innerHTML = '';
+          PLAYER_OPTIONS.forEach((count) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = `seg-btn${state.players === count ? ' is-active' : ''}`;
+            button.textContent = `${count}인`;
+            button.addEventListener('click', () => {
+              state.players = count;
+              normalizeState(state);
+              persistAndRefresh();
+            });
+            els.playerButtons.appendChild(button);
+          });
+        }
+
+        function renderQuizPresets() {
+          els.quizPresets.innerHTML = '';
+          QUIZ_PRESETS.forEach((preset) => {
+            const row = document.createElement('label');
+            row.className = `quiz-item${state.quizPresetId === preset.id ? ' is-selected' : ''}`;
+            const radio = document.createElement('input');
+            radio.type = 'radio';
+            radio.name = 'quiz-preset';
+            radio.value = preset.id;
+            radio.checked = state.quizPresetId === preset.id;
+            radio.addEventListener('change', () => {
+              state.quizPresetId = preset.id;
+              persistAndRefresh();
+            });
+            const box = document.createElement('div');
+            box.innerHTML = `<div class="quiz-item-title">${preset.title}</div><div class="quiz-item-desc">${preset.desc}</div>`;
+            row.append(radio, box);
+            els.quizPresets.appendChild(row);
+          });
+        }
+
+        function renderGameButtons() {
+          els.gameButtons.innerHTML = '';
+          GAME_OPTIONS.forEach((game) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = `seg-btn game-card${state.gameMode === game.id ? ' is-active' : ''}`;
+
+            let posterEl;
+            if (game.poster) {
+              const img = document.createElement('img');
+              img.className = 'game-card-poster';
+              img.alt = `${game.label} 미리보기`;
+              img.loading = 'lazy';
+              img.decoding = 'async';
+              img.src = game.poster;
+              img.addEventListener('error', () => {
+                const fallback = document.createElement('div');
+                fallback.className = 'game-card-poster is-placeholder';
+                fallback.textContent = '미리보기를 불러오지 못했습니다';
+                img.replaceWith(fallback);
+              }, { once: true });
+              posterEl = img;
+            } else {
+              const fallback = document.createElement('div');
+              fallback.className = 'game-card-poster is-placeholder';
+              fallback.textContent = '미리보기 준비 중';
+              posterEl = fallback;
+            }
+
+            const title = document.createElement('div');
+            title.className = 'game-card-title';
+            title.textContent = game.label;
+
+            const desc = document.createElement('div');
+            desc.className = 'game-card-desc';
+            desc.textContent = game.desc || '';
+
+            button.append(posterEl, title, desc);
+            button.addEventListener('click', () => {
+              state.gameMode = game.id;
+              persistAndRefresh();
+            });
+            els.gameButtons.appendChild(button);
+          });
+        }
+
+        function renderNameInputs() {
+          els.namesList.innerHTML = '';
+          for (let i = 0; i < state.players; i += 1) {
+            const row = document.createElement('div');
+            row.className = 'name-row';
+            const badge = document.createElement('div');
+            badge.className = 'name-badge';
+            badge.textContent = `플레이어 ${i + 1}`;
+            badge.style.background = PLAYER_COLORS[i % PLAYER_COLORS.length];
+            badge.style.color = PLAYER_TEXT_COLORS[i % PLAYER_TEXT_COLORS.length];
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.maxLength = 20;
+            input.value = state.playerNames[i] || `사용자${i + 1}`;
+            input.placeholder = `사용자${i + 1}`;
+            input.addEventListener('change', () => {
+              state.playerNames[i] = input.value.trim() || `사용자${i + 1}`;
+              persistAndRefresh();
+            });
+            const tagInput = document.createElement('input');
+            tagInput.type = 'text';
+            tagInput.maxLength = 8;
+            tagInput.className = 'name-tag';
+            tagInput.value = state.playerTags[i] || '';
+            tagInput.placeholder = '번호';
+            tagInput.addEventListener('change', () => {
+              state.playerTags[i] = tagInput.value.trim();
+              persistAndRefresh();
+            });
+            row.append(badge, input, tagInput);
+            els.namesList.appendChild(row);
+          }
+        }
+
+        function renderGameConditional() {
+          const isJumpmap = state.gameMode === 'jumpmap';
+          els.characterSection.classList.toggle('hidden', !isJumpmap);
+          els.characterSelect.value = state.characterId || 'sejong';
+          renderStartPointOptions();
+          els.startPointSelect.value = state.jumpmapStartPointId || '';
+        }
+
+        function renderStartPointOptions() {
+          if (!els.startPointSelect) return;
+          const previous = String(state.jumpmapStartPointId || '');
+          els.startPointSelect.innerHTML = '';
+          const defaultOption = document.createElement('option');
+          defaultOption.value = '';
+          defaultOption.textContent = '시작 지점(기본)';
+          els.startPointSelect.appendChild(defaultOption);
+          const points = Array.isArray(state.runtimeMapInfo?.savePoints) ? state.runtimeMapInfo.savePoints : [];
+          points.forEach((point) => {
+            if (!point?.id) return;
+            const option = document.createElement('option');
+            option.value = String(point.id);
+            const x = Number.isFinite(Number(point.x)) ? Math.round(Number(point.x)) : 0;
+            const y = Number.isFinite(Number(point.y)) ? Math.round(Number(point.y)) : 0;
+            option.textContent = `${point.id} (${x}, ${y})`;
+            els.startPointSelect.appendChild(option);
+          });
+          const hasSelected = Array.from(els.startPointSelect.options).some((opt) => opt.value === previous);
+          if (!hasSelected) state.jumpmapStartPointId = '';
+          if (els.startPointNote) {
+            if (state.runtimeMapInfo.loaded) {
+              const loadedCount = points.length;
+              const loadedFrom = state.runtimeMapInfo.source ? ` · 소스: ${state.runtimeMapInfo.source}` : '';
+              els.startPointNote.textContent = loadedCount > 0
+                ? `운영 맵에서 시작 위치 ${loadedCount}개를 불러왔습니다${loadedFrom}.`
+                : `운영 맵을 불러왔지만 저장된 시작 위치가 없습니다${loadedFrom}.`;
+            } else {
+              els.startPointNote.textContent = '운영 맵을 아직 불러오지 못해 기본 시작 지점만 사용합니다.';
+            }
+          }
+        }
+
+        async function loadRuntimeMapStartPoints() {
+          for (const candidate of RUNTIME_MAP_CANDIDATES) {
+            try {
+              const res = await fetch(`${candidate}?v=${Date.now()}`, { cache: 'no-store' });
+              if (!res.ok) continue;
+              const data = await res.json();
+              if (!data || typeof data !== 'object') continue;
+              const points = Array.isArray(data.savePoints)
+                ? data.savePoints
+                  .map((point) => {
+                    if (!point || typeof point !== 'object') return null;
+                    const id = typeof point.id === 'string' ? point.id.trim() : '';
+                    if (!id) return null;
+                    return {
+                      id,
+                      x: Number(point.x) || 0,
+                      y: Number(point.y) || 0
+                    };
+                  })
+                  .filter(Boolean)
+                : [];
+              state.runtimeMapInfo.loaded = true;
+              state.runtimeMapInfo.source = candidate;
+              state.runtimeMapInfo.savePoints = points;
+              renderGameConditional();
+              return;
+            } catch (_error) {
+              // try next candidate
+            }
+          }
+          state.runtimeMapInfo.loaded = false;
+          state.runtimeMapInfo.source = '';
+          state.runtimeMapInfo.savePoints = [];
+          renderGameConditional();
+        }
+
+        function renderSummary() {
+          const quiz = QUIZ_PRESETS.find((item) => item.id === state.quizPresetId) || QUIZ_PRESETS[0];
+          const game = GAME_OPTIONS.find((item) => item.id === state.gameMode) || GAME_OPTIONS[0];
+          const names = state.playerNames.slice(0, state.players).map((name, idx) => {
+            const tag = state.playerTags[idx];
+            return tag ? `${name}(${tag})` : name;
+          }).join(', ');
+          els.summaryBox.innerHTML = `
+            <div><strong>인원</strong>: ${state.players}명</div>
+            <div><strong>플레이어</strong>: ${names}</div>
+            <div><strong>퀴즈</strong>: ${quiz.title}</div>
+            <div><strong>게임</strong>: ${game.label}</div>
+            ${state.gameMode === 'jumpmap' ? `<div><strong>캐릭터</strong>: 세종 (기본)</div>` : ''}
+            <div style="margin-top:8px;color:#5a4b3e;">시작 버튼을 누르면 설정이 로컬에 저장되고 게임이 바로 시작됩니다.</div>
+          `;
+          els.startBtn.textContent = state.gameMode === 'jumpmap' ? '점프맵 바로 시작' : '기본 퀴즈 바로 시작';
+        }
+      })();
+    </script>
+  </body>
+</html>

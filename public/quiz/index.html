@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>전개도 퀴즈</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header>전개도 퀴즈 MVP</header>
+    <main>
+      <section class="card" id="settings-card">
+        <h2>퀴즈 설정</h2>
+        <div class="settings-group">
+          <div class="group-title">기본 모드</div>
+          <div class="group-note">버튼을 누르면 바로 시작합니다.</div>
+        </div>
+        <div class="preset-list" id="basic-list">
+          <button class="preset-btn preset-hero" type="button" id="basic-5min">
+            <span class="preset-hero-title">기본 모드(5분)</span>
+            <span class="preset-hero-sub">전개도 학습 · 랜덤 30문제</span>
+          </button>
+          <button class="preset-btn preset-hero" type="button" id="basic-12q">
+            <span class="preset-hero-title">기본 모드(12문제)</span>
+            <span class="preset-hero-sub">전개도 학습 · 균등 12문제</span>
+          </button>
+        </div>
+        <button class="secondary name-manage-toggle" type="button" id="name-manage-toggle">
+          이름 관리
+        </button>
+        <button class="secondary advanced-toggle" type="button" id="advanced-toggle" aria-expanded="false">
+          퀴즈 설계하기
+        </button>
+        <div class="advanced-settings hidden" id="advanced-settings">
+        <div class="settings-grid">
+          <div class="settings-block tone-orange" id="mode-block">
+            <div class="settings-block-title">출제 방식 선택</div>
+            <div class="mode-toggle" role="group" aria-label="출제 방식 선택">
+              <button class="mode-btn is-active" type="button" data-mode-select="set">전개도 문제 세트 사용</button>
+              <button class="mode-btn" type="button" data-mode-select="custom">교사 커스텀 문제 사용</button>
+            </div>
+            <div class="mode-help" id="mode-help">현재: 전개도 문제 세트 사용 중</div>
+          </div>
+
+          <div class="settings-block tone-purple">
+            <div class="settings-group">
+              <div class="group-title">전개도 문제 세트</div>
+              <div class="group-note">상세정보: 5학년 2학기</div>
+            </div>
+            <button class="secondary sub-toggle" type="button" id="type-toggle" aria-expanded="false">
+              전개도 문제 세트 펼치기
+            </button>
+            <div class="type-grid hidden" id="type-grid">
+              <div class="type-section">
+                <div class="type-section-title">정육면체 전개도</div>
+                <div class="type-section-cards">
+                  <div class="type-card">
+                  <div class="type-title">평행한 면</div>
+                  <div class="type-desc">색칠된 면과 평행한 면 찾기</div>
+                  <button type="button" class="preview-toggle" data-preview-toggle="cube_facecolor" aria-expanded="false">미리보기</button>
+                  <div class="type-preview" data-preview="cube_facecolor">
+                    <div class="preview-question">
+                      <span>예시 문제</span>
+                      <img data-preview-question alt="cube facecolor preview question" />
+                    </div>
+                    <div class="preview-choices">
+                      <img data-preview-choice alt="choice 1" />
+                      <img data-preview-choice alt="choice 2" />
+                      <img data-preview-choice alt="choice 3" />
+                      <img data-preview-choice alt="choice 4" />
+                    </div>
+                  </div>
+                  <div class="type-row">
+                    <label for="type-cube-facecolor-enabled">사용</label>
+                    <select id="type-cube-facecolor-enabled">
+                      <option value="true">켜짐</option>
+                      <option value="false">꺼짐</option>
+                    </select>
+                  </div>
+                  <div class="type-row">
+                    <label for="type-cube-facecolor-count">출제 수</label>
+                    <input type="number" id="type-cube-facecolor-count" min="0" value="5" />
+                  </div>
+                </div>
+                  <div class="type-card">
+                  <div class="type-title">맞물리는 모서리</div>
+                  <div class="type-desc">빨간 모서리와 맞물리는 모서리</div>
+                  <button type="button" class="preview-toggle" data-preview-toggle="cube_edgecolor" aria-expanded="false">미리보기</button>
+                  <div class="type-preview" data-preview="cube_edgecolor">
+                    <div class="preview-question">
+                      <span>예시 문제</span>
+                      <img data-preview-question alt="cube edgecolor preview question" />
+                    </div>
+                    <div class="preview-choices">
+                      <img data-preview-choice alt="choice 1" />
+                      <img data-preview-choice alt="choice 2" />
+                      <img data-preview-choice alt="choice 3" />
+                      <img data-preview-choice alt="choice 4" />
+                    </div>
+                  </div>
+                  <div class="type-row">
+                    <label for="type-cube-edgecolor-enabled">사용</label>
+                    <select id="type-cube-edgecolor-enabled">
+                      <option value="true">켜짐</option>
+                      <option value="false">꺼짐</option>
+                    </select>
+                  </div>
+                  <div class="type-row">
+                    <label for="type-cube-edgecolor-count">출제 수</label>
+                    <input type="number" id="type-cube-edgecolor-count" min="0" value="5" />
+                  </div>
+                </div>
+                  <div class="type-card">
+                  <div class="type-title">정상/비정상</div>
+                  <div class="type-desc">올바른 전개도 여부 판단</div>
+                  <button type="button" class="preview-toggle" data-preview-toggle="cube_validity" aria-expanded="false">미리보기</button>
+                  <div class="type-preview" data-preview="cube_validity">
+                    <div class="preview-question">
+                      <span>예시 문제</span>
+                      <img data-preview-question alt="cube validity preview question" />
+                    </div>
+                    <div class="preview-choices">
+                      <img data-preview-choice alt="choice 1" />
+                      <img data-preview-choice alt="choice 2" />
+                      <img data-preview-choice alt="choice 3" />
+                      <img data-preview-choice alt="choice 4" />
+                    </div>
+                  </div>
+                  <div class="type-row">
+                    <label for="type-cube-validity-enabled">사용</label>
+                    <select id="type-cube-validity-enabled">
+                      <option value="true">켜짐</option>
+                      <option value="false">꺼짐</option>
+                    </select>
+                  </div>
+                  <div class="type-row">
+                    <label for="type-cube-validity-count">출제 수</label>
+                    <input type="number" id="type-cube-validity-count" min="0" value="5" />
+                  </div>
+                </div>
+              </div>
+            </div>
+              <div class="type-section">
+              <div class="type-section-title">직육면체 전개도</div>
+              <div class="type-section-cards">
+                <div class="type-card">
+                  <div class="type-title">평행한 면</div>
+                  <div class="type-desc">색칠된 면과 평행한 면 찾기</div>
+                  <button type="button" class="preview-toggle" data-preview-toggle="cuboid_facecolor" aria-expanded="false">미리보기</button>
+                  <div class="type-preview" data-preview="cuboid_facecolor">
+                    <div class="preview-question">
+                      <span>예시 문제</span>
+                      <img data-preview-question alt="cuboid facecolor preview question" />
+                    </div>
+                    <div class="preview-choices">
+                      <img data-preview-choice alt="choice 1" />
+                      <img data-preview-choice alt="choice 2" />
+                      <img data-preview-choice alt="choice 3" />
+                      <img data-preview-choice alt="choice 4" />
+                    </div>
+                  </div>
+                  <div class="type-row">
+                    <label for="type-cuboid-facecolor-enabled">사용</label>
+                    <select id="type-cuboid-facecolor-enabled">
+                      <option value="true">켜짐</option>
+                      <option value="false">꺼짐</option>
+                    </select>
+                  </div>
+                  <div class="type-row">
+                    <label for="type-cuboid-facecolor-count">출제 수</label>
+                    <input type="number" id="type-cuboid-facecolor-count" min="0" value="5" />
+                  </div>
+                </div>
+                <div class="type-card">
+                  <div class="type-title">맞물리는 모서리</div>
+                  <div class="type-desc">빨간 모서리와 맞물리는 모서리</div>
+                  <button type="button" class="preview-toggle" data-preview-toggle="cuboid_edgecolor" aria-expanded="false">미리보기</button>
+                  <div class="type-preview" data-preview="cuboid_edgecolor">
+                    <div class="preview-question">
+                      <span>예시 문제</span>
+                      <img data-preview-question alt="cuboid edgecolor preview question" />
+                    </div>
+                    <div class="preview-choices">
+                      <img data-preview-choice alt="choice 1" />
+                      <img data-preview-choice alt="choice 2" />
+                      <img data-preview-choice alt="choice 3" />
+                      <img data-preview-choice alt="choice 4" />
+                    </div>
+                  </div>
+                  <div class="type-row">
+                    <label for="type-cuboid-edgecolor-enabled">사용</label>
+                    <select id="type-cuboid-edgecolor-enabled">
+                      <option value="true">켜짐</option>
+                      <option value="false">꺼짐</option>
+                    </select>
+                  </div>
+                  <div class="type-row">
+                    <label for="type-cuboid-edgecolor-count">출제 수</label>
+                    <input type="number" id="type-cuboid-edgecolor-count" min="0" value="5" />
+                  </div>
+                </div>
+                <div class="type-card">
+                  <div class="type-title">정상/비정상</div>
+                  <div class="type-desc">올바른 전개도 여부 판단</div>
+                  <button type="button" class="preview-toggle" data-preview-toggle="cuboid_validity" aria-expanded="false">미리보기</button>
+                  <div class="type-preview" data-preview="cuboid_validity">
+                    <div class="preview-question">
+                      <span>예시 문제</span>
+                      <img data-preview-question alt="cuboid validity preview question" />
+                    </div>
+                    <div class="preview-choices">
+                      <img data-preview-choice alt="choice 1" />
+                      <img data-preview-choice alt="choice 2" />
+                      <img data-preview-choice alt="choice 3" />
+                      <img data-preview-choice alt="choice 4" />
+                    </div>
+                  </div>
+                  <div class="type-row">
+                    <label for="type-cuboid-validity-enabled">사용</label>
+                    <select id="type-cuboid-validity-enabled">
+                      <option value="true">켜짐</option>
+                      <option value="false">꺼짐</option>
+                    </select>
+                  </div>
+                  <div class="type-row">
+                    <label for="type-cuboid-validity-count">출제 수</label>
+                    <input type="number" id="type-cuboid-validity-count" min="0" value="5" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="type-confirm">
+            </div>
+            <div class="type-confirm">
+              <button class="secondary" type="button" id="confirm-type-counts">출제 수 확인</button>
+              <span id="count-confirm-status" class="confirm-status">출제 수 확인 필요</span>
+            </div>
+          </div>
+
+          <div class="settings-block tone-teal">
+            <div class="settings-group">
+              <div class="group-title">교사 커스텀 문제</div>
+              <div class="group-note">문제 ID를 쉼표 또는 줄바꿈으로 입력하세요.</div>
+            </div>
+            <input type="hidden" id="setting-custom-enabled" value="false" />
+            <div class="custom-panel hidden" id="custom-panel">
+              <div class="custom-actions">
+                <button class="secondary" type="button" id="custom-random">랜덤 선택</button>
+                <div class="custom-count">
+                  <label for="custom-random-count">선택 개수</label>
+                  <input type="number" id="custom-random-count" min="1" value="10" />
+                </div>
+                <button class="secondary" type="button" id="custom-clear">전체 해제</button>
+              </div>
+              <div class="custom-list" id="custom-list"></div>
+            </div>
+          </div>
+
+          <div class="settings-block tone-amber">
+            <div class="settings-block-title">출제/진행 설정</div>
+            <div class="settings-block-grid">
+              <div>
+                <label>출제 방식</label>
+                <select id="setting-mode">
+                  <option value="random">랜덤</option>
+                  <option value="sequential">순차</option>
+                </select>
+              </div>
+              <div>
+                <label>사용자 문제 중복 방지</label>
+                <select id="setting-repeat">
+                  <option value="true">켜짐</option>
+                  <option value="false">꺼짐</option>
+                </select>
+              </div>
+              <div>
+                <label>선택지 섞기</label>
+                <select id="setting-shuffle">
+                  <option value="true">켜짐</option>
+                  <option value="false">꺼짐</option>
+                </select>
+              </div>
+              <div>
+                <label>한 문제당 시간(초, 0=없음)</label>
+                <input type="number" id="setting-time" min="0" value="0" />
+              </div>
+              <div>
+                <label>순위 모드</label>
+                <select id="setting-ranking">
+                  <option value="false">사용 안 함</option>
+                  <option value="true">사용</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-block tone-green">
+            <div class="settings-block-title">점수/보너스 설정</div>
+            <div class="settings-block-grid">
+              <div>
+                <label>정답 점수</label>
+                <input type="number" id="setting-score" min="0" value="10" />
+              </div>
+              <div>
+                <label>오답 패널티(초)</label>
+                <input type="number" id="setting-penalty" min="0" value="3" />
+              </div>
+              <div>
+                <label>콤보 활성화</label>
+                <select id="setting-combo">
+                  <option value="false">꺼짐</option>
+                  <option value="true">켜짐</option>
+                </select>
+              </div>
+              <div>
+                <label>콤보 보너스</label>
+                <input type="number" id="setting-combo-bonus" min="0" value="2" />
+              </div>
+              <div>
+                <label>빠른 풀이 보너스(선택)</label>
+                <select id="setting-time-bonus">
+                  <option value="false">꺼짐</option>
+                  <option value="true">켜짐</option>
+                </select>
+              </div>
+              <div>
+                <label>초당 보너스(점)</label>
+                <input type="number" id="setting-time-bonus-per" min="0" value="0" />
+              </div>
+              <div>
+                <label>빠른 풀이 보너스 최대 비율(%)</label>
+                <input type="number" id="setting-time-bonus-cap" min="0" value="30" />
+              </div>
+              <div class="settings-note">
+                점수는 정답/오답 기준이 기본이며, 빠른 풀이 보너스는 선택 사항입니다.
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div style="margin-top: 16px; display: flex; gap: 12px;">
+          <button class="primary" id="start-btn">퀴즈 시작</button>
+          <button class="secondary" id="reset-btn">초기화</button>
+        </div>
+        <div class="feedback" id="load-status" style="margin-top: 12px;"></div>
+        </div>
+      </section>
+
+      <section class="card hidden" id="quiz-card">
+        <div class="quiz-header">
+          <div>문제 <strong id="progress">0/0</strong></div>
+          <div>점수 <strong id="score">0</strong></div>
+          <div>정답률 <strong id="accuracy">0%</strong></div>
+          <div>콤보 <strong id="combo">0</strong></div>
+          <div class="timer">남은 시간 <span id="timer">-</span></div>
+        </div>
+        <div class="prompt" id="prompt">문제 로딩중...</div>
+        <div class="question-frame">
+          <button class="question-zoom-btn" id="zoom-btn" type="button">확대</button>
+          <img id="question-img" alt="question" />
+        </div>
+        <div class="choices" id="choices"></div>
+        <div class="feedback" id="feedback"></div>
+      </section>
+
+      <div class="modal hidden" id="basic-modal">
+        <div class="modal-backdrop" id="basic-backdrop"></div>
+        <div class="modal-card">
+          <h3 id="basic-title">기본 모드 시작</h3>
+          <p id="basic-desc">인원, 시간, 순위 공개를 선택하세요.</p>
+          <div class="modal-form">
+            <div class="modal-field">
+              <label for="basic-players">플레이어 수</label>
+              <select id="basic-players">
+                <option value="1">1인</option>
+                <option value="1x2">2인(1x2)</option>
+                <option value="2x1">2인(2x1)</option>
+                <option value="3">3인</option>
+                <option value="4">4인</option>
+                <option value="5">5인</option>
+                <option value="6">6인</option>
+              </select>
+            </div>
+
+            <div class="modal-field basic-field" data-basic-field="time">
+              <label for="basic-time">게임 종료 시간(초)</label>
+              <input type="number" id="basic-time" min="10" value="300" />
+            </div>
+
+            <div class="modal-field basic-field" data-basic-field="count">
+              <label for="basic-count">총 문제 수</label>
+              <input type="number" id="basic-count" min="1" value="12" />
+            </div>
+
+            <div class="modal-field">
+              <label for="basic-question-time">한 문제당 시간(초, 0=없음)</label>
+              <input type="number" id="basic-question-time" min="0" value="0" />
+            </div>
+
+            <div class="modal-field">
+              <label for="basic-combo">콤보 활성화</label>
+              <select id="basic-combo">
+                <option value="false">꺼짐</option>
+                <option value="true">켜짐</option>
+              </select>
+            </div>
+
+            <div class="modal-field">
+              <label for="basic-combo-bonus">콤보 보너스</label>
+              <input type="number" id="basic-combo-bonus" min="0" value="2" />
+            </div>
+
+            <div class="modal-field">
+              <label for="basic-time-bonus">빠른 풀이 보너스</label>
+              <select id="basic-time-bonus">
+                <option value="false">꺼짐</option>
+                <option value="true">켜짐</option>
+              </select>
+            </div>
+
+            <div class="modal-field">
+              <label for="basic-time-bonus-per">초당 보너스(점)</label>
+              <input type="number" id="basic-time-bonus-per" min="0" value="0" />
+            </div>
+
+            <div class="modal-field">
+              <label for="basic-time-bonus-cap">빠른 풀이 보너스 최대 비율(%)</label>
+              <input type="number" id="basic-time-bonus-cap" min="0" value="30" />
+            </div>
+
+            <div class="modal-field">
+              <label for="basic-ranking">순위 공개</label>
+              <select id="basic-ranking">
+                <option value="false">미공개</option>
+                <option value="true">공개</option>
+              </select>
+            </div>
+
+            <div class="modal-field span-2">
+              <label for="basic-game">게임 선택</label>
+              <select id="basic-game">
+                <option value="quiz">기본 퀴즈</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button class="secondary" type="button" id="basic-cancel">취소</button>
+            <button class="primary" type="button" id="basic-start">바로 시작</button>
+          </div>
+        </div>
+      </div>
+
+      <section class="quiz-grid hidden" id="quiz-grid"></section>
+
+      <template id="quiz-card-template">
+        <section class="card quiz-card">
+          <div class="quiz-header">
+            <div class="player-tag" data-role="player-label">학생 01</div>
+            <div>문제 <strong data-role="progress">0/0</strong></div>
+            <div>점수 <strong data-role="score">0</strong></div>
+            <div>정답률 <strong data-role="accuracy">0%</strong></div>
+            <div>콤보 <strong data-role="combo">0</strong></div>
+            <div class="timer">남은 시간 <span data-role="timer">-</span></div>
+          </div>
+          <div class="prompt" data-role="prompt">문제 로딩중...</div>
+          <div class="question-frame">
+            <button class="question-zoom-btn" data-role="zoom-btn" type="button">확대</button>
+            <img data-role="question-img" alt="question" />
+          </div>
+          <div class="choices" data-role="choices"></div>
+          <div class="feedback" data-role="feedback"></div>
+          <div class="player-summary hidden" data-role="summary"></div>
+        </section>
+      </template>
+
+      <section class="card hidden" id="summary-card">
+        <h2>결과</h2>
+        <div class="summary" id="summary-text">-</div>
+        <div class="rank-section hidden" id="rank-section">
+          <h3>순위</h3>
+          <div class="rank-list" id="rank-list"></div>
+        </div>
+        <div class="retry-area">
+          <h3>오답 다시풀기</h3>
+          <div class="retry-list" id="retry-list"></div>
+          <div class="retry-note" id="retry-note"></div>
+        </div>
+        <div style="margin-top: 16px;">
+          <label>결과 데이터(JSON)</label>
+          <textarea id="log-output" rows="8" readonly></textarea>
+          <div style="margin-top: 12px; display: flex; gap: 10px;">
+            <button class="secondary" id="copy-log-btn">JSON 복사</button>
+            <button class="secondary" id="download-log-btn">JSON 다운로드</button>
+          </div>
+        </div>
+        <button class="primary" id="restart-btn" style="margin-top: 12px;">다시 시작</button>
+      </section>
+    </main>
+    <div class="zoom-modal hidden" id="zoom-modal">
+      <div class="zoom-backdrop" id="zoom-backdrop"></div>
+      <div class="zoom-content">
+        <button class="zoom-close" id="zoom-close" type="button">닫기</button>
+        <img id="zoom-img" alt="zoomed question" />
+      </div>
+    </div>
+    <div class="modal hidden" id="face-modal">
+      <div class="modal-backdrop" id="face-backdrop"></div>
+      <div class="modal-card">
+        <h3>마주보기 모드</h3>
+        <p>1x2 화면에서 서로 마주보는 모드로 시작할까요?</p>
+        <div class="modal-actions">
+          <button class="secondary" id="face-normal">일반 시작</button>
+          <button class="primary" id="face-confirm">마주보기 시작</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal hidden" id="name-modal">
+      <div class="modal-backdrop" id="name-modal-backdrop"></div>
+      <div class="modal-card">
+        <h3>이름 관리</h3>
+        <div class="modal-form">
+          <div class="modal-field">
+            <label>학생명 저장</label>
+            <input type="text" id="student-name-input" placeholder="예: 김민지" />
+            <button class="secondary" type="button" id="save-student-name">학생명 저장</button>
+            <div class="name-list" id="student-name-list"></div>
+          </div>
+          <div class="modal-field">
+            <label>모둠명 저장</label>
+            <input type="text" id="setting-group-names" placeholder="예: 모둠A, 모둠B, 모둠C" />
+            <button class="secondary" type="button" id="save-group-names">모둠명 저장</button>
+            <div class="name-list" id="group-name-list"></div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="primary" type="button" id="name-modal-close">닫기</button>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

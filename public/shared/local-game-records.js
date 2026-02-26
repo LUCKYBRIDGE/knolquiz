@@ -1,0 +1,393 @@
+const DB_NAME = 'math-net-master-local-records';
+const DB_VERSION = 1;
+
+const STORE_SESSIONS = 'sessions';
+const STORE_PLAYERS = 'players';
+const STORE_WRONGS = 'wrongAnswers';
+
+let openDbPromise = null;
+
+const safeIdSuffix = () =>
+  `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+
+const requestToPromise = (request) =>
+  new Promise((resolve, reject) => {
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error('indexeddb request failed'));
+  });
+
+const txDone = (tx) =>
+  new Promise((resolve, reject) => {
+    tx.oncomplete = () => resolve();
+    tx.onabort = () => reject(tx.error || new Error('indexeddb transaction aborted'));
+    tx.onerror = () => reject(tx.error || new Error('indexeddb transaction failed'));
+  });
+
+const ensureIndexedDb = () => {
+  if (typeof indexedDB === 'undefined') {
+    throw new Error('indexeddb_unavailable');
+  }
+  return indexedDB;
+};
+
+const openDb = () => {
+  if (openDbPromise) return openDbPromise;
+  openDbPromise = new Promise((resolve, reject) => {
+    let idb;
+    try {
+      idb = ensureIndexedDb();
+    } catch (error) {
+      reject(error);
+      return;
+    }
+    const req = idb.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(STORE_SESSIONS)) {
+        const sessions = db.createObjectStore(STORE_SESSIONS, { keyPath: 'id' });
+        sessions.createIndex('byCreatedAt', 'createdAt');
+        sessions.createIndex('byMode', 'mode');
+      }
+      if (!db.objectStoreNames.contains(STORE_PLAYERS)) {
+        const players = db.createObjectStore(STORE_PLAYERS, { keyPath: 'id' });
+        players.createIndex('byUpdatedAt', 'updatedAt');
+        players.createIndex('byName', 'name');
+      }
+      if (!db.objectStoreNames.contains(STORE_WRONGS)) {
+        const wrongs = db.createObjectStore(STORE_WRONGS, { keyPath: 'id' });
+        wrongs.createIndex('byCreatedAt', 'createdAt');
+        wrongs.createIndex('byPlayerId', 'playerId');
+        wrongs.createIndex('byQuestionId', 'questionId');
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error || new Error('indexeddb open failed'));
+  });
+  return openDbPromise;
+};
+
+const normalizeName = (name, fallback) => {
+  const trimmed = typeof name === 'string' ? name.trim() : '';
+  return trimmed || fallback;
+};
+
+const playerIdFromName = (name) => `player:${name}`;
+
+const playerIdFromNameAndTag = (name, tag) => {
+  const safeName = name || 'unknown';
+  const safeTag = typeof tag === 'string' ? tag.trim() : '';
+  return safeTag ? `player:${safeName}:${safeTag}` : `player:${safeName}`;
+};
+
+const buildPlayerSummaryPatch = (existing, log, createdAt) => {
+  const prev = existing?.stats || {};
+  const summary = log?.summary || {};
+  const totalAnswered = Number(summary.totalCount) || 0;
+  const correct = Number(summary.correctCount) || 0;
+  const score = Number(summary.totalScore) || 0;
+  const quizRuns = (Number(prev.quizRuns) || 0) + 1;
+  const totalQuestions = (Number(prev.totalQuestions) || 0) + totalAnswered;
+  const correctAnswers = (Number(prev.correctAnswers) || 0) + correct;
+  const totalScore = (Number(prev.totalScore) || 0) + score;
+  const bestScore = Math.max(Number(prev.bestScore) || 0, score);
+  const accuracy = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 1000) / 10 : 0;
+  return {
+    ...(existing || {}),
+    updatedAt: createdAt,
+    stats: {
+      quizRuns,
+      totalQuestions,
+      correctAnswers,
+      totalScore,
+      bestScore,
+      accuracy,
+      lastPlayedAt: createdAt
+    }
+  };
+};
+
+const buildJumpmapPlayerSummaryPatch = (existing, player, createdAt) => {
+  const prev = existing?.jumpmapStats || {};
+  const currentHeightPx = Math.max(0, Number(player?.currentHeightPx) || 0);
+  const bestHeightPx = Math.max(0, Number(player?.bestHeightPx) || 0);
+  const quizAttempts = Math.max(0, Number(player?.quizAttempts) || 0);
+  const quizCorrect = Math.max(0, Number(player?.quizCorrect) || 0);
+  const quizWrong = Math.max(0, Number(player?.quizWrong) || 0);
+  const jumps = Math.max(0, Number(player?.jumps) || 0);
+  const doubleJumps = Math.max(0, Number(player?.doubleJumps) || 0);
+  return {
+    ...(existing || {}),
+    updatedAt: createdAt,
+    jumpmapStats: {
+      runs: (Number(prev.runs) || 0) + 1,
+      bestHeightPx: Math.max(Number(prev.bestHeightPx) || 0, bestHeightPx),
+      lastHeightPx: currentHeightPx,
+      totalQuizAttempts: (Number(prev.totalQuizAttempts) || 0) + quizAttempts,
+      totalQuizCorrect: (Number(prev.totalQuizCorrect) || 0) + quizCorrect,
+      totalQuizWrong: (Number(prev.totalQuizWrong) || 0) + quizWrong,
+      totalJumps: (Number(prev.totalJumps) || 0) + jumps,
+      totalDoubleJumps: (Number(prev.totalDoubleJumps) || 0) + doubleJumps,
+      lastPlayedAt: createdAt
+    }
+  };
+};
+
+const putSessionRecord = async (db, sessionRecord) => {
+  const tx = db.transaction([STORE_SESSIONS], 'readwrite');
+  tx.objectStore(STORE_SESSIONS).put(sessionRecord);
+  await txDone(tx);
+};
+
+const upsertPlayerRecord = async (db, playerRecordId, playerName, playerTag, log, createdAt) => {
+  const tx = db.transaction([STORE_PLAYERS], 'readwrite');
+  const store = tx.objectStore(STORE_PLAYERS);
+  const existing = await requestToPromise(store.get(playerRecordId));
+  const next = buildPlayerSummaryPatch(existing, log, createdAt);
+  next.id = playerRecordId;
+  next.name = playerName;
+  if (playerTag) next.tag = playerTag;
+  if (!next.createdAt) next.createdAt = createdAt;
+  store.put(next);
+  await txDone(tx);
+};
+
+const upsertJumpmapPlayerRecord = async (db, playerRecordId, playerName, playerTag, playerRecord, createdAt) => {
+  const tx = db.transaction([STORE_PLAYERS], 'readwrite');
+  const store = tx.objectStore(STORE_PLAYERS);
+  const existing = await requestToPromise(store.get(playerRecordId));
+  const next = buildJumpmapPlayerSummaryPatch(existing, playerRecord, createdAt);
+  next.id = playerRecordId;
+  next.name = playerName;
+  if (playerTag) next.tag = playerTag;
+  if (!next.createdAt) next.createdAt = createdAt;
+  store.put(next);
+  await txDone(tx);
+};
+
+const getAllFromStore = async (db, storeName) => {
+  const tx = db.transaction([storeName], 'readonly');
+  const store = tx.objectStore(storeName);
+  const all = await requestToPromise(store.getAll());
+  await txDone(tx);
+  return Array.isArray(all) ? all : [];
+};
+
+const insertWrongAnswers = async (db, sessionId, players, createdAt) => {
+  const wrongEntries = [];
+  (players || []).forEach((log, playerIndex) => {
+    const fallbackName = `사용자${playerIndex + 1}`;
+    const playerName = normalizeName(log?.groupName, fallbackName);
+    const playerTag = typeof log?.settings?.studentId === 'string' ? log.settings.studentId.trim() : '';
+    const playerId = playerIdFromNameAndTag(playerName, playerTag);
+    (log?.answers || []).forEach((answer, answerIndex) => {
+      if (answer?.correct) return;
+      wrongEntries.push({
+        id: `wrong:${safeIdSuffix()}:${playerIndex}-${answerIndex}`,
+        createdAt,
+        sessionId,
+        mode: 'basic-quiz',
+        playerId,
+        playerName,
+        playerTag,
+        questionId: String(answer?.questionId || ''),
+        type: String(answer?.type || ''),
+        prompt: String(answer?.prompt || ''),
+        question: String(answer?.question || ''),
+        selectedChoice: answer?.choice ?? null,
+        correctChoice: answer?.answer ?? null,
+        choices: Array.isArray(answer?.choices) ? [...answer.choices] : []
+      });
+    });
+  });
+  if (!wrongEntries.length) return 0;
+  const tx = db.transaction([STORE_WRONGS], 'readwrite');
+  const store = tx.objectStore(STORE_WRONGS);
+  wrongEntries.forEach((entry) => store.put(entry));
+  await txDone(tx);
+  return wrongEntries.length;
+};
+
+export const saveQuizSessionRecord = async ({ settings, players, source = 'quiz-app' }) => {
+  const db = await openDb();
+  const createdAt = new Date().toISOString();
+  const sessionId = `quiz-session:${safeIdSuffix()}`;
+  const normalizedPlayers = Array.isArray(players) ? players : [];
+  const questionTypes = settings?.questionTypes || {};
+  const questionTypeSummary = Object.entries(questionTypes)
+    .filter(([, cfg]) => cfg && cfg.enabled)
+    .map(([key, cfg]) => ({
+      key,
+      count: Number(cfg?.count) || 0
+    }));
+  const questionIdSet = new Set();
+  const questionTypeSet = new Set();
+  normalizedPlayers.forEach((log) => {
+    (log?.answers || []).forEach((answer) => {
+      if (answer?.questionId != null) questionIdSet.add(String(answer.questionId));
+      if (answer?.type) questionTypeSet.add(String(answer.type));
+    });
+  });
+
+  const sessionRecord = {
+    id: sessionId,
+    mode: 'basic-quiz',
+    source,
+    createdAt,
+    playerCount: normalizedPlayers.length,
+    launcherQuizPresetId: settings?.launcherQuizPresetId || null,
+    settingsSummary: {
+      playerCount: Number(settings?.playerCount) || normalizedPlayers.length || 1,
+      quizEndMode: String(settings?.quizEndMode || ''),
+      quizTimeLimitSec: Number(settings?.quizTimeLimitSec) || 0,
+      timeLimitSec: Number(settings?.timeLimitSec) || 0,
+      wrongDelaySec: Number(settings?.wrongDelaySec) || 0,
+      rankingEnabled: Boolean(settings?.rankingEnabled),
+      questionTypeSummary
+    },
+    questionSummary: {
+      questionIds: Array.from(questionIdSet),
+      questionTypes: Array.from(questionTypeSet)
+    },
+    players: normalizedPlayers.map((log, index) => {
+      const name = normalizeName(log?.groupName, `사용자${index + 1}`);
+      const playerTag = typeof log?.settings?.studentId === 'string' ? log.settings.studentId.trim() : '';
+      return {
+        id: playerIdFromNameAndTag(name, playerTag),
+        name,
+        tag: playerTag,
+        summary: {
+          totalScore: Number(log?.summary?.totalScore) || 0,
+          correctCount: Number(log?.summary?.correctCount) || 0,
+          totalCount: Number(log?.summary?.totalCount) || 0,
+          accuracy: Number(log?.summary?.accuracy) || 0
+        }
+      };
+    })
+  };
+
+  await putSessionRecord(db, sessionRecord);
+
+  for (let i = 0; i < normalizedPlayers.length; i += 1) {
+    const log = normalizedPlayers[i];
+    const playerName = normalizeName(log?.groupName, `사용자${i + 1}`);
+    const playerTag = typeof log?.settings?.studentId === 'string' ? log.settings.studentId.trim() : '';
+    const playerId = playerIdFromNameAndTag(playerName, playerTag);
+    await upsertPlayerRecord(db, playerId, playerName, playerTag, log, createdAt);
+  }
+
+  const wrongCount = await insertWrongAnswers(db, sessionId, normalizedPlayers, createdAt);
+
+  return {
+    sessionId,
+    createdAt,
+    playerCount: normalizedPlayers.length,
+    wrongCount
+  };
+};
+
+export const listRecentQuizSessions = async (limit = 20) => {
+  const db = await openDb();
+  const tx = db.transaction([STORE_SESSIONS], 'readonly');
+  const store = tx.objectStore(STORE_SESSIONS);
+  const all = await requestToPromise(store.getAll());
+  await txDone(tx);
+  return all
+    .filter((item) => item?.mode === 'basic-quiz')
+    .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
+    .slice(0, Math.max(1, Math.min(200, Number(limit) || 20)));
+};
+
+export const saveJumpmapSessionRecord = async ({ settings = {}, players = [], source = 'jumpmap-test-runtime', map = null }) => {
+  const db = await openDb();
+  const createdAt = new Date().toISOString();
+  const sessionId = `jumpmap-session:${safeIdSuffix()}`;
+  const normalizedPlayers = Array.isArray(players) ? players : [];
+  const normalizedMap = (map && typeof map === 'object') ? map : {};
+
+  const sessionRecord = {
+    id: sessionId,
+    mode: 'jumpmap',
+    source,
+    createdAt,
+    playerCount: normalizedPlayers.length,
+    launcherQuizPresetId: settings?.launcherQuizPresetId || null,
+    settingsSummary: {
+      playerCount: Number(settings?.playerCount) || normalizedPlayers.length || 1,
+      moveSpeed: Number(settings?.moveSpeed) || 0,
+      jumpHeight: Number(settings?.jumpHeight) || 0,
+      jumpSpeed: Number(settings?.jumpSpeed) || 0,
+      fallSpeed: Number(settings?.fallSpeed) || 0
+    },
+    mapSummary: {
+      width: Number(normalizedMap.width) || 0,
+      height: Number(normalizedMap.height) || 0,
+      objectCount: Number(normalizedMap.objectCount) || 0,
+      savePointCount: Number(normalizedMap.savePointCount) || 0,
+      backgroundImage: normalizedMap.backgroundImage || null
+    },
+    players: normalizedPlayers.map((player, index) => {
+      const name = normalizeName(player?.name, `사용자${index + 1}`);
+      const tag = typeof player?.tag === 'string' ? player.tag.trim() : '';
+      return {
+        id: playerIdFromNameAndTag(name, tag),
+        name,
+        tag,
+        summary: {
+          currentHeightPx: Math.max(0, Number(player?.currentHeightPx) || 0),
+          bestHeightPx: Math.max(0, Number(player?.bestHeightPx) || 0),
+          gauge: Math.max(0, Number(player?.gauge) || 0),
+          quizAttempts: Math.max(0, Number(player?.quizAttempts) || 0),
+          quizCorrect: Math.max(0, Number(player?.quizCorrect) || 0),
+          quizWrong: Math.max(0, Number(player?.quizWrong) || 0),
+          jumps: Math.max(0, Number(player?.jumps) || 0),
+          doubleJumps: Math.max(0, Number(player?.doubleJumps) || 0)
+        }
+      };
+    })
+  };
+
+  await putSessionRecord(db, sessionRecord);
+
+  for (let i = 0; i < normalizedPlayers.length; i += 1) {
+    const player = normalizedPlayers[i];
+    const playerName = normalizeName(player?.name, `사용자${i + 1}`);
+    const playerTag = typeof player?.tag === 'string' ? player.tag.trim() : '';
+    const playerId = playerIdFromNameAndTag(playerName, playerTag);
+    await upsertJumpmapPlayerRecord(db, playerId, playerName, playerTag, player, createdAt);
+  }
+
+  return {
+    sessionId,
+    createdAt,
+    playerCount: normalizedPlayers.length
+  };
+};
+
+export const listRecentJumpmapSessions = async (limit = 20) => {
+  const db = await openDb();
+  const all = await getAllFromStore(db, STORE_SESSIONS);
+  return all
+    .filter((item) => item?.mode === 'jumpmap')
+    .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
+    .slice(0, Math.max(1, Math.min(200, Number(limit) || 20)));
+};
+
+export const listPlayerRecords = async (limit = 50) => {
+  const db = await openDb();
+  const all = await getAllFromStore(db, STORE_PLAYERS);
+  return all
+    .sort((a, b) => {
+      const byUpdated = String(b?.updatedAt || '').localeCompare(String(a?.updatedAt || ''));
+      if (byUpdated !== 0) return byUpdated;
+      return String(a?.name || '').localeCompare(String(b?.name || ''));
+    })
+    .slice(0, Math.max(1, Math.min(500, Number(limit) || 50)));
+};
+
+export const listWrongAnswers = async (limit = 100) => {
+  const db = await openDb();
+  const all = await getAllFromStore(db, STORE_WRONGS);
+  return all
+    .sort((a, b) => String(b?.createdAt || '').localeCompare(String(a?.createdAt || '')))
+    .slice(0, Math.max(1, Math.min(1000, Number(limit) || 100)));
+};

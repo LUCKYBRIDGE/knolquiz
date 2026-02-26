@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="80" viewBox="0 0 200 80" shape-rendering="crispEdges">
+<defs>
+    <pattern id="gridMinor" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e2e8f0" stroke-width="1" />
+    </pattern>
+    <pattern id="gridMajor" width="200" height="200" patternUnits="userSpaceOnUse">
+      <path d="M 200 0 L 0 0 0 200" fill="none" stroke="#cbd5e1" stroke-width="1" />
+    </pattern></defs>
+<rect width="100%" height="100%" fill="white" />
+<rect width="100%" height="100%" fill="url(#gridMinor)" />
+<rect width="100%" height="100%" fill="url(#gridMajor)" />
+<rect x="160" y="40" width="40" height="40" fill="#fecaca" fill-opacity="0.55" />
+<line x1="80" y1="0" x2="120" y2="0" stroke="#111111" stroke-width="3.5" stroke-linecap="square"  />
+<line x1="120" y1="0" x2="120" y2="40" stroke="#111111" stroke-width="3.5" stroke-linecap="square"  />
+<line x1="80" y1="40" x2="120" y2="40" stroke="#111111" stroke-width="1.5" stroke-linecap="square" stroke-dasharray="6 4" />
+<line x1="80" y1="0" x2="80" y2="40" stroke="#111111" stroke-width="1.5" stroke-linecap="square" stroke-dasharray="6 4" />
+<line x1="40" y1="0" x2="80" y2="0" stroke="#111111" stroke-width="3.5" stroke-linecap="square"  />
+<line x1="80" y1="40" x2="40" y2="40" stroke="#111111" stroke-width="3.5" stroke-linecap="square"  />
+<line x1="40" y1="0" x2="40" y2="40" stroke="#111111" stroke-width="1.5" stroke-linecap="square" stroke-dasharray="6 4" />
+<line x1="0" y1="0" x2="40" y2="0" stroke="#111111" stroke-width="3.5" stroke-linecap="square"  />
+<line x1="40" y1="40" x2="0" y2="40" stroke="#111111" stroke-width="3.5" stroke-linecap="square"  />
+<line x1="0" y1="40" x2="0" y2="0" stroke="#111111" stroke-width="3.5" stroke-linecap="square"  />
+<line x1="120" y1="80" x2="120" y2="40" stroke="#111111" stroke-width="1.5" stroke-linecap="square" stroke-dasharray="6 4" />
+<line x1="120" y1="80" x2="80" y2="80" stroke="#111111" stroke-width="3.5" stroke-linecap="square"  />
+<line x1="80" y1="80" x2="80" y2="40" stroke="#111111" stroke-width="3.5" stroke-linecap="square"  />
+<line x1="120" y1="40" x2="160" y2="40" stroke="#111111" stroke-width="3.5" stroke-linecap="square"  />
+<line x1="160" y1="80" x2="160" y2="40" stroke="#111111" stroke-width="1.5" stroke-linecap="square" stroke-dasharray="6 4" />
+<line x1="160" y1="80" x2="120" y2="80" stroke="#111111" stroke-width="3.5" stroke-linecap="square"  />
+<line x1="160" y1="40" x2="200" y2="40" stroke="#111111" stroke-width="3.5" stroke-linecap="square"  />
+<line x1="200" y1="40" x2="200" y2="80" stroke="#111111" stroke-width="3.5" stroke-linecap="square"  />
+<line x1="200" y1="80" x2="160" y2="80" stroke="#111111" stroke-width="3.5" stroke-linecap="square"  />
+</svg>

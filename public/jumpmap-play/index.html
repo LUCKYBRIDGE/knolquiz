@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>놀퀴즈 - 점프맵 플레이 준비</title>
+    <style>
+      :root {
+        --ink: #18294b;
+        --muted: #5f6f8f;
+        --line: rgba(24, 41, 75, 0.18);
+        --paper: rgba(251, 247, 236, 0.96);
+        --gold: #caa23a;
+        --gold-shadow: #9f7f24;
+        --blue: #5e84d6;
+        --bg-1: #efe6d0;
+        --bg-2: #ddd2b7;
+      }
+      * { box-sizing: border-box; }
+      html, body { height: 100%; margin: 0; }
+      body {
+        font-family: "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 16% 18%, rgba(255,255,255,0.55), transparent 45%),
+          radial-gradient(circle at 86% 16%, rgba(255,255,255,0.42), transparent 48%),
+          linear-gradient(180deg, var(--bg-1), var(--bg-2));
+      }
+      .shell {
+        min-height: 100%;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+      .panel {
+        width: min(860px, 100%);
+        border: 2px solid rgba(24, 41, 75, 0.28);
+        border-radius: 20px;
+        background: var(--paper);
+        box-shadow: 0 18px 40px rgba(24, 41, 75, 0.16);
+        padding: 20px;
+      }
+      h1 {
+        margin: 0;
+        font-size: clamp(24px, 3vw, 34px);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+      }
+      .desc {
+        margin: 8px 0 14px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.75);
+        font-weight: 800;
+      }
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: var(--blue);
+        box-shadow: 0 0 0 5px rgba(94,132,214,0.16);
+        animation: pulse 1.5s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.12); opacity: 0.7; }
+      }
+      .summary {
+        margin-top: 14px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: rgba(255,255,255,0.55);
+        padding: 12px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .row {
+        border: 1px solid rgba(24, 41, 75, 0.08);
+        background: rgba(255,255,255,0.6);
+        border-radius: 12px;
+        padding: 10px;
+      }
+      .row .k {
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 700;
+      }
+      .row .v {
+        margin-top: 4px;
+        font-size: 15px;
+        font-weight: 800;
+      }
+      .actions {
+        margin-top: 14px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .btn {
+        border: 2px solid rgba(24, 41, 75, 0.85);
+        border-radius: 14px;
+        background: #fff;
+        padding: 10px 14px;
+        font-weight: 800;
+        min-height: 46px;
+        color: var(--ink);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 0 rgba(24, 41, 75, 0.16);
+      }
+      .btn.primary {
+        background: linear-gradient(180deg, #f8d867, var(--gold));
+        border-color: var(--gold-shadow);
+        color: #3d2a00;
+      }
+      .note {
+        margin-top: 12px;
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+      .error {
+        margin-top: 12px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(170, 30, 30, 0.25);
+        background: rgba(255, 236, 236, 0.8);
+        color: #7c1f1f;
+        font-weight: 700;
+        display: none;
+      }
+      .error.show { display: block; }
+      @media (max-width: 720px) {
+        .summary { grid-template-columns: 1fr; }
+        .actions { flex-direction: column; }
+        .btn { width: 100%; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <main class="panel" aria-live="polite">
+        <h1>점프맵 플레이 준비</h1>
+        <p class="desc">
+          운영용 점프맵 런타임 분리의 1차 경계입니다. 현재는 기존 점프맵 테스트 런타임 플레이 모드로 안전하게 연결한 뒤,
+          추후 이 페이지에서 운영용 런타임으로 교체합니다.
+        </p>
+        <div class="status">
+          <span class="dot" aria-hidden="true"></span>
+          <span id="status-text">점프맵 설정을 확인하는 중...</span>
+        </div>
+        <section class="summary" id="summary-box"></section>
+        <div class="error" id="error-box"></div>
+        <div class="actions">
+          <button class="btn primary" id="retry-btn" type="button">다시 시도</button>
+          <a class="btn" href="../play/">플레이 라우터로</a>
+          <a class="btn" href="../play/records/">로컬 기록 보기</a>
+          <a class="btn" href="../">런처로</a>
+        </div>
+        <div class="note">
+          이 페이지는 런처와 점프맵 구현체의 경계를 안정화하기 위한 전용 진입점입니다. 현재 맵 데이터와 테스트모드 플레이 경험은 유지됩니다.
+        </div>
+      </main>
+    </div>
+    <script type="module" src="./app.js"></script>
+  </body>
+  </html>

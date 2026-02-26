@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>로컬 기록 보기</title>
+    <style>
+      :root {
+        --ink: #18294b;
+        --muted: #5b6b89;
+        --line: rgba(24, 41, 75, 0.14);
+        --paper: rgba(251, 247, 236, 0.96);
+        --bg1: #f0e8d6;
+        --bg2: #ddd3bc;
+        --gold: #caa23a;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; min-height: 100%; }
+      body {
+        font-family: "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 10% 12%, rgba(255,255,255,0.65), transparent 48%),
+          radial-gradient(circle at 90% 22%, rgba(255,255,255,0.55), transparent 52%),
+          linear-gradient(180deg, var(--bg1), var(--bg2));
+      }
+      .shell { max-width: 1280px; margin: 0 auto; padding: 18px; }
+      .topbar {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+      }
+      .title {
+        margin: 0;
+        font-size: clamp(24px, 2.6vw, 36px);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+      }
+      .top-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+      .btn {
+        border: 2px solid rgba(24, 41, 75, 0.85);
+        background: #fff;
+        color: var(--ink);
+        border-radius: 12px;
+        padding: 10px 14px;
+        font-weight: 800;
+        cursor: pointer;
+        min-height: 44px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 0 rgba(24, 41, 75, 0.12);
+      }
+      .btn.primary {
+        background: linear-gradient(180deg, #f9db73, var(--gold));
+        border-color: #9d7c22;
+        color: #3a2a03;
+      }
+      @media print {
+        .top-actions,
+        .status {
+          display: none;
+        }
+        body {
+          background: #fff;
+        }
+        .shell {
+          padding: 0;
+        }
+        .card {
+          box-shadow: none;
+          border: 1px solid #c9c0aa;
+        }
+      }
+      .status {
+        margin-bottom: 14px;
+        padding: 10px 14px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: rgba(255,255,255,0.65);
+        color: var(--muted);
+        font-weight: 700;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1.1fr 1.1fr 1fr;
+        gap: 12px;
+      }
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--paper);
+        box-shadow: 0 10px 22px rgba(24,41,75,0.08);
+        overflow: hidden;
+        min-height: 220px;
+      }
+      .card h2 {
+        margin: 0;
+        padding: 12px 14px;
+        font-size: 18px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255,255,255,0.7);
+      }
+      .card .body {
+        padding: 10px;
+        max-height: 420px;
+        overflow: auto;
+      }
+      .list {
+        display: grid;
+        gap: 8px;
+      }
+      .item {
+        border: 1px solid rgba(24,41,75,0.08);
+        border-radius: 12px;
+        background: rgba(255,255,255,0.66);
+        padding: 10px;
+      }
+      .item .row {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: baseline;
+      }
+      .item .name { font-weight: 800; }
+      .item .meta {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.4;
+        margin-top: 4px;
+      }
+      .kv {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+      .kv .cell {
+        border: 1px solid rgba(24,41,75,0.08);
+        background: rgba(255,255,255,0.58);
+        border-radius: 10px;
+        padding: 8px;
+      }
+      .kv .k {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .kv .v {
+        margin-top: 2px;
+        font-size: 14px;
+        font-weight: 800;
+      }
+      .empty {
+        color: var(--muted);
+        font-weight: 700;
+        padding: 12px;
+        text-align: center;
+      }
+      .full-span { grid-column: 1 / -1; }
+      .wrong-question {
+        font-weight: 800;
+        margin-top: 4px;
+        line-height: 1.35;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: rgba(94, 132, 214, 0.12);
+        color: #2d4d96;
+        font-size: 12px;
+        font-weight: 800;
+      }
+      @media (max-width: 1100px) {
+        .grid { grid-template-columns: 1fr 1fr; }
+        .full-span { grid-column: 1 / -1; }
+      }
+      @media (max-width: 760px) {
+        .topbar { flex-direction: column; align-items: stretch; }
+        .grid { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <div class="topbar">
+        <h1 class="title">로컬 기록 보기</h1>
+        <div class="top-actions">
+          <button class="btn primary" id="refresh-btn" type="button">새로고침</button>
+          <button class="btn" id="print-btn" type="button">인쇄</button>
+          <a class="btn" href="../">플레이 시작으로</a>
+          <a class="btn" href="../../">런처로</a>
+        </div>
+      </div>
+      <div class="status" id="status-box">로컬 기록을 불러오는 중...</div>
+      <div class="grid">
+        <section class="card">
+          <h2>요약</h2>
+          <div class="body"><div id="summary-grid" class="kv"></div></div>
+        </section>
+        <section class="card">
+          <h2>플레이어 누적 통계</h2>
+          <div class="body"><div id="players-list" class="list"></div></div>
+        </section>
+        <section class="card">
+          <h2>최근 점프맵 기록</h2>
+          <div class="body"><div id="jumpmap-sessions" class="list"></div></div>
+        </section>
+        <section class="card">
+          <h2>최근 기본 퀴즈 기록</h2>
+          <div class="body"><div id="quiz-sessions" class="list"></div></div>
+        </section>
+        <section class="card full-span">
+          <h2>오답문제모음 (최근)</h2>
+          <div class="body"><div id="wrongs-list" class="list"></div></div>
+        </section>
+      </div>
+    </div>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,32 @@
+{
+  "timeLimitSec": 0,
+  "score": {
+    "base": 10,
+    "penalty": 0,
+    "comboEnabled": false,
+    "comboBonus": 2,
+    "timeBonusEnabled": false,
+    "timeBonusPerSec": 0,
+    "timeBonusMaxRatio": 30
+  },
+  "wrongDelaySec": 3,
+  "playerCount": 1,
+  "twoPlayerLayout": "1x2",
+  "quizEndMode": "count",
+  "quizTimeLimitSec": 0,
+  "rankingEnabled": false,
+  "customQuestionMode": false,
+  "customQuestionIds": [],
+  "studentId": "01",
+  "questionTypes": {
+    "cube_facecolor": { "enabled": true, "count": 5 },
+    "cube_edgecolor": { "enabled": true, "count": 5 },
+    "cube_validity": { "enabled": true, "count": 5 },
+    "cuboid_facecolor": { "enabled": true, "count": 5 },
+    "cuboid_edgecolor": { "enabled": true, "count": 5 },
+    "cuboid_validity": { "enabled": true, "count": 5 }
+  },
+  "selectionMode": "random",
+  "avoidRepeat": true,
+  "shuffleChoices": true
+}
