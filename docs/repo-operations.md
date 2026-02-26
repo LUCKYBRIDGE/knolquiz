@@ -16,8 +16,8 @@ Date: 2026-02-26
 - [ ] 초기 푸시 (`main`) 완료
 
 기록용:
-- `origin`: (TBD)
-- 배포 채널: (TBD)
+- `origin`: `https://github.com/LUCKYBRIDGE/knolquiz.git`
+- 배포 채널: 미정 (GitHub repo 생성 완료, 호스팅 방식 결정 전)
 - 기본 맵 경로: `public/shared/maps/jumpmap-01.json`
 
 ### Remote / First Push Command Template
