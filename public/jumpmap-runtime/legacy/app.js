@@ -15,6 +15,11 @@ const setFrameReady = (ready) => {
   document.body.classList.toggle('frame-ready', !!ready);
 };
 
+const setPanelVisible = (visible) => {
+  if (!document?.body) return;
+  document.body.classList.toggle('panel-visible', !!visible);
+};
+
 const showTarget = (targetUrl) => {
   const row = document.getElementById('target-row');
   if (!row) return;
@@ -177,11 +182,13 @@ const start = async () => {
   let targetMode = 'compat-default';
   let compatDebug = false;
   let compatFallbackNotice = '';
+  let panelVisible = false;
   try {
     targetMode = resolveCompatTargetMode(window.location.href);
     if (targetMode.startsWith('compat')) {
       target = buildLegacyCompatTargetUrl(window.location.href);
       compatDebug = shouldEnableCompatDebug(window.location.href);
+      panelVisible = compatDebug;
     } else {
       const fallbackTarget = buildLegacyEditorTargetUrl(window.location.href);
       const probe = await fetchStatus(fallbackTarget.toString());
@@ -193,6 +200,7 @@ const start = async () => {
         target = buildLegacyCompatTargetUrl(window.location.href);
         targetMode = resolvedFallback.targetMode;
         compatDebug = shouldEnableCompatDebug(window.location.href);
+        panelVisible = compatDebug;
         compatFallbackNotice = `direct fallback unavailable (status=${probe.status || 0}); using compat`;
       }
     }
@@ -203,6 +211,7 @@ const start = async () => {
   }
 
   const targetHref = target.toString();
+  setPanelVisible(panelVisible);
   showTarget(targetHref);
   showFallback(targetHref);
   setFrameReady(false);
@@ -257,6 +266,7 @@ const start = async () => {
     } else if (phase === 'compat-window-load') {
       setText('status-text', '레거시 Compat Target 문서 로드 완료 (window load)');
     } else if (phase === 'fetch-error' || phase === 'inject-apply-failed' || phase === 'compat-window-error') {
+      setPanelVisible(true);
       setFrameReady(false);
       setText('status-text', `레거시 Compat Target 오류: ${data.message || summary}`);
     }
@@ -269,6 +279,7 @@ const start = async () => {
 
   const onLoad = () => {
     setFrameReady(true);
+    if (!compatDebug) setPanelVisible(false);
     setText(
       'status-text',
       targetMode.startsWith('compat')
@@ -283,6 +294,7 @@ const start = async () => {
   };
 
   const onError = () => {
+    setPanelVisible(true);
     setFrameReady(false);
     setText(
       'status-text',
@@ -293,6 +305,7 @@ const start = async () => {
   };
 
   if (targetMode === 'compat-auto-fallback') {
+    if (!compatDebug) setPanelVisible(true);
     setText('status-text', 'runtime split에서는 direct fallback을 사용할 수 없어 compat로 자동 전환했습니다.');
   }
 
@@ -302,6 +315,7 @@ const start = async () => {
 
   window.setTimeout(() => {
     if (document.body.classList.contains('frame-ready')) return;
+    setPanelVisible(true);
     if (targetMode.startsWith('compat')) {
       setText('status-text', '레거시 Compat Target 프레임 로딩 중... (지연 시 panel의 compat mode/event 확인)');
       return;

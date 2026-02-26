@@ -41,6 +41,9 @@
         box-shadow: 0 8px 26px rgba(31, 47, 74, 0.10);
         backdrop-filter: blur(4px);
       }
+      body:not(.panel-visible) .panel {
+        display: none;
+      }
       body.frame-ready .panel {
         opacity: 0.78;
       }
