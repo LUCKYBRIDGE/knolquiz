@@ -1,10 +1,10 @@
-# nolquiz-runtime Repo Operations (R7)
+# knolquiz-runtime Repo Operations (R7)
 
 Date: 2026-02-26
 
 ## 목적
 
-- `nolquiz-runtime` 운영 레포의 배포/검증 기준과 editor publish 반영 절차를 고정한다.
+- `knolquiz-runtime` 운영 레포의 배포/검증 기준과 editor publish 반영 절차를 고정한다.
 - remote/배포 설정값을 추후 실제 운영 환경에 맞게 채울 수 있도록 체크 항목을 남긴다.
 
 ## Remote / Deploy Memo
@@ -25,7 +25,7 @@ Date: 2026-02-26
 원격 URL 확정 후 아래 템플릿 사용:
 
 ```bash
-cd /Users/baekjiyun/Desktop/WAN/nolquiz-runtime
+cd /Users/baekjiyun/Desktop/WAN/knolquiz-runtime
 
 # 최초 설정
 git remote add origin <RUNTIME_REMOTE_URL>
@@ -63,7 +63,7 @@ editor 레포에서 publish 실행 후 확인할 항목:
 ### 로컬 실행
 
 ```bash
-cd /Users/baekjiyun/Desktop/WAN/nolquiz-runtime
+cd /Users/baekjiyun/Desktop/WAN/knolquiz-runtime
 node scripts/jumpmap-local-serve.mjs
 ```
 

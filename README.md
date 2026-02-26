@@ -5,7 +5,7 @@
 ## Local Run
 
 ```bash
-cd /Users/baekjiyun/Desktop/WAN/nolquiz-runtime
+cd /Users/baekjiyun/Desktop/WAN/knolquiz-runtime
 node scripts/jumpmap-local-serve.mjs
 ```
 
