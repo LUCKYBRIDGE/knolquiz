@@ -60,6 +60,8 @@ const LOADING_SPRITES = Object.freeze([
   './compat/quiz_sejong/sejong_walk3.png',
   './compat/quiz_sejong/sejong_walk4.png'
 ]);
+const LOADING_READY_POLL_MS = 250;
+const LOADING_READY_TIMEOUT_MS = 18000;
 
 const fallbackHref = () => {
   try {
@@ -151,6 +153,21 @@ const startLoadingSpriteAnimation = () => {
   };
 };
 
+const detectRuntimePlayable = (frame) => {
+  if (!(frame instanceof HTMLIFrameElement)) return false;
+  try {
+    const doc = frame.contentDocument;
+    if (!doc) return false;
+    if (doc.querySelector('.test-view .player-self img')) return true;
+    const overlay = doc.getElementById('test-overlay');
+    if (overlay && !overlay.classList.contains('hidden') && doc.querySelector('.test-view')) return true;
+    if (doc.querySelector('.virtual-controls .jump-btn button')) return true;
+    return false;
+  } catch (_error) {
+    return false;
+  }
+};
+
 const resolveCompatTargetMode = (baseHref) => {
   const browserHref = fallbackHref();
   const current = new URL(baseHref || browserHref, browserHref);
@@ -213,6 +230,7 @@ const start = async () => {
     setText('status-text', '레거시 플레이 프레임 요소를 찾지 못했습니다.');
     setLoadingText('로딩 프레임을 찾지 못했습니다.');
     setPanelVisible(true);
+    stopLoadingSpriteAnimation();
     return;
   }
 
@@ -222,16 +240,44 @@ const start = async () => {
   let compatFallbackNotice = '';
   let panelVisible = false;
   let runtimeReady = false;
+  let readyPollTimer = 0;
 
+  const stopReadyPolling = () => {
+    if (!readyPollTimer) return;
+    window.clearInterval(readyPollTimer);
+    readyPollTimer = 0;
+  };
   const markRuntimeReady = (reason = '') => {
     if (runtimeReady) return;
     runtimeReady = true;
+    stopReadyPolling();
     setFrameReady(true);
     setLoadingText('로딩 완료');
     setLoadingVisible(false);
     stopLoadingSpriteAnimation();
     if (!compatDebug) setPanelVisible(false);
     if (reason) setText('status-text', reason);
+  };
+  const armRuntimeReadyProbe = () => {
+    if (readyPollTimer || runtimeReady) return;
+    const startedAt = Date.now();
+    readyPollTimer = window.setInterval(() => {
+      if (runtimeReady) {
+        stopReadyPolling();
+        return;
+      }
+      if (detectRuntimePlayable(frame)) {
+        markRuntimeReady('점프맵 플레이 준비 완료');
+        return;
+      }
+      if (Date.now() - startedAt >= LOADING_READY_TIMEOUT_MS) {
+        stopReadyPolling();
+        // Safety valve for stale-cache / lost-postMessage cases: do not trap users in loading forever.
+        markRuntimeReady('점프맵 화면을 열었습니다.');
+        setPanelVisible(true);
+        setText('status-text', '준비 완료 신호가 지연되어 화면을 먼저 열었습니다. 문제가 계속되면 새로고침해 주세요.');
+      }
+    }, LOADING_READY_POLL_MS);
   };
 
   try {
@@ -260,6 +306,7 @@ const start = async () => {
     setText('status-text', '레거시 플레이 경로 생성에 실패했습니다.');
     setLoadingText('플레이 경로 준비에 실패했습니다.');
     setPanelVisible(true);
+    stopLoadingSpriteAnimation();
     return;
   }
 
@@ -322,6 +369,7 @@ const start = async () => {
     } else if (phase === 'compat-window-load') {
       setLoadingText('게임 엔진 초기화 중...');
       setText('status-text', '레거시 Compat Target 문서 로드 완료 (window load)');
+      armRuntimeReadyProbe();
     } else if (phase === 'fetch-error' || phase === 'inject-apply-failed' || phase === 'compat-window-error') {
       setPanelVisible(true);
       setFrameReady(false);
@@ -331,7 +379,6 @@ const start = async () => {
   };
 
   const onPlayMessage = (event) => {
-    if (event.source !== frame.contentWindow) return;
     const data = event.data;
     if (!data || typeof data !== 'object' || data.source !== PLAY_READY_MESSAGE_SOURCE) return;
     if (data.phase === 'runtime-ready') {
@@ -358,9 +405,11 @@ const start = async () => {
         ? '레거시 Compat Target 프레임 로드 완료'
         : '레거시 플레이 프레임 로드 완료 (compat fallback)'
     );
+    armRuntimeReadyProbe();
   };
 
   const onError = () => {
+    stopReadyPolling();
     setPanelVisible(true);
     setFrameReady(false);
     setLoadingText('로딩에 실패했습니다. 새 탭 링크를 사용해 주세요.');
