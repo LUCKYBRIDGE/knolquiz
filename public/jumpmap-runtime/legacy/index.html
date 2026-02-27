@@ -64,6 +64,24 @@
         line-height: 1.5;
         color: #4f5f79;
       }
+      .loading-tips {
+        margin: 14px 0 0;
+        padding: 0;
+        list-style: none;
+        text-align: left;
+        display: grid;
+        gap: 8px;
+        color: #2e3d57;
+        font-size: 13px;
+        line-height: 1.45;
+      }
+      .loading-tips li::before {
+        content: "•";
+        display: inline-block;
+        margin-right: 8px;
+        color: #2f62c8;
+        font-weight: 900;
+      }
       .loading-sprite-wrap {
         margin: 14px auto 0;
         width: 176px;
@@ -151,8 +169,14 @@
       <iframe class="frame" id="legacy-frame" title="점프맵 레거시 플레이 호스트"></iframe>
       <section class="loading-screen" id="loading-screen" aria-live="polite">
         <div class="loading-card">
-          <h2 class="loading-title">점프맵 불러오는 중</h2>
-          <div class="loading-text" id="loading-text">맵 데이터와 게임 데이터를 준비하고 있어요.</div>
+          <h2 class="loading-title">점프맵 로딩 중</h2>
+          <div class="loading-text" id="loading-text">캐릭터/맵 데이터를 준비하고 있어요.</div>
+          <ul class="loading-tips">
+            <li>조작 편집에서 방향키, 점프키, 퀴즈 풀기 버튼의 위치와 크기를 조정할 수 있어요.</li>
+            <li>방향키 + 점프키로 최대한 높은 곳에 도달해 보세요.</li>
+            <li>더블 점프가 가능합니다.</li>
+            <li>퀴즈 풀기에서 이동에 필요한 게이지를 채울 수 있어요.</li>
+          </ul>
           <div class="loading-sprite-wrap" aria-hidden="true">
             <img class="loading-sprite" id="loading-sprite" src="./compat/quiz_sejong/sejong_walk1.png" alt="" />
           </div>

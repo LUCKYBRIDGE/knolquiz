@@ -159,6 +159,7 @@ const detectRuntimePlayable = (frame) => {
     const doc = frame.contentDocument;
     if (!doc) return false;
     if (doc.querySelector('.test-view .player-self img')) return true;
+    if (doc.querySelector('#test-views .test-view')) return true;
     const overlay = doc.getElementById('test-overlay');
     if (overlay && !overlay.classList.contains('hidden') && doc.querySelector('.test-view')) return true;
     if (doc.querySelector('.virtual-controls .jump-btn button')) return true;
@@ -272,10 +273,11 @@ const start = async () => {
       }
       if (Date.now() - startedAt >= LOADING_READY_TIMEOUT_MS) {
         stopReadyPolling();
-        // Safety valve for stale-cache / lost-postMessage cases: do not trap users in loading forever.
-        markRuntimeReady('점프맵 화면을 열었습니다.');
+        // Keep waiting for true-ready signals; do not auto-close loading on timeout.
+        setLoadingText('로딩이 지연되고 있습니다. 데이터를 계속 확인하는 중입니다...');
         setPanelVisible(true);
-        setText('status-text', '준비 완료 신호가 지연되어 화면을 먼저 열었습니다. 문제가 계속되면 새로고침해 주세요.');
+        setText('status-text', '준비 완료 신호를 기다리는 중입니다. 문제가 계속되면 새로고침해 주세요.');
+        armRuntimeReadyProbe();
       }
     }, LOADING_READY_POLL_MS);
   };
