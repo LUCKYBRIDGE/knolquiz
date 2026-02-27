@@ -158,12 +158,18 @@ const detectRuntimePlayable = (frame) => {
   try {
     const doc = frame.contentDocument;
     if (!doc) return false;
-    if (doc.querySelector('.test-view .player-self img')) return true;
-    if (doc.querySelector('#test-views .test-view')) return true;
+    const playerImg = doc.querySelector('.test-view .player-self img');
+    if (!playerImg) return false;
+    if (!(playerImg.complete && playerImg.naturalWidth > 0 && playerImg.naturalHeight > 0)) return false;
+    const sceneImages = Array.from(doc.querySelectorAll('#test-views img[src]'));
+    if (!sceneImages.length) return false;
+    const allImagesReady = sceneImages.every((img) => img.complete && img.naturalWidth > 0 && img.naturalHeight > 0);
+    if (!allImagesReady) return false;
     const overlay = doc.getElementById('test-overlay');
-    if (overlay && !overlay.classList.contains('hidden') && doc.querySelector('.test-view')) return true;
-    if (doc.querySelector('.virtual-controls .jump-btn button')) return true;
-    return false;
+    if (overlay && overlay.classList.contains('hidden')) return false;
+    if (!doc.querySelector('.virtual-controls .jump-btn button')) return false;
+    if (!doc.querySelector('#test-views .test-view')) return false;
+    return true;
   } catch (_error) {
     return false;
   }
