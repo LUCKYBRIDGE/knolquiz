@@ -28,6 +28,57 @@
         border: 0;
         background: #fff;
       }
+      .loading-screen {
+        position: absolute;
+        inset: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background:
+          radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.54), transparent 44%),
+          radial-gradient(circle at 85% 20%, rgba(255, 243, 200, 0.45), transparent 40%),
+          linear-gradient(180deg, #f5edd9 0%, #e8d9bb 100%);
+      }
+      body.loading-hidden .loading-screen {
+        display: none;
+      }
+      .loading-card {
+        min-width: min(420px, calc(100vw - 48px));
+        padding: 24px 26px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.88);
+        border: 1px solid rgba(31, 47, 74, 0.14);
+        box-shadow: 0 14px 34px rgba(31, 47, 74, 0.15);
+        text-align: center;
+      }
+      .loading-title {
+        margin: 0;
+        font-size: 19px;
+        font-weight: 900;
+        letter-spacing: -0.01em;
+      }
+      .loading-text {
+        margin-top: 10px;
+        font-size: 14px;
+        line-height: 1.5;
+        color: #4f5f79;
+      }
+      .loading-sprite-wrap {
+        margin: 14px auto 0;
+        width: 120px;
+        height: 120px;
+        border-radius: 16px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(247, 239, 220, 0.95) 100%);
+        display: grid;
+        place-items: center;
+      }
+      .loading-sprite {
+        width: 96px;
+        height: 96px;
+        object-fit: contain;
+        image-rendering: pixelated;
+      }
       .panel {
         position: absolute;
         top: 10px;
@@ -98,6 +149,15 @@
   <body>
     <div class="host-root">
       <iframe class="frame" id="legacy-frame" title="점프맵 레거시 플레이 호스트"></iframe>
+      <section class="loading-screen" id="loading-screen" aria-live="polite">
+        <div class="loading-card">
+          <h2 class="loading-title">점프맵 불러오는 중</h2>
+          <div class="loading-text" id="loading-text">맵 데이터와 게임 데이터를 준비하고 있어요.</div>
+          <div class="loading-sprite-wrap" aria-hidden="true">
+            <img class="loading-sprite" id="loading-sprite" src="./compat/quiz_sejong/sejong_walk1.png" alt="" />
+          </div>
+        </div>
+      </section>
       <section class="panel" aria-live="polite">
         <h1><span class="badge"><span class="dot"></span>Runtime Legacy Host</span>점프맵 레거시 플레이 호스트</h1>
         <p id="status-text">레거시 플레이 프레임을 준비하고 있습니다.</p>

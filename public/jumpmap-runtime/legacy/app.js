@@ -20,6 +20,16 @@ const setPanelVisible = (visible) => {
   document.body.classList.toggle('panel-visible', !!visible);
 };
 
+const setLoadingVisible = (visible) => {
+  if (!document?.body) return;
+  document.body.classList.toggle('loading-hidden', !visible);
+};
+
+const setLoadingText = (text) => {
+  const el = document.getElementById('loading-text');
+  if (el && typeof text === 'string' && text.trim()) el.textContent = text;
+};
+
 const showTarget = (targetUrl) => {
   const row = document.getElementById('target-row');
   if (!row) return;
@@ -41,7 +51,15 @@ const showCompatMode = (text) => {
 const isTruthyFlag = (value) => ['1', 'true', 'yes', 'on'].includes(String(value || '').trim().toLowerCase());
 const isFalsyFlag = (value) => ['0', 'false', 'no', 'off'].includes(String(value || '').trim().toLowerCase());
 const COMPAT_MESSAGE_SOURCE = 'jumpmap-runtime-legacy-compat';
+const PLAY_READY_MESSAGE_SOURCE = 'jumpmap-runtime-play';
 const MAX_COMPAT_EVENTS = 8;
+const LOADING_SPRITE_FRAME_MS = 120;
+const LOADING_SPRITES = Object.freeze([
+  './compat/quiz_sejong/sejong_walk1.png',
+  './compat/quiz_sejong/sejong_walk2.png',
+  './compat/quiz_sejong/sejong_walk3.png',
+  './compat/quiz_sejong/sejong_walk4.png'
+]);
 
 const fallbackHref = () => {
   try {
@@ -119,6 +137,20 @@ const appendCompatEvent = (text) => {
   }
 };
 
+const startLoadingSpriteAnimation = () => {
+  const spriteEl = document.getElementById('loading-sprite');
+  if (!(spriteEl instanceof HTMLImageElement)) return () => {};
+  let frameIndex = 0;
+  spriteEl.src = LOADING_SPRITES[0];
+  const timer = window.setInterval(() => {
+    frameIndex = (frameIndex + 1) % LOADING_SPRITES.length;
+    spriteEl.src = LOADING_SPRITES[frameIndex];
+  }, LOADING_SPRITE_FRAME_MS);
+  return () => {
+    window.clearInterval(timer);
+  };
+};
+
 const resolveCompatTargetMode = (baseHref) => {
   const browserHref = fallbackHref();
   const current = new URL(baseHref || browserHref, browserHref);
@@ -172,9 +204,15 @@ const applyLegacyDirectFallbackProbe = (requestedMode, probe) => {
 };
 
 const start = async () => {
+  const stopLoadingSpriteAnimation = startLoadingSpriteAnimation();
+  setLoadingVisible(true);
+  setLoadingText('맵 데이터와 게임 데이터를 준비하고 있어요.');
+
   const frame = document.getElementById('legacy-frame');
   if (!(frame instanceof HTMLIFrameElement)) {
     setText('status-text', '레거시 플레이 프레임 요소를 찾지 못했습니다.');
+    setLoadingText('로딩 프레임을 찾지 못했습니다.');
+    setPanelVisible(true);
     return;
   }
 
@@ -183,6 +221,19 @@ const start = async () => {
   let compatDebug = false;
   let compatFallbackNotice = '';
   let panelVisible = false;
+  let runtimeReady = false;
+
+  const markRuntimeReady = (reason = '') => {
+    if (runtimeReady) return;
+    runtimeReady = true;
+    setFrameReady(true);
+    setLoadingText('로딩 완료');
+    setLoadingVisible(false);
+    stopLoadingSpriteAnimation();
+    if (!compatDebug) setPanelVisible(false);
+    if (reason) setText('status-text', reason);
+  };
+
   try {
     targetMode = resolveCompatTargetMode(window.location.href);
     if (targetMode.startsWith('compat')) {
@@ -207,6 +258,8 @@ const start = async () => {
   } catch (error) {
     console.error('[JumpmapRuntimeLegacyRoute] failed to build legacy target url', error);
     setText('status-text', '레거시 플레이 경로 생성에 실패했습니다.');
+    setLoadingText('플레이 경로 준비에 실패했습니다.');
+    setPanelVisible(true);
     return;
   }
 
@@ -232,8 +285,8 @@ const start = async () => {
   setText(
     'status-text',
     targetMode.startsWith('compat')
-        ? '레거시 Compat Target 프레임을 로드하는 중...'
-        : '레거시 플레이 프레임을 로드하는 중... (compat fallback)'
+      ? '레거시 Compat Target 프레임을 로드하는 중...'
+      : '레거시 플레이 프레임을 로드하는 중... (compat fallback)'
   );
 
   const onCompatMessage = (event) => {
@@ -247,6 +300,7 @@ const start = async () => {
     appendCompatEvent(summary);
 
     if (phase === 'fetch-start') {
+      setLoadingText('맵 소스를 불러오는 중...');
       setText('status-text', '레거시 Compat Target: 에디터 HTML을 가져오는 중...');
     } else if (phase === 'urls-ready') {
       const requestedSource = data.requestedSourceMode || data.sourceMode;
@@ -260,42 +314,56 @@ const start = async () => {
           : `compat mode: source=${effectiveSource}, assetBase=${effectiveAssetBase}`
       );
     } else if (phase === 'editor-path-unavailable-fallback') {
+      setLoadingText('호환 런타임으로 전환했어요. 계속 준비 중...');
       setText('status-text', '레거시 Compat Target: editor fallback 경로가 없어 runtime-owned로 자동 복귀했습니다.');
     } else if (phase === 'fetch-ok') {
+      setLoadingText('게임 화면을 구성하는 중...');
       setText('status-text', '레거시 Compat Target: 에디터 HTML fetch 완료, 적용 준비 중...');
     } else if (phase === 'compat-window-load') {
+      setLoadingText('게임 엔진 초기화 중...');
       setText('status-text', '레거시 Compat Target 문서 로드 완료 (window load)');
     } else if (phase === 'fetch-error' || phase === 'inject-apply-failed' || phase === 'compat-window-error') {
       setPanelVisible(true);
       setFrameReady(false);
+      setLoadingText('로딩에 실패했습니다. 새 탭 링크를 사용해 주세요.');
       setText('status-text', `레거시 Compat Target 오류: ${data.message || summary}`);
     }
   };
 
+  const onPlayMessage = (event) => {
+    if (event.source !== frame.contentWindow) return;
+    const data = event.data;
+    if (!data || typeof data !== 'object' || data.source !== PLAY_READY_MESSAGE_SOURCE) return;
+    if (data.phase === 'runtime-ready') {
+      markRuntimeReady('점프맵 플레이 준비 완료');
+      try {
+        frame.contentWindow?.focus();
+      } catch (_error) {
+        // no-op
+      }
+    }
+  };
+
+  window.addEventListener('message', onPlayMessage);
   if (targetMode.startsWith('compat')) {
     window.addEventListener('message', onCompatMessage);
     appendCompatEvent('host: waiting for compat telemetry...');
   }
 
   const onLoad = () => {
-    setFrameReady(true);
-    if (!compatDebug) setPanelVisible(false);
+    setLoadingText('게임 데이터를 마무리하는 중...');
     setText(
       'status-text',
       targetMode.startsWith('compat')
         ? '레거시 Compat Target 프레임 로드 완료'
         : '레거시 플레이 프레임 로드 완료 (compat fallback)'
     );
-    try {
-      frame.contentWindow?.focus();
-    } catch (_error) {
-      // no-op
-    }
   };
 
   const onError = () => {
     setPanelVisible(true);
     setFrameReady(false);
+    setLoadingText('로딩에 실패했습니다. 새 탭 링크를 사용해 주세요.');
     setText(
       'status-text',
       targetMode.startsWith('compat')
@@ -305,7 +373,8 @@ const start = async () => {
   };
 
   if (targetMode === 'compat-auto-fallback') {
-    if (!compatDebug) setPanelVisible(true);
+    if (!compatDebug) setPanelVisible(false);
+    setLoadingText('호환 런타임으로 전환했어요. 계속 준비 중...');
     setText('status-text', 'runtime split에서는 direct fallback을 사용할 수 없어 compat로 자동 전환했습니다.');
   }
 
@@ -314,20 +383,29 @@ const start = async () => {
   frame.src = targetHref;
 
   window.setTimeout(() => {
-    if (document.body.classList.contains('frame-ready')) return;
-    setPanelVisible(true);
+    if (runtimeReady) return;
+    setLoadingText('데이터를 불러오는 중입니다...');
+    if (compatDebug) setPanelVisible(true);
     if (targetMode.startsWith('compat')) {
       setText('status-text', '레거시 Compat Target 프레임 로딩 중... (지연 시 panel의 compat mode/event 확인)');
       return;
     }
     setText('status-text', '레거시 플레이 프레임 로딩 중... (지연 시 새 탭 링크 사용 가능)');
   }, 1500);
+
+  window.setTimeout(() => {
+    if (runtimeReady) return;
+    setLoadingText('로딩이 지연되고 있습니다. 잠시 후에도 동일하면 새 탭 링크를 사용해 주세요.');
+    if (!compatDebug) setPanelVisible(true);
+  }, 12000);
 };
 
 if (typeof window !== 'undefined' && typeof document !== 'undefined') {
   start().catch((error) => {
     console.error('[JumpmapRuntimeLegacyRoute] unhandled start error', error);
     setText('status-text', `레거시 플레이 초기화 오류: ${errorMessageOf(error)}`);
+    setLoadingText('초기화 오류가 발생했습니다.');
+    setPanelVisible(true);
   });
 }
 
