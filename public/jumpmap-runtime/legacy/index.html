@@ -97,6 +97,45 @@
         object-fit: contain;
         image-rendering: pixelated;
       }
+      .loading-fact {
+        margin-top: 12px;
+        text-align: left;
+        border-radius: 12px;
+        border: 1px solid rgba(47, 98, 200, 0.22);
+        background: rgba(245, 249, 255, 0.86);
+        padding: 10px 12px;
+      }
+      .loading-fact-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 900;
+        color: #244f9f;
+      }
+      .loading-fact-label::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: #2f62c8;
+      }
+      .loading-fact-text {
+        margin-top: 6px;
+        font-size: 13px;
+        line-height: 1.45;
+        color: #253752;
+      }
+      .loading-fact-source {
+        margin-top: 6px;
+        font-size: 12px;
+        color: #4f5f79;
+        line-height: 1.35;
+      }
+      .loading-fact-source a {
+        color: #2f62c8;
+        text-underline-offset: 2px;
+      }
       .panel {
         position: absolute;
         top: 10px;
@@ -177,6 +216,11 @@
             <li>더블 점프가 가능합니다.</li>
             <li>퀴즈 풀기에서 이동에 필요한 게이지를 채울 수 있어요.</li>
           </ul>
+          <section class="loading-fact" id="loading-fact" aria-live="polite">
+            <div class="loading-fact-label" id="loading-fact-label">역사 이야기</div>
+            <div class="loading-fact-text" id="loading-fact-text">역사 정보를 불러오는 중...</div>
+            <div class="loading-fact-source" id="loading-fact-source">출처 확인 중...</div>
+          </section>
           <div class="loading-sprite-wrap" aria-hidden="true">
             <img class="loading-sprite" id="loading-sprite" src="./compat/quiz_sejong/sejong_walk1.png" alt="" />
           </div>

@@ -52,16 +52,161 @@ const isTruthyFlag = (value) => ['1', 'true', 'yes', 'on'].includes(String(value
 const isFalsyFlag = (value) => ['0', 'false', 'no', 'off'].includes(String(value || '').trim().toLowerCase());
 const COMPAT_MESSAGE_SOURCE = 'jumpmap-runtime-legacy-compat';
 const PLAY_READY_MESSAGE_SOURCE = 'jumpmap-runtime-play';
+const LAUNCHER_SETUP_STORAGE_KEY = 'jumpmap.launcher.setup.v1';
 const MAX_COMPAT_EVENTS = 8;
 const LOADING_SPRITE_FRAME_MS = 120;
-const LOADING_SPRITES = Object.freeze([
-  './compat/quiz_sejong/sejong_walk1.png',
-  './compat/quiz_sejong/sejong_walk2.png',
-  './compat/quiz_sejong/sejong_walk3.png',
-  './compat/quiz_sejong/sejong_walk4.png'
-]);
+const LOADING_FACT_ROTATE_MS = 4600;
+const CHARACTER_IDS = new Set(['sejong', 'leesunsin']);
+const CHARACTER_LABELS = Object.freeze({
+  sejong: '세종대왕',
+  leesunsin: '이순신'
+});
+const LOADING_SPRITES_BY_CHARACTER = Object.freeze({
+  sejong: Object.freeze([
+    './compat/quiz_sejong/sejong_walk1.png',
+    './compat/quiz_sejong/sejong_walk2.png',
+    './compat/quiz_sejong/sejong_walk3.png',
+    './compat/quiz_sejong/sejong_walk4.png'
+  ]),
+  leesunsin: Object.freeze([
+    './compat/quiz_leesunsin/leesunsin_walk1.png',
+    './compat/quiz_leesunsin/leesunsin_walk2.png',
+    './compat/quiz_leesunsin/leesunsin_walk3.png',
+    './compat/quiz_leesunsin/leesunsin_walk4.png'
+  ])
+});
+const LOADING_FACTS_BY_CHARACTER = Object.freeze({
+  sejong: Object.freeze([
+    Object.freeze({
+      label: '세종대왕 역사 사실',
+      text: '세종실록에는 1443년에 훈민정음을 창제했다는 기록이 남아 있어요.',
+      source: '조선왕조실록 (세종 25년 12월 30일)',
+      sourceUrl: 'https://sillok.history.go.kr/id/kda_12512030_002'
+    }),
+    Object.freeze({
+      label: '세종대왕 역사 사실',
+      text: '세종실록에는 갑인자(새 금속 활자)를 주조했다는 기사가 기록되어 있어요.',
+      source: '조선왕조실록 (세종 16년 7월 2일)',
+      sourceUrl: 'https://sillok.history.go.kr/id/kda_11607002_001'
+    }),
+    Object.freeze({
+      label: '세종대왕 역사 이야기',
+      text: '세종실록에는 장영실 관련 문책 기사도 기록되어 있어 과학 기술 운영의 긴장감도 확인할 수 있어요.',
+      source: '조선왕조실록 (세종 24년 4월 27일)',
+      sourceUrl: 'https://sillok.history.go.kr/id/kda_12404027_002'
+    })
+  ]),
+  leesunsin: Object.freeze([
+    Object.freeze({
+      label: '이순신 역사 사실',
+      text: '선조실록에는 노량해전에서 이순신이 전사했다는 보고가 남아 있어요.',
+      source: '조선왕조실록 (선조 31년 12월 18일)',
+      sourceUrl: 'https://sillok.history.go.kr/id/kna_13112018_004'
+    }),
+    Object.freeze({
+      label: '이순신 역사 사실',
+      text: '난중일기는 임진왜란 시기 전황과 일상을 함께 보여주는 대표 1차 사료예요.',
+      source: '국가유산포털 (난중일기 및 서간첩 임진장초)',
+      sourceUrl: 'https://www.heritage.go.kr/heri/cul/culSelectDetail.do?ccbaCpno=1121100760000'
+    }),
+    Object.freeze({
+      label: '이순신 역사 이야기',
+      text: '숙종실록에는 이순신 사당에 현충의 호를 내렸다는 기록이 있어요.',
+      source: '조선왕조실록 (숙종 33년 2월 6일)',
+      sourceUrl: 'https://sillok.history.go.kr/id/ksa_13302006_005'
+    })
+  ])
+});
 const LOADING_READY_POLL_MS = 250;
 const LOADING_READY_TIMEOUT_MS = 18000;
+
+const normalizeCharacterId = (value, fallback = 'sejong') => {
+  const trimmed = typeof value === 'string' ? value.trim() : '';
+  if (trimmed && CHARACTER_IDS.has(trimmed)) return trimmed;
+  const fallbackTrimmed = typeof fallback === 'string' ? fallback.trim() : '';
+  if (fallbackTrimmed && CHARACTER_IDS.has(fallbackTrimmed)) return fallbackTrimmed;
+  return 'sejong';
+};
+
+const readLauncherSetup = () => {
+  try {
+    const raw = window.localStorage.getItem(LAUNCHER_SETUP_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return null;
+    return parsed;
+  } catch (_error) {
+    return null;
+  }
+};
+
+const resolveLoadingCharacterId = () => {
+  const setup = readLauncherSetup();
+  if (!setup) return 'sejong';
+  const playerIds = Array.isArray(setup.playerCharacterIds) ? setup.playerCharacterIds : [];
+  for (const id of playerIds) {
+    const trimmed = typeof id === 'string' ? id.trim() : '';
+    if (trimmed && CHARACTER_IDS.has(trimmed)) return trimmed;
+  }
+  return normalizeCharacterId(setup.characterId, 'sejong');
+};
+
+const shuffleInPlace = (items) => {
+  for (let i = items.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = items[i];
+    items[i] = items[j];
+    items[j] = tmp;
+  }
+  return items;
+};
+
+const setLoadingFact = (fact) => {
+  const labelEl = document.getElementById('loading-fact-label');
+  const textEl = document.getElementById('loading-fact-text');
+  const sourceEl = document.getElementById('loading-fact-source');
+  if (labelEl) labelEl.textContent = fact?.label || '안내';
+  if (textEl) textEl.textContent = fact?.text || '';
+  if (!sourceEl) return;
+  sourceEl.textContent = '';
+  const sourceText = typeof fact?.source === 'string' && fact.source.trim()
+    ? fact.source.trim()
+    : '놀퀴즈';
+  const prefix = document.createElement('span');
+  prefix.textContent = `출처: ${sourceText}`;
+  sourceEl.appendChild(prefix);
+  const sourceUrl = typeof fact?.sourceUrl === 'string' ? fact.sourceUrl.trim() : '';
+  if (!sourceUrl) return;
+  const separator = document.createTextNode(' · ');
+  const link = document.createElement('a');
+  link.href = sourceUrl;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  link.textContent = '링크';
+  sourceEl.appendChild(separator);
+  sourceEl.appendChild(link);
+};
+
+const buildLoadingFactPool = (characterId) => {
+  const normalizedCharacterId = normalizeCharacterId(characterId, 'sejong');
+  const characterLabel = CHARACTER_LABELS[normalizedCharacterId] || CHARACTER_LABELS.sejong;
+  const gameFacts = [
+    {
+      label: '게임 안내',
+      text: `${characterLabel} 캐릭터는 점프맵 시작 후 조작 편집으로 버튼 크기/위치를 조정해 더 편하게 플레이할 수 있어요.`,
+      source: '놀퀴즈 점프맵 안내'
+    },
+    {
+      label: '게임 안내',
+      text: '퀴즈 풀기에서 게이지를 채우고, 방향키 + 점프(더블 점프 가능)로 더 높은 발판을 노려 보세요.',
+      source: '놀퀴즈 점프맵 안내'
+    }
+  ];
+  const characterFacts = Array.isArray(LOADING_FACTS_BY_CHARACTER[normalizedCharacterId])
+    ? LOADING_FACTS_BY_CHARACTER[normalizedCharacterId]
+    : [];
+  return shuffleInPlace([...gameFacts, ...characterFacts]);
+};
 
 const fallbackHref = () => {
   try {
@@ -139,15 +284,38 @@ const appendCompatEvent = (text) => {
   }
 };
 
-const startLoadingSpriteAnimation = () => {
+const startLoadingSpriteAnimation = (characterId = 'sejong') => {
   const spriteEl = document.getElementById('loading-sprite');
   if (!(spriteEl instanceof HTMLImageElement)) return () => {};
+  const sprites = LOADING_SPRITES_BY_CHARACTER[normalizeCharacterId(characterId, 'sejong')]
+    || LOADING_SPRITES_BY_CHARACTER.sejong;
   let frameIndex = 0;
-  spriteEl.src = LOADING_SPRITES[0];
+  spriteEl.src = sprites[0];
   const timer = window.setInterval(() => {
-    frameIndex = (frameIndex + 1) % LOADING_SPRITES.length;
-    spriteEl.src = LOADING_SPRITES[frameIndex];
+    frameIndex = (frameIndex + 1) % sprites.length;
+    spriteEl.src = sprites[frameIndex];
   }, LOADING_SPRITE_FRAME_MS);
+  return () => {
+    window.clearInterval(timer);
+  };
+};
+
+const startLoadingFactRotation = (characterId = 'sejong') => {
+  const factPool = buildLoadingFactPool(characterId);
+  if (!factPool.length) {
+    setLoadingFact({
+      label: '게임 안내',
+      text: '맵 데이터를 준비 중입니다.',
+      source: '놀퀴즈 점프맵 안내'
+    });
+    return () => {};
+  }
+  let factIndex = Math.floor(Math.random() * factPool.length);
+  setLoadingFact(factPool[factIndex]);
+  const timer = window.setInterval(() => {
+    factIndex = (factIndex + 1) % factPool.length;
+    setLoadingFact(factPool[factIndex]);
+  }, LOADING_FACT_ROTATE_MS);
   return () => {
     window.clearInterval(timer);
   };
@@ -188,7 +356,7 @@ const resolveCompatTargetMode = (baseHref) => {
 const buildLegacyEditorTargetUrl = (baseHref) => {
   const browserHref = fallbackHref();
   const current = new URL(baseHref || browserHref, browserHref);
-  const target = new URL('../../jumpmap-editor/', current);
+  const target = new URL('https://luckybridge.github.io/knolquiz-editor/jumpmap-editor/');
 
   current.searchParams.forEach((value, key) => {
     if (!key) return;
@@ -228,7 +396,9 @@ const applyLegacyDirectFallbackProbe = (requestedMode, probe) => {
 };
 
 const start = async () => {
-  const stopLoadingSpriteAnimation = startLoadingSpriteAnimation();
+  const loadingCharacterId = resolveLoadingCharacterId();
+  const stopLoadingSpriteAnimation = startLoadingSpriteAnimation(loadingCharacterId);
+  const stopLoadingFactRotation = startLoadingFactRotation(loadingCharacterId);
   setLoadingVisible(true);
   setLoadingText('맵 데이터와 게임 데이터를 준비하고 있어요.');
 
@@ -238,6 +408,7 @@ const start = async () => {
     setLoadingText('로딩 프레임을 찾지 못했습니다.');
     setPanelVisible(true);
     stopLoadingSpriteAnimation();
+    stopLoadingFactRotation();
     return;
   }
 
@@ -262,6 +433,7 @@ const start = async () => {
     setLoadingText('로딩 완료');
     setLoadingVisible(false);
     stopLoadingSpriteAnimation();
+    stopLoadingFactRotation();
     if (!compatDebug) setPanelVisible(false);
     if (reason) setText('status-text', reason);
   };
@@ -315,6 +487,7 @@ const start = async () => {
     setLoadingText('플레이 경로 준비에 실패했습니다.');
     setPanelVisible(true);
     stopLoadingSpriteAnimation();
+    stopLoadingFactRotation();
     return;
   }
 
@@ -418,6 +591,8 @@ const start = async () => {
 
   const onError = () => {
     stopReadyPolling();
+    stopLoadingSpriteAnimation();
+    stopLoadingFactRotation();
     setPanelVisible(true);
     setFrameReady(false);
     setLoadingText('로딩에 실패했습니다. 새 탭 링크를 사용해 주세요.');

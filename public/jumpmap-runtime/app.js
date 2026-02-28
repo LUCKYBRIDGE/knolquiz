@@ -405,13 +405,13 @@ const start = async () => {
   renderSetupSummary(setup);
   renderMapSummary(null, null);
   if (!setup) {
-    setStatus('런처 설정을 찾지 못했습니다');
-    appendStatusLog('실패', '런처 설정이 없어 점프맵 런타임을 시작할 수 없습니다.');
-    showError('런처에서 인원/퀴즈/게임을 선택한 뒤 다시 시작해 주세요.');
+    setStatus('메인화면 설정을 찾지 못했습니다');
+    appendStatusLog('실패', '메인화면 설정이 없어 점프맵 런타임을 시작할 수 없습니다.');
+    showError('메인화면에서 인원/퀴즈/게임을 선택한 뒤 다시 시작해 주세요.');
     return;
   }
 
-  appendStatusLog('준비', `런처 설정 확인 완료 (${setup.players}명 / ${setup.quizPresetId})`);
+  appendStatusLog('준비', `메인화면 설정 확인 완료 (${setup.players}명 / ${setup.quizPresetId})`);
   appendStatusLog('구현', `선택된 런타임 구현체: ${shellOptions.runtimeImpl}`);
   appendStatusLog(
     '브리지',
@@ -587,7 +587,7 @@ start().catch((error) => {
   console.error('[JumpmapRuntime] bootstrap failed', error);
   setStatus('점프맵 런타임 준비 중 오류가 발생했습니다');
   appendStatusLog('오류', `런타임 준비 실패: ${error?.message || error}`);
-  showError('점프맵 런타임 준비에 실패했습니다. 런처로 돌아가 다시 시도해 주세요.');
+  showError('점프맵 런타임 준비에 실패했습니다. 메인화면으로 돌아가 다시 시도해 주세요.');
 });
 
 getLaunchNowButton()?.addEventListener('click', () => {

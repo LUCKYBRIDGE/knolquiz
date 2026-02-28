@@ -43,10 +43,20 @@ export const readJumpmapLauncherSetup = () => {
   }
 };
 
+const normalizeLauncherEndMode = (setup) => {
+  const raw = String(setup?.endMode || '').trim().toLowerCase();
+  if (raw === 'count' || raw === 'time' || raw === 'reach-top') return raw;
+  const legacyJumpmap = String(setup?.jumpmapEndMode || '').trim().toLowerCase();
+  if (legacyJumpmap === 'reach-top') return 'reach-top';
+  const legacyQuiz = String(setup?.quizEndMode || '').trim().toLowerCase();
+  return legacyQuiz === 'time' ? 'time' : 'count';
+};
+
 export const normalizeJumpmapLauncherSetup = (setup) => {
   if (!setup || typeof setup !== 'object') return null;
   const players = Math.max(1, Math.min(6, Math.round(Number(setup.players) || 1)));
   const characterId = normalizeCharacterId(setup.characterId, 'sejong');
+  const endMode = normalizeLauncherEndMode(setup);
   const names = Array.isArray(setup.playerNames) ? setup.playerNames.slice(0, 6) : [];
   const tags = Array.isArray(setup.playerTags) ? setup.playerTags.slice(0, 6) : [];
   const playerCharacterIds = Array.isArray(setup.playerCharacterIds) ? setup.playerCharacterIds.slice(0, 6) : [];
@@ -62,7 +72,11 @@ export const normalizeJumpmapLauncherSetup = (setup) => {
         : 'jumpmap-net-30',
     characterId,
     jumpmapStartPointId: typeof setup.jumpmapStartPointId === 'string' ? setup.jumpmapStartPointId : '',
-    jumpmapEndMode: setup.jumpmapEndMode === 'reach-top' ? 'reach-top' : 'none',
+    endMode,
+    jumpmapEndMode: endMode === 'reach-top' ? 'reach-top' : 'none',
+    quizEndMode: endMode === 'time' ? 'time' : 'count',
+    quizCountLimit: Math.max(1, Math.min(500, Math.round(Number(setup.quizCountLimit) || 30))),
+    quizTimeLimitSec: Math.max(10, Math.min(3600, Math.round(Number(setup.quizTimeLimitSec) || 180))),
     playerNames: names.slice(0, players).map((name, index) => {
       const trimmed = typeof name === 'string' ? name.trim() : '';
       return trimmed || `사용자${index + 1}`;
@@ -161,6 +175,11 @@ export const buildJumpmapRuntimeLegacyPlayUrl = (baseHref = window.location.href
 
 // Backward-compatible alias while runtime shell callers are migrated.
 export const buildLegacyJumpmapEditorPlayUrl = (baseHref = window.location.href) => {
-  const url = new URL('../jumpmap-editor/', baseHref);
+  const current = new URL(baseHref, window.location.href);
+  const url = new URL('https://luckybridge.github.io/knolquiz-editor/jumpmap-editor/');
+  current.searchParams.forEach((value, key) => {
+    if (!key) return;
+    url.searchParams.set(key, value);
+  });
   return applyLegacyJumpmapPlayDefaults(url);
 };

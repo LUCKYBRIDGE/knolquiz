@@ -1668,7 +1668,7 @@
       const recordsLink = document.createElement('a');
       recordsLink.className = 'test-start-guide-action-btn';
       recordsLink.href = buildResultNavigationHref('../../../../play/records/', singleStudentNo);
-      recordsLink.textContent = '지난 기록 보기';
+      recordsLink.textContent = '전체 기록 보기(로컬)';
       actions.appendChild(recordsLink);
       const classroomLink = document.createElement('a');
       classroomLink.className = 'test-start-guide-action-btn';
@@ -1678,7 +1678,7 @@
       const launcherLink = document.createElement('a');
       launcherLink.className = 'test-start-guide-action-btn';
       launcherLink.href = resolveEditorRuntimeAssetUrl('../../../../');
-      launcherLink.textContent = '런처로';
+      launcherLink.textContent = '메인화면으로';
       actions.appendChild(launcherLink);
       guide.appendChild(actions);
 

@@ -23,6 +23,15 @@ const readSetup = () => {
   }
 };
 
+const normalizeLauncherEndMode = (setup) => {
+  const raw = String(setup?.endMode || '').trim().toLowerCase();
+  if (raw === 'count' || raw === 'time' || raw === 'reach-top') return raw;
+  const legacyJumpmap = String(setup?.jumpmapEndMode || '').trim().toLowerCase();
+  if (legacyJumpmap === 'reach-top') return 'reach-top';
+  const legacyQuiz = String(setup?.quizEndMode || '').trim().toLowerCase();
+  return legacyQuiz === 'time' ? 'time' : 'count';
+};
+
 const normalizeSetup = (setup) => {
   if (!setup || typeof setup !== 'object') return null;
   const players = Math.max(1, Math.min(6, Math.round(Number(setup.players) || 1)));
@@ -35,7 +44,8 @@ const normalizeSetup = (setup) => {
   const jumpmapStartPointId = typeof setup.jumpmapStartPointId === 'string'
     ? setup.jumpmapStartPointId
     : '';
-  const jumpmapEndMode = setup.jumpmapEndMode === 'reach-top' ? 'reach-top' : 'none';
+  const endMode = normalizeLauncherEndMode(setup);
+  const jumpmapEndMode = endMode === 'reach-top' ? 'reach-top' : 'none';
   const names = Array.isArray(setup.playerNames) ? setup.playerNames.slice(0, 6) : [];
   const tags = Array.isArray(setup.playerTags) ? setup.playerTags.slice(0, 6) : [];
   const playerCharacterIds = Array.isArray(setup.playerCharacterIds) ? setup.playerCharacterIds.slice(0, 6) : [];
@@ -48,6 +58,7 @@ const normalizeSetup = (setup) => {
     quizPresetId,
     characterId,
     jumpmapStartPointId,
+    endMode,
     jumpmapEndMode,
     playerNames: names.slice(0, players).map((name, index) => {
       const trimmed = typeof name === 'string' ? name.trim() : '';
@@ -100,7 +111,14 @@ const renderSummary = (setup) => {
         })
         .join(', ')
     ],
-    ['점프맵 종료 기준', setup.jumpmapEndMode === 'reach-top' ? '꼭대기 도달 시 종료' : '종료 조건 없음'],
+    [
+      '점프맵 종료 기준',
+      setup.endMode === 'reach-top'
+        ? '꼭대기 도달 시 종료'
+        : (setup.endMode === 'time'
+          ? `시간 종료 (${Math.max(10, Math.min(3600, Math.round(Number(setup.quizTimeLimitSec) || 180)))}초)`
+          : `몇 문제 풀면 종료 (${Math.max(1, Math.min(500, Math.round(Number(setup.quizCountLimit) || 30)))}문제)`)
+    ],
     ['스타트 후보', setup.jumpmapStartPointId || '시작지점'],
     [
       '플레이어 이름',
@@ -166,8 +184,8 @@ const start = () => {
   clearError();
   const setup = normalizeSetup(readSetup());
   if (!setup) {
-    setStatus('런처 설정을 찾지 못했습니다');
-    showError('런처에서 인원/퀴즈/게임을 선택한 뒤 다시 시작해 주세요.');
+    setStatus('메인화면 설정을 찾지 못했습니다');
+    showError('메인화면에서 인원/퀴즈/게임을 선택한 뒤 다시 시작해 주세요.');
     return;
   }
   renderSummary(setup);

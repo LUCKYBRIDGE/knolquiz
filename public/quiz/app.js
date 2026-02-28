@@ -1084,12 +1084,12 @@ const buildCsvBankFromLauncherSetup = (launcher) => {
     fileName: typeof launcher?.customCsvFileName === 'string' ? launcher.customCsvFileName : ''
   });
   if (!parsed.bank) {
-    return { bank: null, message: `런처 업로드 문제 무시: ${parsed.error || '파싱 실패'}` };
+    return { bank: null, message: `메인화면 업로드 문제 무시: ${parsed.error || '파싱 실패'}` };
   }
   const formatLabel = parsed.format === 'json' ? '문제팩(JSON)' : 'CSV';
   return {
     bank: parsed.bank,
-    message: `런처 ${formatLabel} 문제 ${parsed.bank.questions.length}개를 사용합니다.`
+    message: `메인화면 ${formatLabel} 문제 ${parsed.bank.questions.length}개를 사용합니다.`
   };
 };
 
@@ -1103,7 +1103,7 @@ const hydrateCsvBankFromLauncherStorage = () => {
   uploadedCsvQuestionBank = launcherCsv.bank;
   if (settingsInputs.customEnabled) settingsInputs.customEnabled.value = 'true';
   if (settingsInputs.customCsvEnabled) settingsInputs.customCsvEnabled.value = 'true';
-  setCustomCsvStatus(launcherCsv.message || `런처 업로드 문제 ${launcherCsv.bank.questions.length}개 로드 완료`, 'success');
+  setCustomCsvStatus(launcherCsv.message || `메인화면 업로드 문제 ${launcherCsv.bank.questions.length}개 로드 완료`, 'success');
 };
 
 const buildLauncherBasicQuizSettings = () => {
@@ -1217,12 +1217,12 @@ const maybeAutoStartQuizFromLauncher = () => {
     settings.questionCount = settings.quizEndMode === 'time'
       ? availableCount
       : Math.max(1, Math.min(availableCount, launcherQuizCountLimit || availableCount));
-    setLoadStatus(launcherCsv.message || '런처 업로드 문제를 불러왔습니다.', 'success');
+    setLoadStatus(launcherCsv.message || '메인화면 업로드 문제를 불러왔습니다.', 'success');
   } else if (launcherCsv?.message) {
     uploadedCsvQuestionBank = null;
     setLoadStatus(launcherCsv.message, 'fail');
   } else {
-    setLoadStatus('런처 설정으로 기본 퀴즈를 시작합니다.', 'success');
+    setLoadStatus('메인화면 설정으로 기본 퀴즈를 시작합니다.', 'success');
   }
   startQuizWithSettings(settings, false);
   return true;
@@ -1468,7 +1468,7 @@ const exportQuestionPackJson = () => {
   link.click();
   URL.revokeObjectURL(url);
   setCustomCsvStatus(`문제팩(JSON) ${payload.bank.questions.length}문항 저장 완료`, 'success');
-  setLoadStatus('문제팩(JSON) 저장 완료. 런처에서 업로드해 사용할 수 있습니다.', 'success');
+  setLoadStatus('문제팩(JSON) 저장 완료. 메인화면에서 업로드해 사용할 수 있습니다.', 'success');
 };
 
 const getTotalTypeCount = () => {

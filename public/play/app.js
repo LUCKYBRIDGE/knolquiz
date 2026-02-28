@@ -1,4 +1,5 @@
 const STORAGE_KEY = 'jumpmap.launcher.setup.v1';
+const LEGACY_QUIZ_APP_URL = 'https://luckybridge.github.io/math-net-master-quiz/quiz/';
 
 const GAME_LABELS = {
   jumpmap: '점프맵',
@@ -30,6 +31,22 @@ const readLauncherSetup = () => {
   }
 };
 
+const normalizeLauncherEndMode = (setup, gameMode) => {
+  const raw = String(setup?.endMode || '').trim().toLowerCase();
+  let mode = (raw === 'count' || raw === 'time' || raw === 'reach-top') ? raw : '';
+  if (!mode) {
+    const legacyJumpmap = String(setup?.jumpmapEndMode || '').trim().toLowerCase();
+    if (legacyJumpmap === 'reach-top') {
+      mode = 'reach-top';
+    } else {
+      const legacyQuiz = String(setup?.quizEndMode || '').trim().toLowerCase();
+      mode = legacyQuiz === 'time' ? 'time' : 'count';
+    }
+  }
+  if (gameMode !== 'jumpmap' && mode === 'reach-top') return 'count';
+  return mode || 'count';
+};
+
 const normalizeSetup = (setup) => {
   if (!setup || typeof setup !== 'object') return null;
   const players = Math.max(1, Math.min(6, Math.round(Number(setup.players) || 1)));
@@ -41,8 +58,9 @@ const normalizeSetup = (setup) => {
   const jumpmapStartPointId = typeof setup.jumpmapStartPointId === 'string'
     ? setup.jumpmapStartPointId
     : '';
-  const jumpmapEndMode = setup.jumpmapEndMode === 'reach-top' ? 'reach-top' : 'none';
-  const quizEndMode = setup.quizEndMode === 'time' ? 'time' : 'count';
+  const endMode = normalizeLauncherEndMode(setup, gameMode);
+  const jumpmapEndMode = endMode === 'reach-top' ? 'reach-top' : 'none';
+  const quizEndMode = endMode === 'time' ? 'time' : 'count';
   const quizCountLimit = Math.max(1, Math.min(500, Math.round(Number(setup.quizCountLimit) || 30)));
   const quizTimeLimitSec = Math.max(10, Math.min(3600, Math.round(Number(setup.quizTimeLimitSec) || 180)));
   const playerNames = Array.isArray(setup.playerNames) ? setup.playerNames.slice(0, 6) : [];
@@ -66,6 +84,7 @@ const normalizeSetup = (setup) => {
     quizPresetId,
     characterId,
     jumpmapStartPointId,
+    endMode,
     jumpmapEndMode,
     quizEndMode,
     quizCountLimit,
@@ -88,7 +107,7 @@ const getStartTargetUrl = (setup) => {
     return url;
   }
   if (setup.gameMode === 'basic-quiz') {
-    const url = new URL('../quiz/', window.location.href);
+    const url = new URL(LEGACY_QUIZ_APP_URL);
     url.searchParams.set('launchMode', 'play');
     url.searchParams.set('fromLauncher', '1');
     return url;
@@ -106,7 +125,14 @@ const renderSummary = (box, setup) => {
     ['플레이 인원', `${setup.players}명`],
     ['게임', GAME_LABELS[setup.gameMode] || setup.gameMode],
     ['퀴즈', quizLabel],
-    ['종료 기준', setup.quizEndMode === 'time' ? `시간 종료 (${setup.quizTimeLimitSec}초)` : `몇 문제 다 풀면 종료 (${setup.quizCountLimit}문제)`],
+    [
+      '종료 기준',
+      setup.endMode === 'reach-top'
+        ? '꼭대기 도달 시 종료'
+        : (setup.endMode === 'time'
+          ? `시간 종료 (${setup.quizTimeLimitSec}초)`
+          : `몇 문제 풀면 종료 (${setup.quizCountLimit}문제)`)
+    ],
     [
       '문제 소스',
       setup.customCsvEnabled && typeof setup.customCsvText === 'string' && setup.customCsvText.trim()
@@ -125,7 +151,6 @@ const renderSummary = (box, setup) => {
           .join(', ')
         : '사용 안 함'
     ],
-    ['점프맵 종료 기준', setup.gameMode === 'jumpmap' ? (setup.jumpmapEndMode === 'reach-top' ? '꼭대기 도달 시 종료' : '종료 조건 없음') : '해당 없음'],
     ['스타트 후보', setup.gameMode === 'jumpmap' ? (setup.jumpmapStartPointId || '시작지점') : '해당 없음'],
     [
       '플레이어 이름',
@@ -175,9 +200,9 @@ const startRouting = () => {
   const setup = normalizeSetup(readLauncherSetup());
   const summaryBox = document.getElementById('summary-box');
   if (!setup) {
-    setStatus('런처 설정을 찾지 못했습니다');
+    setStatus('메인화면 설정을 찾지 못했습니다');
     if (summaryBox) summaryBox.innerHTML = '';
-    showError('런처에서 인원/퀴즈/게임을 먼저 선택한 뒤 시작해 주세요.');
+    showError('메인화면에서 인원/퀴즈/게임을 먼저 선택한 뒤 시작해 주세요.');
     return;
   }
 

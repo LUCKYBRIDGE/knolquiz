@@ -1781,6 +1781,22 @@ select {
   gap: 8px;
 }
 
+.result-download-note {
+  margin-top: 10px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.result-download-note.is-success {
+  color: var(--success);
+}
+
+.result-download-note.is-warn {
+  color: #b45309;
+}
+
 .result-actions .secondary {
   min-height: 44px;
   padding: 8px 12px;
