@@ -391,6 +391,20 @@
                 <label for="season-select">리더보드 시즌</label>
                 <select id="season-select"></select>
               </div>
+              <div class="row2">
+                <div class="field">
+                  <label for="leaderboard-period-select">리더보드 조회 기간</label>
+                  <select id="leaderboard-period-select">
+                    <option value="all">전체</option>
+                    <option value="30">최근 30일</option>
+                    <option value="7">최근 7일</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="leaderboard-period-note">기간 안내</label>
+                  <div class="note" id="leaderboard-period-note">명예의 전당 / 상세링크 / CSV 모두 같은 기간 기준을 사용합니다.</div>
+                </div>
+              </div>
               <button class="btn" id="load-leaderboard-btn" type="button">명예의 전당 불러오기</button>
               <button class="btn" id="export-leaderboard-csv-btn" type="button">리더보드 CSV 내보내기</button>
               <div class="row2">

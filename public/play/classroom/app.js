@@ -30,6 +30,8 @@ const els = {
   archiveEndedSeasons: document.getElementById('archive-ended-seasons-btn'),
   seasonList: document.getElementById('season-list'),
   seasonSelect: document.getElementById('season-select'),
+  leaderboardPeriodSelect: document.getElementById('leaderboard-period-select'),
+  leaderboardPeriodNote: document.getElementById('leaderboard-period-note'),
   loadLeaderboard: document.getElementById('load-leaderboard-btn'),
   exportLeaderboardCsv: document.getElementById('export-leaderboard-csv-btn'),
   manualStudentNo: document.getElementById('manual-student-no'),
@@ -41,11 +43,13 @@ const els = {
 const state = {
   draftStudents: [],
   seasons: [],
+  rawLeaderboardSections: [],
   leaderboardSections: [],
   loadedLeaderboardSeasonId: '',
   selectedSeasonId: '',
   navStudentNo: null,
-  navPeriodDays: null
+  navPeriodDays: null,
+  selectedLeaderboardPeriodDays: null
 };
 
 const CATEGORY_LABELS = {
@@ -76,6 +80,21 @@ const normalizePeriodDays = (raw) => {
   return null;
 };
 
+const getPeriodLabel = (periodDays) => {
+  if (!periodDays) return '전체';
+  return `최근 ${periodDays}일`;
+};
+
+const isWithinSelectedPeriod = (iso, periodDays) => {
+  if (!periodDays) return true;
+  const targetDate = new Date(iso || '');
+  if (Number.isNaN(targetDate.getTime())) return false;
+  const now = new Date();
+  const diffMs = now.getTime() - targetDate.getTime();
+  if (diffMs < 0) return true;
+  return diffMs <= (periodDays * 24 * 60 * 60 * 1000);
+};
+
 const readFiltersFromQuery = () => {
   try {
     const params = new URLSearchParams(window.location.search);
@@ -88,6 +107,21 @@ const readFiltersFromQuery = () => {
       studentNo: null,
       periodDays: null
     };
+  }
+};
+
+const writeFiltersToQuery = (studentNo, periodDays) => {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (studentNo) params.set('studentNo', String(studentNo));
+    else params.delete('studentNo');
+    if (periodDays) params.set('periodDays', String(periodDays));
+    else params.delete('periodDays');
+    const nextQuery = params.toString();
+    const nextUrl = `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ''}${window.location.hash || ''}`;
+    window.history.replaceState(null, '', nextUrl);
+  } catch (_error) {
+    // no-op
   }
 };
 
@@ -225,6 +259,34 @@ const syncTopNavigationLinks = () => {
     if (state.navPeriodDays) params.set('periodDays', String(state.navPeriodDays));
     const query = params.toString();
     els.recordsPageLink.href = `../records/${query ? `?${query}` : ''}`;
+  }
+};
+
+const filterLeaderboardSectionsByPeriod = (sections, periodDays) => (
+  (Array.isArray(sections) ? sections : []).map((section) => ({
+    ...section,
+    rows: (Array.isArray(section?.rows) ? section.rows : [])
+      .filter((row) => isWithinSelectedPeriod(row?.lastPlayedAt, periodDays))
+  }))
+);
+
+const applyLeaderboardSections = (sections) => {
+  state.rawLeaderboardSections = Array.isArray(sections) ? sections : [];
+  state.leaderboardSections = filterLeaderboardSectionsByPeriod(
+    state.rawLeaderboardSections,
+    state.selectedLeaderboardPeriodDays
+  );
+};
+
+const syncLeaderboardPeriodUi = () => {
+  if (els.leaderboardPeriodSelect) {
+    els.leaderboardPeriodSelect.value = state.selectedLeaderboardPeriodDays
+      ? String(state.selectedLeaderboardPeriodDays)
+      : 'all';
+  }
+  if (els.leaderboardPeriodNote) {
+    els.leaderboardPeriodNote.textContent =
+      `명예의 전당 / 상세링크 / CSV 모두 ${getPeriodLabel(state.selectedLeaderboardPeriodDays)} 기준을 사용합니다.`;
   }
 };
 
@@ -412,7 +474,7 @@ const renderLeaderboard = () => {
   if (!state.leaderboardSections.length) {
     const empty = document.createElement('div');
     empty.className = 'empty';
-    empty.textContent = '명예의 전당 데이터가 없습니다.';
+    empty.textContent = `명예의 전당 데이터가 없습니다. (${getPeriodLabel(state.selectedLeaderboardPeriodDays)} 기준)`;
     els.leaderboardList.appendChild(empty);
     return;
   }
@@ -537,18 +599,26 @@ const exportLeaderboardCsv = async () => {
     const season = getSeasonById(seasonId);
     const seasonName = String(season?.name || seasonId);
     const seasonStatus = getSeasonLifecycleStatus(season);
-    const sections = (state.loadedLeaderboardSeasonId === seasonId && state.leaderboardSections.length)
-      ? state.leaderboardSections
+    const rawSections = (state.loadedLeaderboardSeasonId === seasonId && state.rawLeaderboardSections.length)
+      ? state.rawLeaderboardSections
       : await fetchLeaderboardSections(seasonId);
-    state.leaderboardSections = sections;
     state.loadedLeaderboardSeasonId = seasonId;
+    applyLeaderboardSections(rawSections);
     renderLeaderboard();
 
-    const csvText = buildLeaderboardCsv(seasonId, seasonName, seasonStatus.label, sections);
+    const csvText = buildLeaderboardCsv(
+      seasonId,
+      seasonName,
+      seasonStatus.label,
+      state.leaderboardSections
+    );
     const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
-    const fileName = `classroom-leaderboard-${seasonId}-${stamp}.csv`;
+    const periodToken = state.selectedLeaderboardPeriodDays ? `${state.selectedLeaderboardPeriodDays}d` : 'all';
+    const fileName = `classroom-leaderboard-${seasonId}-${periodToken}-${stamp}.csv`;
     downloadTextFile(fileName, csvText, 'text/csv;charset=utf-8;');
-    setStatus(`리더보드 CSV 저장 완료 · 시즌 ${seasonId} · 부문 ${sections.length}개`);
+    setStatus(
+      `리더보드 CSV 저장 완료 · 시즌 ${seasonId} · 기간 ${getPeriodLabel(state.selectedLeaderboardPeriodDays)} · 부문 ${state.leaderboardSections.length}개`
+    );
   } catch (error) {
     console.error('[ClassroomPage] export leaderboard csv failed', error);
     setStatus('리더보드 CSV 생성에 실패했습니다.', 'error');
@@ -577,10 +647,12 @@ const reloadData = async () => {
         lifecycleCounts[code] += 1;
       }
     });
+    state.rawLeaderboardSections = [];
     state.leaderboardSections = [];
     state.loadedLeaderboardSeasonId = '';
     renderStudents();
     renderSeasons();
+    syncLeaderboardPeriodUi();
     renderLeaderboard();
     setStatus(`불러오기 완료 · 학생 ${state.draftStudents.length}명 · 출석일 ${attendanceSummary.attendanceDayCount || 0}일 · 시즌 ${state.seasons.length}개 (진행중 ${lifecycleCounts.active}, 예정 ${lifecycleCounts.scheduled}, 종료 ${lifecycleCounts.ended}, 비활성 ${lifecycleCounts.inactive})`);
   } catch (error) {
@@ -683,6 +755,7 @@ const loadLeaderboard = async () => {
   const seasonId = String(els.seasonSelect?.value || state.selectedSeasonId || '').trim();
   state.selectedSeasonId = seasonId;
   if (!seasonId) {
+    state.rawLeaderboardSections = [];
     state.leaderboardSections = [];
     state.loadedLeaderboardSeasonId = '';
     renderLeaderboard();
@@ -692,11 +765,13 @@ const loadLeaderboard = async () => {
   setStatus('명예의 전당을 불러오는 중...');
   try {
     const sectionRows = await fetchLeaderboardSections(seasonId);
-    state.leaderboardSections = sectionRows;
     state.loadedLeaderboardSeasonId = seasonId;
+    applyLeaderboardSections(sectionRows);
     renderLeaderboard();
-    const totalRows = sectionRows.reduce((sum, section) => sum + section.rows.length, 0);
-    setStatus(`명예의 전당 갱신 완료 · 시즌 ${seasonId} · 부문 ${sectionRows.length}개 · 항목 ${totalRows}개`);
+    const totalRows = state.leaderboardSections.reduce((sum, section) => sum + section.rows.length, 0);
+    setStatus(
+      `명예의 전당 갱신 완료 · 시즌 ${seasonId} · 기간 ${getPeriodLabel(state.selectedLeaderboardPeriodDays)} · 부문 ${state.leaderboardSections.length}개 · 항목 ${totalRows}개`
+    );
   } catch (error) {
     console.error('[ClassroomPage] load leaderboard failed', error);
     setStatus('명예의 전당을 불러오지 못했습니다.', 'error');
@@ -740,7 +815,9 @@ const addManualScore = async () => {
 const queryFilters = readFiltersFromQuery();
 state.navStudentNo = queryFilters.studentNo;
 state.navPeriodDays = queryFilters.periodDays;
+state.selectedLeaderboardPeriodDays = queryFilters.periodDays;
 syncTopNavigationLinks();
+syncLeaderboardPeriodUi();
 
 els.refresh?.addEventListener('click', () => {
   reloadData();
@@ -759,7 +836,29 @@ els.archiveEndedSeasons?.addEventListener('click', () => {
 });
 els.seasonSelect?.addEventListener('change', () => {
   state.selectedSeasonId = String(els.seasonSelect.value || '').trim();
+  state.rawLeaderboardSections = [];
+  state.leaderboardSections = [];
   state.loadedLeaderboardSeasonId = '';
+  renderLeaderboard();
+});
+els.leaderboardPeriodSelect?.addEventListener('change', () => {
+  state.selectedLeaderboardPeriodDays = normalizePeriodDays(els.leaderboardPeriodSelect?.value || '');
+  state.navPeriodDays = state.selectedLeaderboardPeriodDays;
+  writeFiltersToQuery(state.navStudentNo, state.navPeriodDays);
+  syncTopNavigationLinks();
+  syncLeaderboardPeriodUi();
+  state.leaderboardSections = filterLeaderboardSectionsByPeriod(
+    state.rawLeaderboardSections,
+    state.selectedLeaderboardPeriodDays
+  );
+  renderStudents();
+  renderLeaderboard();
+  if (state.selectedSeasonId && state.loadedLeaderboardSeasonId === state.selectedSeasonId) {
+    const totalRows = state.leaderboardSections.reduce((sum, section) => sum + section.rows.length, 0);
+    setStatus(
+      `명예의 전당 필터 적용 · 시즌 ${state.selectedSeasonId} · 기간 ${getPeriodLabel(state.selectedLeaderboardPeriodDays)} · 항목 ${totalRows}개`
+    );
+  }
 });
 els.loadLeaderboard?.addEventListener('click', () => {
   loadLeaderboard();
