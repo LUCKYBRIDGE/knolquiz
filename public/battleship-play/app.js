@@ -127,7 +127,7 @@ const state = {
   nextSpawnMs: 650,
   nextShotMs: 0,
   ship: {
-    x: 116,
+    x: canvas.width / 2,
     y: canvas.height / 2,
     radius: 38,
     maxHp: 300,
@@ -363,6 +363,33 @@ const shouldSpawnEliteEnemy = (elapsedSec, eliteTier) => {
   return Math.random() < chance;
 };
 
+const getEnemySpawnPoint = (radius) => {
+  const offset = Math.max(48, Math.round(radius + 24));
+  const side = Math.floor(Math.random() * 4);
+  if (side === 0) {
+    return {
+      x: Math.random() * canvas.width,
+      y: -offset
+    };
+  }
+  if (side === 1) {
+    return {
+      x: canvas.width + offset,
+      y: Math.random() * canvas.height
+    };
+  }
+  if (side === 2) {
+    return {
+      x: Math.random() * canvas.width,
+      y: canvas.height + offset
+    };
+  }
+  return {
+    x: -offset,
+    y: Math.random() * canvas.height
+  };
+};
+
 const createEnemyFromDefinition = (def, elapsedSec, elite = false) => {
   const hpScale = 1 + Math.floor(elapsedSec / HP_GROWTH_STEP_SEC) * HP_GROWTH_PER_STEP;
   const speedScale = 1 + Math.floor(elapsedSec / SPEED_GROWTH_STEP_SEC) * SPEED_GROWTH_PER_STEP;
@@ -401,6 +428,7 @@ const createEnemyFromDefinition = (def, elapsedSec, elite = false) => {
     ? Math.round((normalSize + 8) * (1.12 + eliteStrengthStep * 0.03))
     : normalSize;
   const radius = Math.max(14, Math.round(renderSize * (elite ? 0.33 : 0.3) * tierFactor * 0.82));
+  const spawnPoint = getEnemySpawnPoint(radius);
 
   return {
     id: `enemy-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -408,8 +436,8 @@ const createEnemyFromDefinition = (def, elapsedSec, elite = false) => {
     typeCode: def.code,
     typeName: def.name,
     elite,
-    x: canvas.width + 50,
-    y: 56 + Math.random() * (canvas.height - 112),
+    x: spawnPoint.x,
+    y: spawnPoint.y,
     radius,
     speed,
     hp,

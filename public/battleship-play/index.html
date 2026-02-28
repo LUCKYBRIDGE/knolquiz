@@ -32,6 +32,9 @@
         overflow: hidden;
         background: #edf4ff;
         box-shadow: 0 8px 24px rgba(24, 41, 75, 0.16);
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        max-height: 100%;
         min-height: 0;
       }
       #game-canvas {
@@ -208,14 +211,14 @@
       .gameover-panel p { margin: 6px 0; font-weight: 700; }
       @media (max-width: 980px) {
         .layout { grid-template-columns: 1fr; height: auto; min-height: calc(100% - 16px); }
-        .stage-wrap { min-height: 58vh; }
+        .stage-wrap { max-height: none; }
       }
     </style>
   </head>
   <body>
     <main class="layout">
       <section class="stage-wrap">
-        <canvas id="game-canvas" width="960" height="540"></canvas>
+        <canvas id="game-canvas" width="900" height="900"></canvas>
       </section>
       <aside class="side">
         <section class="card">
