@@ -22,7 +22,6 @@ const ELITE_CHANCE_BASE = 0.08;
 const ELITE_CHANCE_MAX = 0.55;
 const ELITE_CHANCE_GROWTH_WINDOW_SEC = 280;
 const EARLY_ONE_SHOT_WINDOW_SEC = 55;
-const EARLY_ONE_SHOT_MAX_TIER = 4;
 const EARLY_EASE_WINDOW_SEC = 120;
 const EARLY_SOFTCAP_T1 = 7;
 const EARLY_SOFTCAP_T2 = 11;
@@ -33,6 +32,7 @@ const FLOW_LULL_END_SEC = 20;
 const FLOW_SURGE_START_SEC = 32;
 const FLOW_SURGE_END_SEC = 40;
 const FLOW_AFTERSHOCK_END_SEC = 46;
+const SHIP_BASE_ATTACK_POWER = 14;
 const ENEMY_DEFINITIONS = Object.freeze([
   { tier: 1, code: '01', name: '도깨비불', file: 'battleship-01ddokaebibul.png', baseHp: 34, baseSpeed: 58, baseTouchDamage: 8, baseSize: 56 },
   { tier: 2, code: '02', name: '물귀신', file: 'battleship-02mulguisin.png', baseHp: 46, baseSpeed: 62, baseTouchDamage: 9, baseSize: 58 },
@@ -683,8 +683,17 @@ const createEnemyFromDefinition = (def, elapsedSec, options = {}) => {
     speed *= (0.7 + 0.3 * earlyProgress);
     touchDamage = Math.max(1, Math.round(touchDamage * (0.65 + 0.35 * earlyProgress)));
 
-    if (elapsedSec <= EARLY_ONE_SHOT_WINDOW_SEC && def.tier <= EARLY_ONE_SHOT_MAX_TIER) {
-      hp = Math.min(hp, Math.max(1, state.ship.attackPower - 1));
+    if (
+      elapsedSec <= EARLY_ONE_SHOT_WINDOW_SEC
+      && def.tier === 1
+      && state.ship.attackPower <= SHIP_BASE_ATTACK_POWER
+    ) {
+      // Early game: only tier-1 can be one-shot by the base ship.
+      hp = Math.min(hp, Math.max(1, SHIP_BASE_ATTACK_POWER - 1));
+    }
+    if (def.tier > 1 && state.ship.attackPower <= SHIP_BASE_ATTACK_POWER) {
+      // Prevent non-tier1 enemies from being one-shot by the base ship.
+      hp = Math.max(hp, SHIP_BASE_ATTACK_POWER + 2);
     }
   }
 
