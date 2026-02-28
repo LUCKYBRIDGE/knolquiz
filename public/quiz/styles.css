@@ -1774,6 +1774,22 @@ select {
   font-weight: 700;
 }
 
+.result-actions {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.result-actions .secondary {
+  min-height: 44px;
+  padding: 8px 12px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .rank-section {
   margin-top: 12px;
   border: 1px solid var(--border);

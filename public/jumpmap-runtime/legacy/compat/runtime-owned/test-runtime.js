@@ -1249,6 +1249,93 @@
       return `${meters.toFixed(2)}m`;
     };
 
+    const buildTopReachRanking = (views) => {
+      const metrics = getPlayerMetrics();
+      return (Array.isArray(views) ? views : [])
+        .map((playerView, index) => {
+          const ps = playerView?.state || {};
+          const stats = playerView?.sessionStats || {};
+          const currentHeightPx = getPlayerHeightValue(ps, metrics);
+          const bestHeightPx = Math.max(Number(ps.maxHeight) || 0, currentHeightPx);
+          return {
+            index,
+            name: getPlayerDisplayName(index),
+            bestHeightPx,
+            quizCorrect: Math.max(0, Number(stats.quizCorrect) || 0),
+            quizAttempts: Math.max(0, Number(stats.quizAttempts) || 0)
+          };
+        })
+        .sort((a, b) => {
+          const byHeight = (Number(b.bestHeightPx) || 0) - (Number(a.bestHeightPx) || 0);
+          if (byHeight !== 0) return byHeight;
+          const byQuiz = (Number(b.quizCorrect) || 0) - (Number(a.quizCorrect) || 0);
+          if (byQuiz !== 0) return byQuiz;
+          return a.index - b.index;
+        });
+    };
+
+    const buildTopReachFinishGuide = ({ winnerName, rankingRows = [], onRestart = null }) => {
+      const guide = document.createElement('div');
+      guide.className = 'test-start-guide is-result';
+      const title = document.createElement('div');
+      title.className = 'test-start-guide-title';
+      title.textContent = '점프맵 종료';
+      const icon = document.createElement('div');
+      icon.className = 'test-start-guide-count';
+      icon.textContent = '🏁';
+      const line1 = document.createElement('div');
+      line1.className = 'test-start-guide-line';
+      line1.textContent = `${winnerName} 님이 꼭대기에 도달했습니다.`;
+      const line2 = document.createElement('div');
+      line2.className = 'test-start-guide-line';
+      line2.textContent = '결과를 확인한 뒤 다시 시작하거나 기록/학급관리 화면으로 이동할 수 있습니다.';
+      guide.append(title, icon, line1, line2);
+
+      if (Array.isArray(rankingRows) && rankingRows.length) {
+        const summary = document.createElement('div');
+        summary.className = 'test-start-guide-summary';
+        rankingRows.forEach((row, rankIndex) => {
+          const item = document.createElement('div');
+          item.className = 'test-start-guide-summary-row';
+          item.textContent =
+            `${rankIndex + 1}위 ${row.name} · 최고 ${toHeightMetersText(row.bestHeightPx)} · 퀴즈 ${row.quizCorrect}/${row.quizAttempts}`;
+          summary.appendChild(item);
+        });
+        guide.appendChild(summary);
+      }
+
+      const actions = document.createElement('div');
+      actions.className = 'test-start-guide-actions';
+      if (typeof onRestart === 'function') {
+        const restartBtn = document.createElement('button');
+        restartBtn.type = 'button';
+        restartBtn.className = 'test-start-guide-action-btn';
+        restartBtn.textContent = '즉시 재시작';
+        restartBtn.addEventListener('click', () => {
+          onRestart();
+        });
+        actions.appendChild(restartBtn);
+      }
+      const recordsLink = document.createElement('a');
+      recordsLink.className = 'test-start-guide-action-btn';
+      recordsLink.href = resolveEditorRuntimeAssetUrl('../../../../play/records/');
+      recordsLink.textContent = '지난 기록 보기';
+      actions.appendChild(recordsLink);
+      const classroomLink = document.createElement('a');
+      classroomLink.className = 'test-start-guide-action-btn';
+      classroomLink.href = resolveEditorRuntimeAssetUrl('../../../../play/classroom/');
+      classroomLink.textContent = '학급관리 / 명예의 전당';
+      actions.appendChild(classroomLink);
+      const launcherLink = document.createElement('a');
+      launcherLink.className = 'test-start-guide-action-btn';
+      launcherLink.href = resolveEditorRuntimeAssetUrl('../../../../');
+      launcherLink.textContent = '런처로';
+      actions.appendChild(launcherLink);
+      guide.appendChild(actions);
+
+      return guide;
+    };
+
     const resetPlayerStateAt = (playerState, basePoint = null) => {
       const spawn = getSpawnPosition(basePoint);
       const metrics = getPlayerMetrics();
@@ -2498,27 +2585,17 @@
       jumpmapGoalState.reached = true;
       jumpmapGoalState.winnerIndex = winnerIndex;
       const winnerName = getPlayerDisplayName(winnerIndex);
+      const rankingRows = buildTopReachRanking(views);
       clearAllInputs();
       views.forEach((playerView) => {
         closeQuizPanel(playerView, { reason: 'reach_top_finish' });
-        const guide = document.createElement('div');
-        guide.className = 'test-start-guide';
-        const title = document.createElement('div');
-        title.className = 'test-start-guide-title';
-        title.textContent = '점프맵 종료';
-        const icon = document.createElement('div');
-        icon.className = 'test-start-guide-count';
-        icon.textContent = '🏁';
-        const line1 = document.createElement('div');
-        line1.className = 'test-start-guide-line';
-        line1.textContent = `${winnerName} 님이 꼭대기에 도달했습니다.`;
-        const line2 = document.createElement('div');
-        line2.className = 'test-start-guide-line';
-        line2.textContent = '다시 시작하려면 새로고침하거나 시작 화면으로 돌아가세요.';
-        guide.appendChild(title);
-        guide.appendChild(icon);
-        guide.appendChild(line1);
-        guide.appendChild(line2);
+        const guide = buildTopReachFinishGuide({
+          winnerName,
+          rankingRows,
+          onRestart: () => {
+            rebuildActiveTestViews('reach_top_retry');
+          }
+        });
         playerView.view.appendChild(guide);
       });
       saveCurrentJumpmapSessionRecord('reach_top_finish');

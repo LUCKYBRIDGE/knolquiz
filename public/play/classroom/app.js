@@ -283,7 +283,13 @@ const renderStudents = () => {
     count.className = 'student-count';
     count.textContent = `출석 ${student.attendanceDayCount}일`;
 
-    row.append(no, nameInput, activeWrap, count);
+    const recordLink = document.createElement('a');
+    recordLink.className = 'btn student-link-btn';
+    recordLink.href = `../records/?studentNo=${student.studentNo}`;
+    recordLink.textContent = '기록';
+    recordLink.title = `${student.studentNo}번 기록 보기`;
+
+    row.append(no, nameInput, activeWrap, count, recordLink);
     els.studentList.appendChild(row);
   });
 };

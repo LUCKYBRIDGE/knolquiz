@@ -1798,6 +1798,10 @@ body.play-launch .test-header {
   pointer-events: none;
 }
 
+.test-start-guide.is-result {
+  pointer-events: auto;
+}
+
 .test-start-guide-title {
   font-size: clamp(18px, 5.6cqw, 56px);
   font-weight: 900;
@@ -1819,6 +1823,48 @@ body.play-launch .test-header {
   font-weight: 700;
   color: #4b3a2a;
   line-height: 1.28;
+}
+
+.test-start-guide-summary {
+  margin-top: clamp(8px, 1.2cqw, 16px);
+  display: grid;
+  gap: clamp(4px, 0.7cqw, 10px);
+}
+
+.test-start-guide-summary-row {
+  font-size: clamp(12px, 2.8cqw, 30px);
+  font-weight: 800;
+  color: #2f241b;
+  line-height: 1.28;
+}
+
+.test-start-guide-actions {
+  margin-top: clamp(10px, 1.8cqw, 20px);
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(6px, 1.2cqw, 14px);
+}
+
+.test-start-guide-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: clamp(34px, 6cqw, 60px);
+  padding: clamp(6px, 1.4cqw, 14px) clamp(10px, 2cqw, 20px);
+  border-radius: 12px;
+  border: 2px solid rgba(46, 35, 24, 0.85);
+  background: rgba(255, 251, 240, 0.96);
+  box-shadow: 0 4px 0 rgba(46, 35, 24, 0.22);
+  color: #2f241b;
+  font-size: clamp(12px, 2.4cqw, 26px);
+  font-weight: 900;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.test-start-guide-action-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 0 rgba(46, 35, 24, 0.18);
 }
 
 .test-quiz-card {

@@ -84,6 +84,44 @@
         color: var(--muted);
         font-weight: 700;
       }
+      .filters {
+        margin-bottom: 12px;
+        padding: 10px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: rgba(255,255,255,0.72);
+        display: grid;
+        gap: 8px;
+      }
+      .filter-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: end;
+      }
+      .filter-field {
+        min-width: 220px;
+        display: grid;
+        gap: 4px;
+      }
+      .filter-field label {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+      }
+      .filter-field select {
+        min-height: 42px;
+        border: 1px solid rgba(24, 41, 75, 0.22);
+        border-radius: 10px;
+        font: inherit;
+        padding: 8px 10px;
+        background: #fff;
+      }
+      .filter-hint {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+      }
       .grid {
         display: grid;
         grid-template-columns: 1.1fr 1.1fr 1fr;
@@ -198,6 +236,18 @@
         </div>
       </div>
       <div class="status" id="status-box">로컬 기록을 불러오는 중...</div>
+      <div class="filters">
+        <div class="filter-row">
+          <div class="filter-field">
+            <label for="student-filter">학생 기록 조회</label>
+            <select id="student-filter">
+              <option value="">전체 학생</option>
+            </select>
+          </div>
+          <button class="btn" id="clear-student-filter" type="button">필터 해제</button>
+        </div>
+        <div class="filter-hint" id="filter-hint">전체 학생 기록을 표시 중입니다.</div>
+      </div>
       <div class="grid">
         <section class="card">
           <h2>요약</h2>

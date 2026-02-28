@@ -112,7 +112,7 @@
       }
       .student-row {
         display: grid;
-        grid-template-columns: 64px 1fr 88px 92px;
+        grid-template-columns: 64px 1fr 88px 92px 78px;
         gap: 8px;
         align-items: center;
         padding: 8px;
@@ -149,6 +149,11 @@
         font-size: 12px;
         color: var(--muted);
         font-weight: 700;
+      }
+      .student-link-btn {
+        min-height: 34px;
+        padding: 6px 8px;
+        font-size: 12px;
       }
       .panel {
         display: grid;
@@ -263,7 +268,13 @@
       @media (max-width: 760px) {
         .student-row { grid-template-columns: 58px 1fr; }
         .student-check,
-        .student-count { justify-content: flex-start; text-align: left; }
+        .student-count,
+        .student-link-btn {
+          grid-column: 2;
+          justify-content: flex-start;
+          text-align: left;
+        }
+        .student-link-btn { justify-self: flex-start; }
         .row2 { grid-template-columns: 1fr; }
         .policy-grid { grid-template-columns: 1fr; }
       }
