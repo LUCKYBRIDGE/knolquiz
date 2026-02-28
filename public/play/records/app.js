@@ -201,7 +201,21 @@ const renderPlayers = (players) => {
     const updated = document.createElement('div');
     updated.className = 'meta';
     updated.textContent = formatTime(player?.updatedAt);
-    row.append(name, updated);
+    if (normalizeStudentNo(tag)) {
+      const studentNo = normalizeStudentNo(tag);
+      const link = document.createElement('a');
+      link.className = 'detail-link';
+      link.href = `../student/?studentNo=${studentNo}`;
+      link.textContent = '상세';
+      const wrap = document.createElement('div');
+      wrap.style.display = 'grid';
+      wrap.style.justifyItems = 'end';
+      wrap.style.gap = '2px';
+      wrap.append(updated, link);
+      row.append(name, wrap);
+    } else {
+      row.append(name, updated);
+    }
 
     const quizStats = player?.stats || {};
     const jumpmapStats = player?.jumpmapStats || {};
