@@ -248,10 +248,34 @@ const getRecordFromStore = async (db, storeName, id) => {
   return row || null;
 };
 
+const getTodayLocalIsoDate = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const normalizeIsoDateKey = (raw) => {
+  const value = typeof raw === 'string' ? raw.trim() : '';
+  if (!value) return '';
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : '';
+};
+
+const isSeasonInDateRange = (season, todayIsoDate) => {
+  const startDate = normalizeIsoDateKey(season?.startDate);
+  const endDate = normalizeIsoDateKey(season?.endDate);
+  if (startDate && endDate && endDate < startDate) return false;
+  if (startDate && todayIsoDate < startDate) return false;
+  if (endDate && todayIsoDate > endDate) return false;
+  return true;
+};
+
 const findAutoSeasonForSession = async (db, launcherQuizPresetId = '') => {
+  const todayIsoDate = getTodayLocalIsoDate();
   const all = await getAllFromStore(db, STORE_CLASSROOM_SEASONS);
   const active = all
-    .filter((item) => item?.active !== false)
+    .filter((item) => item?.active !== false && isSeasonInDateRange(item, todayIsoDate))
     .sort((a, b) => String(b?.updatedAt || '').localeCompare(String(a?.updatedAt || '')));
   if (!active.length) return null;
 

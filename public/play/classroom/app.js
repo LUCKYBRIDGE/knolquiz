@@ -16,6 +16,8 @@ const els = {
   studentList: document.getElementById('student-list'),
   seasonIdInput: document.getElementById('season-id-input'),
   seasonNameInput: document.getElementById('season-name-input'),
+  seasonStartDateInput: document.getElementById('season-start-date-input'),
+  seasonEndDateInput: document.getElementById('season-end-date-input'),
   seasonPresetSelect: document.getElementById('season-preset-select'),
   seasonActiveInput: document.getElementById('season-active-input'),
   policyQuizTotalScore: document.getElementById('policy-quiz-total-score'),
@@ -62,6 +64,20 @@ const normalizeStudentNo = (raw) => {
 const normalizeSeasonPresetId = (raw) => {
   const value = typeof raw === 'string' ? raw.trim() : '';
   return value;
+};
+
+const getTodayLocalIsoDate = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const normalizeIsoDateInput = (raw) => {
+  const value = typeof raw === 'string' ? raw.trim() : '';
+  if (!value) return '';
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : '';
 };
 
 const normalizeScorePolicies = (raw) => {
@@ -140,6 +156,8 @@ const fillSeasonForm = (season = null) => {
   if (!season) {
     if (els.seasonIdInput) els.seasonIdInput.value = '';
     if (els.seasonNameInput) els.seasonNameInput.value = '';
+    if (els.seasonStartDateInput) els.seasonStartDateInput.value = getTodayLocalIsoDate();
+    if (els.seasonEndDateInput) els.seasonEndDateInput.value = '';
     setSeasonPresetSelectValue('');
     if (els.seasonActiveInput) els.seasonActiveInput.value = 'true';
     applyScorePoliciesToForm(null);
@@ -147,6 +165,8 @@ const fillSeasonForm = (season = null) => {
   }
   if (els.seasonIdInput) els.seasonIdInput.value = String(season.seasonId || '').trim();
   if (els.seasonNameInput) els.seasonNameInput.value = String(season.name || '').trim();
+  if (els.seasonStartDateInput) els.seasonStartDateInput.value = normalizeIsoDateInput(season.startDate) || getTodayLocalIsoDate();
+  if (els.seasonEndDateInput) els.seasonEndDateInput.value = normalizeIsoDateInput(season.endDate) || '';
   setSeasonPresetSelectValue(season.quizPresetId || '');
   if (els.seasonActiveInput) els.seasonActiveInput.value = season.active === false ? 'false' : 'true';
   applyScorePoliciesToForm(season.scorePolicies);
@@ -242,7 +262,7 @@ const renderSeasons = () => {
         name.textContent = `${season.name || season.seasonId}${season.active === false ? ' (비활성)' : ''}`;
         const meta = document.createElement('div');
         meta.className = 'meta';
-        meta.textContent = `ID: ${season.seasonId} · 프리셋: ${season.quizPresetId || '-'} · 부문: ${summarizeSeasonPolicies(season)} · 시작: ${season.startDate || '-'}`;
+        meta.textContent = `ID: ${season.seasonId} · 기간: ${season.startDate || '-'} ~ ${season.endDate || '무기한'} · 프리셋: ${season.quizPresetId || '-'} · 부문: ${summarizeSeasonPolicies(season)}`;
         item.append(name, meta);
         item.addEventListener('click', () => {
           fillSeasonForm(season);
@@ -365,6 +385,8 @@ const saveStudents = async ({ initializeDefaults = false } = {}) => {
 const saveSeason = async () => {
   const seasonId = String(els.seasonIdInput?.value || '').trim();
   const name = String(els.seasonNameInput?.value || '').trim();
+  const startDate = normalizeIsoDateInput(els.seasonStartDateInput?.value || '') || getTodayLocalIsoDate();
+  const endDate = normalizeIsoDateInput(els.seasonEndDateInput?.value || '');
   const quizPresetId = normalizeSeasonPresetId(els.seasonPresetSelect?.value || '');
   const active = String(els.seasonActiveInput?.value || 'true') !== 'false';
   const scorePolicies = readScorePoliciesFromForm();
@@ -379,7 +401,9 @@ const saveSeason = async () => {
       name: name || seasonId,
       active,
       quizPresetId,
-      scorePolicies
+      scorePolicies,
+      startDate,
+      endDate
     });
     await reloadData();
     fillSeasonForm(null);
