@@ -1314,6 +1314,92 @@
         });
     };
 
+    const escapeCsvCell = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
+    const downloadCsvFile = (fileName, text) => {
+      const csvText = `\ufeff${String(text || '')}`;
+      const blob = new Blob([csvText], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      link.click();
+      URL.revokeObjectURL(url);
+    };
+    const buildJumpmapResultCsv = (snapshot, rankingRows = []) => {
+      const payload = snapshot?.payload || {};
+      const settings = payload?.settings || {};
+      const map = payload?.map || {};
+      const players = Array.isArray(payload?.players) ? payload.players : [];
+      const rankingMap = new Map();
+      (Array.isArray(rankingRows) ? rankingRows : []).forEach((row, idx) => {
+        const studentNo = normalizeStudentNo(row?.studentNo);
+        if (studentNo) {
+          rankingMap.set(`no:${studentNo}`, idx + 1);
+          return;
+        }
+        const name = String(row?.name || '').trim();
+        if (name) rankingMap.set(`name:${name}`, idx + 1);
+      });
+      const rows = [[
+        '리포트유형',
+        '생성시각',
+        '종료사유',
+        '플레이시간초',
+        '플레이어수',
+        '학생번호',
+        '이름',
+        '순위',
+        '최고높이px',
+        '최고높이m',
+        '현재높이px',
+        '게이지',
+        '퀴즈정답',
+        '퀴즈시도',
+        '퀴즈오답',
+        '점프',
+        '더블점프',
+        '맵크기',
+        '오브젝트수',
+        '세이브포인트수',
+        '퀴즈프리셋'
+      ]];
+      const createdAt = new Date().toISOString();
+      const durationSec = Math.max(0, Math.round((Number(map?.durationMs) || 0) / 1000));
+      const mapSize = `${Number(map?.width) || 0}x${Number(map?.height) || 0}`;
+      const playerCount = Math.max(1, Number(settings?.playerCount) || players.length || 1);
+      players.forEach((player) => {
+        const studentNo = normalizeStudentNo(player?.tag);
+        const playerName = String(player?.name || '').trim();
+        const rank = studentNo
+          ? rankingMap.get(`no:${studentNo}`)
+          : rankingMap.get(`name:${playerName}`);
+        rows.push([
+          '점프맵결과',
+          createdAt,
+          map?.endReason || '',
+          durationSec,
+          playerCount,
+          studentNo || '',
+          playerName,
+          rank || '',
+          Number(player?.bestHeightPx) || 0,
+          toHeightMetersText(player?.bestHeightPx),
+          Number(player?.currentHeightPx) || 0,
+          Number(player?.gauge) || 0,
+          Number(player?.quizCorrect) || 0,
+          Number(player?.quizAttempts) || 0,
+          Number(player?.quizWrong) || 0,
+          Number(player?.jumps) || 0,
+          Number(player?.doubleJumps) || 0,
+          mapSize,
+          Number(map?.objectCount) || 0,
+          Number(map?.savePointCount) || 0,
+          settings?.launcherQuizPresetId || ''
+        ]);
+      });
+      return rows.map((row) => row.map((cell) => escapeCsvCell(cell)).join(',')).join('\n');
+    };
+
     const buildTopReachFinishGuide = ({
       winnerName = '',
       titleText = '점프맵 종료',
@@ -1321,6 +1407,7 @@
       line1Text = '',
       line2Text = '',
       rankingRows = [],
+      snapshot = null,
       onRestart = null,
       onClose = null
     }) => {
@@ -1381,6 +1468,19 @@
         if (studentNo) studentNos.add(studentNo);
       });
       const singleStudentNo = studentNos.size === 1 ? Array.from(studentNos)[0] : null;
+      if (snapshot) {
+        const csvBtn = document.createElement('button');
+        csvBtn.type = 'button';
+        csvBtn.className = 'test-start-guide-action-btn';
+        csvBtn.textContent = '결과 CSV';
+        csvBtn.addEventListener('click', () => {
+          const csvText = buildJumpmapResultCsv(snapshot, rankingRows);
+          const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+          const fileName = `jumpmap-result-${stamp}.csv`;
+          downloadCsvFile(fileName, csvText);
+        });
+        actions.appendChild(csvBtn);
+      }
       const recordsLink = document.createElement('a');
       recordsLink.className = 'test-start-guide-action-btn';
       recordsLink.href = buildResultNavigationHref('../../../../play/records/', singleStudentNo);
@@ -2669,6 +2769,7 @@
             ? buildSessionSummaryLineText(snapshot, 'reach_top_finish')
             : '결과를 확인한 뒤 다시 시작하거나 기록/학급관리 화면으로 이동할 수 있습니다.',
           rankingRows,
+          snapshot,
           onRestart: () => {
             rebuildActiveTestViews('reach_top_retry');
           },
@@ -3047,6 +3148,7 @@
           line1Text: '테스트를 종료했습니다.',
           line2Text: buildSessionSummaryLineText(snapshot, reason),
           rankingRows,
+          snapshot,
           onRestart: () => {
             rebuildActiveTestViews('test_exit_retry');
           },

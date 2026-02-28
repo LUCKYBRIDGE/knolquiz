@@ -95,6 +95,7 @@ const resetBtn = $('#reset-btn');
 const restartBtn = $('#restart-btn');
 const copyLogBtn = $('#copy-log-btn');
 const downloadLogBtn = $('#download-log-btn');
+const downloadReportCsvBtn = $('#download-report-csv-btn');
 const resultRecordsLink = $('#result-records-link');
 const resultClassroomLink = $('#result-classroom-link');
 const LAUNCHER_SETUP_STORAGE_KEY = 'jumpmap.launcher.setup.v1';
@@ -223,9 +224,109 @@ const resolveSingleStudentNoFromLogs = (logs = []) => {
 };
 
 syncResultNavigationLinks(resultFilterContext);
+let latestQuizResultPayload = null;
 let cachedSavedWrongs = [];
 let cachedStudentNames = [];
 let cachedGroupNames = [];
+
+const escapeReportCsvCell = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
+
+const downloadCsvTextFile = (fileName, text) => {
+  const withBom = `\ufeff${String(text || '')}`;
+  const blob = new Blob([withBom], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+  link.click();
+  URL.revokeObjectURL(url);
+};
+
+const buildQuizResultReportCsv = (payload) => {
+  const rows = [[
+    '리포트유형',
+    '생성시각',
+    '플레이어순번',
+    '학생번호',
+    '모둠명',
+    '총점',
+    '정답수',
+    '총문항',
+    '정답률',
+    '문항ID',
+    '문항유형',
+    '문항내용',
+    '선택값',
+    '정답값',
+    '정오',
+    '응답시간ms',
+    '점수증감'
+  ]];
+  const logs = Array.isArray(payload?.players) ? payload.players : [];
+  const createdAt = new Date().toISOString();
+  logs.forEach((log, index) => {
+    const studentNo = normalizeStudentNo(log?.settings?.studentId);
+    const groupName = String(log?.groupName || '').trim();
+    const summary = log?.summary || {};
+    rows.push([
+      '퀴즈요약',
+      createdAt,
+      index + 1,
+      studentNo || '',
+      groupName || '',
+      Number(summary.totalScore) || 0,
+      Number(summary.correctCount) || 0,
+      Number(summary.totalCount) || 0,
+      Number(summary.accuracy) || 0,
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      ''
+    ]);
+    const answers = Array.isArray(log?.answers) ? log.answers : [];
+    answers.forEach((answer) => {
+      rows.push([
+        '퀴즈문항',
+        createdAt,
+        index + 1,
+        studentNo || '',
+        groupName || '',
+        Number(summary.totalScore) || 0,
+        Number(summary.correctCount) || 0,
+        Number(summary.totalCount) || 0,
+        Number(summary.accuracy) || 0,
+        answer?.questionId || '',
+        answer?.type || '',
+        answer?.prompt || answer?.question || '',
+        answer?.choice ?? '',
+        answer?.answer ?? '',
+        answer?.correct ? '정답' : '오답',
+        Number(answer?.timeMs) || 0,
+        Number(answer?.scoreDelta) || 0
+      ]);
+    });
+  });
+  return rows.map((row) => row.map((cell) => escapeReportCsvCell(cell)).join(',')).join('\n');
+};
+
+const downloadQuizResultReportCsv = () => {
+  let payload = latestQuizResultPayload;
+  if (!payload && logOutputEl?.value) {
+    try {
+      payload = JSON.parse(logOutputEl.value);
+    } catch (_error) {
+      payload = null;
+    }
+  }
+  if (!payload || !Array.isArray(payload?.players) || !payload.players.length) return;
+  const csvText = buildQuizResultReportCsv(payload);
+  const fileName = `quiz-result-report-${Date.now()}.csv`;
+  downloadCsvTextFile(fileName, csvText);
+};
 const syncRepeatSetting = () => {
   if (!settingsInputs.mode || !settingsInputs.repeat) return;
   if (settingsInputs.mode.value === 'sequential') {
@@ -2814,6 +2915,7 @@ const finishAllPlayers = () => {
     settings: sessionSettings,
     players: logs
   };
+  latestQuizResultPayload = payload;
 
   if (logOutputEl) {
     logOutputEl.value = JSON.stringify(payload, null, 2);
@@ -3178,6 +3280,9 @@ const init = async () => {
     a.download = `quiz-result-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
+  });
+  downloadReportCsvBtn?.addEventListener('click', () => {
+    downloadQuizResultReportCsv();
   });
 
   maybeAutoStartQuizFromLauncher();
