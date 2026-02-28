@@ -8,6 +8,7 @@ import {
 const els = {
   status: document.getElementById('status-box'),
   refresh: document.getElementById('refresh-btn'),
+  studentPageLink: document.getElementById('student-page-link'),
   studentFilter: document.getElementById('student-filter'),
   periodFilter: document.getElementById('period-filter'),
   clearStudentFilter: document.getElementById('clear-student-filter'),
@@ -94,6 +95,20 @@ const writeFiltersToQuery = (studentNo, periodDays) => {
     window.history.replaceState(null, '', nextUrl);
   } catch (_error) {
     // no-op
+  }
+};
+
+const buildStudentDetailHref = (studentNo, periodDays) => {
+  const params = new URLSearchParams();
+  if (studentNo) params.set('studentNo', String(studentNo));
+  if (periodDays) params.set('periodDays', String(periodDays));
+  const query = params.toString();
+  return `../student/${query ? `?${query}` : ''}`;
+};
+
+const syncTopNavigationLinks = () => {
+  if (els.studentPageLink) {
+    els.studentPageLink.href = buildStudentDetailHref(state.selectedStudentNo, state.selectedPeriodDays);
   }
 };
 
@@ -252,7 +267,7 @@ const renderPlayers = (players) => {
       const studentNo = normalizeStudentNo(tag);
       const link = document.createElement('a');
       link.className = 'detail-link';
-      link.href = `../student/?studentNo=${studentNo}`;
+      link.href = buildStudentDetailHref(studentNo, state.selectedPeriodDays);
       link.textContent = '상세';
       const wrap = document.createElement('div');
       wrap.style.display = 'grid';
@@ -409,6 +424,7 @@ const renderFilteredView = () => {
   renderQuizSessions(filtered.quizSessions);
   renderWrongs(filtered.wrongs);
   updateFilterHint();
+  syncTopNavigationLinks();
   const studentText = state.selectedStudentNo
     ? ` · 학생필터 ${getStudentLabel(state.selectedStudentNo)}`
     : '';

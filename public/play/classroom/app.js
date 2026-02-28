@@ -11,6 +11,8 @@ import {
 const els = {
   status: document.getElementById('status-box'),
   refresh: document.getElementById('refresh-btn'),
+  studentPageLink: document.getElementById('student-page-link'),
+  recordsPageLink: document.getElementById('records-page-link'),
   initStudents: document.getElementById('init-students-btn'),
   saveStudents: document.getElementById('save-students-btn'),
   studentList: document.getElementById('student-list'),
@@ -41,7 +43,9 @@ const state = {
   seasons: [],
   leaderboardSections: [],
   loadedLeaderboardSeasonId: '',
-  selectedSeasonId: ''
+  selectedSeasonId: '',
+  navStudentNo: null,
+  navPeriodDays: null
 };
 
 const CATEGORY_LABELS = {
@@ -62,6 +66,29 @@ const normalizeStudentNo = (raw) => {
   const parsed = Math.round(Number(raw));
   if (!Number.isFinite(parsed) || parsed < 1 || parsed > 50) return null;
   return parsed;
+};
+
+const normalizePeriodDays = (raw) => {
+  const value = String(raw ?? '').trim().toLowerCase();
+  if (!value || value === 'all') return null;
+  const parsed = Math.round(Number(value));
+  if (parsed === 7 || parsed === 30) return parsed;
+  return null;
+};
+
+const readFiltersFromQuery = () => {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    return {
+      studentNo: normalizeStudentNo(params.get('studentNo')),
+      periodDays: normalizePeriodDays(params.get('periodDays'))
+    };
+  } catch (_error) {
+    return {
+      studentNo: null,
+      periodDays: null
+    };
+  }
 };
 
 const normalizeSeasonPresetId = (raw) => {
@@ -176,6 +203,31 @@ const formatModeLabel = (rawMode, rawSource) => {
   return rawMode || rawSource || '기타';
 };
 
+const buildStudentDetailHref = (studentNo) => {
+  const params = new URLSearchParams();
+  params.set('studentNo', String(studentNo));
+  if (state.navPeriodDays) params.set('periodDays', String(state.navPeriodDays));
+  const query = params.toString();
+  return `../student/${query ? `?${query}` : ''}`;
+};
+
+const syncTopNavigationLinks = () => {
+  if (els.studentPageLink) {
+    const params = new URLSearchParams();
+    if (state.navStudentNo) params.set('studentNo', String(state.navStudentNo));
+    if (state.navPeriodDays) params.set('periodDays', String(state.navPeriodDays));
+    const query = params.toString();
+    els.studentPageLink.href = `../student/${query ? `?${query}` : ''}`;
+  }
+  if (els.recordsPageLink) {
+    const params = new URLSearchParams();
+    if (state.navStudentNo) params.set('studentNo', String(state.navStudentNo));
+    if (state.navPeriodDays) params.set('periodDays', String(state.navPeriodDays));
+    const query = params.toString();
+    els.recordsPageLink.href = `../records/${query ? `?${query}` : ''}`;
+  }
+};
+
 const escapeCsvCell = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
 
 const summarizeSeasonPolicies = (season) => {
@@ -285,7 +337,7 @@ const renderStudents = () => {
 
     const recordLink = document.createElement('a');
     recordLink.className = 'btn student-link-btn';
-    recordLink.href = `../student/?studentNo=${student.studentNo}`;
+    recordLink.href = buildStudentDetailHref(student.studentNo);
     recordLink.textContent = '기록';
     recordLink.title = `${student.studentNo}번 상세 기록 보기`;
 
@@ -392,7 +444,7 @@ const renderLeaderboard = () => {
       name.textContent = `${row.rank}위 · ${row.studentName}(${row.studentNo}번)`;
       const detail = document.createElement('a');
       detail.className = 'detail-link';
-      detail.href = `../student/?studentNo=${row.studentNo}`;
+      detail.href = buildStudentDetailHref(row.studentNo);
       detail.textContent = '상세';
       detail.title = `${row.studentNo}번 상세 기록 보기`;
       name.appendChild(detail);
@@ -684,6 +736,11 @@ const addManualScore = async () => {
     setStatus('수동 점수 기록에 실패했습니다.', 'error');
   }
 };
+
+const queryFilters = readFiltersFromQuery();
+state.navStudentNo = queryFilters.studentNo;
+state.navPeriodDays = queryFilters.periodDays;
+syncTopNavigationLinks();
 
 els.refresh?.addEventListener('click', () => {
   reloadData();

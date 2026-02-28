@@ -11,6 +11,8 @@ import {
 const els = {
   status: document.getElementById('status-box'),
   refresh: document.getElementById('refresh-btn'),
+  classroomPageLink: document.getElementById('classroom-page-link'),
+  recordsPageLink: document.getElementById('records-page-link'),
   studentSelect: document.getElementById('student-select'),
   periodSelect: document.getElementById('period-select'),
   periodNote: document.getElementById('period-note'),
@@ -122,6 +124,23 @@ const writeFiltersToQuery = (studentNo, periodDays) => {
     window.history.replaceState(null, '', nextUrl);
   } catch (_error) {
     // no-op
+  }
+};
+
+const buildPageHrefWithFilters = (basePath, studentNo, periodDays) => {
+  const params = new URLSearchParams();
+  if (studentNo) params.set('studentNo', String(studentNo));
+  if (periodDays) params.set('periodDays', String(periodDays));
+  const query = params.toString();
+  return `${basePath}${query ? `?${query}` : ''}`;
+};
+
+const syncTopNavigationLinks = () => {
+  if (els.recordsPageLink) {
+    els.recordsPageLink.href = buildPageHrefWithFilters('../records/', state.selectedStudentNo, state.selectedPeriodDays);
+  }
+  if (els.classroomPageLink) {
+    els.classroomPageLink.href = buildPageHrefWithFilters('../classroom/', state.selectedStudentNo, state.selectedPeriodDays);
   }
 };
 
@@ -317,6 +336,7 @@ const rebuildFilteredRows = async () => {
   const studentNo = state.selectedStudentNo;
   const periodDays = state.selectedPeriodDays;
   writeFiltersToQuery(studentNo, periodDays);
+  syncTopNavigationLinks();
 
   state.quizRows = [];
   state.jumpmapRows = [];
