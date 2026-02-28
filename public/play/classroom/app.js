@@ -25,6 +25,7 @@ const els = {
   policyJumpmapBestHeight: document.getElementById('policy-jumpmap-best-height'),
   policyJumpmapQuizCorrect: document.getElementById('policy-jumpmap-quiz-correct'),
   saveSeason: document.getElementById('save-season-btn'),
+  archiveEndedSeasons: document.getElementById('archive-ended-seasons-btn'),
   seasonList: document.getElementById('season-list'),
   seasonSelect: document.getElementById('season-select'),
   loadLeaderboard: document.getElementById('load-leaderboard-btn'),
@@ -369,11 +370,24 @@ const reloadData = async () => {
     ]);
     state.draftStudents = buildDraftStudents(attendanceSummary.students || []);
     state.seasons = Array.isArray(seasons) ? seasons : [];
+    const lifecycleCounts = {
+      scheduled: 0,
+      active: 0,
+      ended: 0,
+      inactive: 0,
+      invalid: 0
+    };
+    state.seasons.forEach((season) => {
+      const code = getSeasonLifecycleStatus(season).code;
+      if (Object.prototype.hasOwnProperty.call(lifecycleCounts, code)) {
+        lifecycleCounts[code] += 1;
+      }
+    });
     state.leaderboardSections = [];
     renderStudents();
     renderSeasons();
     renderLeaderboard();
-    setStatus(`불러오기 완료 · 학생 ${state.draftStudents.length}명 · 출석일 ${attendanceSummary.attendanceDayCount || 0}일 · 시즌 ${state.seasons.length}개`);
+    setStatus(`불러오기 완료 · 학생 ${state.draftStudents.length}명 · 출석일 ${attendanceSummary.attendanceDayCount || 0}일 · 시즌 ${state.seasons.length}개 (진행중 ${lifecycleCounts.active}, 예정 ${lifecycleCounts.scheduled}, 종료 ${lifecycleCounts.ended}, 비활성 ${lifecycleCounts.inactive})`);
   } catch (error) {
     console.error('[ClassroomPage] load failed', error);
     setStatus('학급 데이터를 불러오지 못했습니다. IndexedDB 사용 가능 여부를 확인하세요.', 'error');
@@ -436,6 +450,37 @@ const saveSeason = async () => {
   } catch (error) {
     console.error('[ClassroomPage] save season failed', error);
     setStatus('시즌 저장에 실패했습니다.', 'error');
+  }
+};
+
+const archiveEndedSeasons = async () => {
+  const targets = state.seasons.filter((season) =>
+    season?.active !== false && getSeasonLifecycleStatus(season).code === 'ended'
+  );
+  if (!targets.length) {
+    setStatus('비활성화할 종료 시즌이 없습니다.');
+    return;
+  }
+  setStatus(`종료 시즌 ${targets.length}개를 비활성화하는 중...`);
+  try {
+    for (let i = 0; i < targets.length; i += 1) {
+      const season = targets[i];
+      await upsertClassroomSeason({
+        seasonId: String(season.seasonId || '').trim(),
+        name: String(season.name || season.seasonId || '').trim(),
+        active: false,
+        quizPresetId: normalizeSeasonPresetId(season.quizPresetId || ''),
+        scorePolicies: normalizeScorePolicies(season.scorePolicies),
+        startDate: normalizeIsoDateInput(season.startDate || '') || getTodayLocalIsoDate(),
+        endDate: normalizeIsoDateInput(season.endDate || ''),
+        note: typeof season?.note === 'string' ? season.note : ''
+      });
+    }
+    await reloadData();
+    setStatus(`종료 시즌 ${targets.length}개를 비활성화했습니다.`);
+  } catch (error) {
+    console.error('[ClassroomPage] archive ended seasons failed', error);
+    setStatus('종료 시즌 비활성화에 실패했습니다.', 'error');
   }
 };
 
@@ -514,6 +559,9 @@ els.saveStudents?.addEventListener('click', () => {
 });
 els.saveSeason?.addEventListener('click', () => {
   saveSeason();
+});
+els.archiveEndedSeasons?.addEventListener('click', () => {
+  archiveEndedSeasons();
 });
 els.seasonSelect?.addEventListener('change', () => {
   state.selectedSeasonId = String(els.seasonSelect.value || '').trim();
