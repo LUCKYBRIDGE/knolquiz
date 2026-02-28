@@ -41,6 +41,7 @@ const normalizeSetup = (setup) => {
     ? setup.jumpmapStartPointId
     : '';
   const quizEndMode = setup.quizEndMode === 'time' ? 'time' : 'count';
+  const quizCountLimit = Math.max(1, Math.min(500, Math.round(Number(setup.quizCountLimit) || 30)));
   const quizTimeLimitSec = Math.max(10, Math.min(3600, Math.round(Number(setup.quizTimeLimitSec) || 180)));
   const playerNames = Array.isArray(setup.playerNames) ? setup.playerNames.slice(0, 6) : [];
   const playerTags = Array.isArray(setup.playerTags) ? setup.playerTags.slice(0, 6) : [];
@@ -62,6 +63,7 @@ const normalizeSetup = (setup) => {
     characterId,
     jumpmapStartPointId,
     quizEndMode,
+    quizCountLimit,
     quizTimeLimitSec,
     playerNames: normalizedNames,
     playerTags: normalizedTags
@@ -95,7 +97,7 @@ const renderSummary = (box, setup) => {
     ['플레이 인원', `${setup.players}명`],
     ['게임', GAME_LABELS[setup.gameMode] || setup.gameMode],
     ['퀴즈', quizLabel],
-    ['종료 기준', setup.quizEndMode === 'time' ? `시간 종료 (${setup.quizTimeLimitSec}초)` : '문제 모두 풀이'],
+    ['종료 기준', setup.quizEndMode === 'time' ? `시간 종료 (${setup.quizTimeLimitSec}초)` : `몇 문제 다 풀면 종료 (${setup.quizCountLimit}문제)`],
     [
       '문제 소스',
       setup.customCsvEnabled && typeof setup.customCsvText === 'string' && setup.customCsvText.trim()

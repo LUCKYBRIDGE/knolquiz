@@ -779,6 +779,7 @@ const buildLauncherBasicQuizSettings = () => {
 
   const presetId = String(launcher.quizPresetId || '').trim();
   const launcherQuizEndMode = launcher.quizEndMode === 'time' ? 'time' : 'count';
+  const launcherQuizCountLimitRaw = Math.round(Number(launcher.quizCountLimit) || 0);
   const launcherQuizTimeLimitSec = Math.max(10, Math.min(3600, Math.round(Number(launcher.quizTimeLimitSec) || 180)));
   const playerCount = Math.max(1, Math.min(6, Math.round(Number(launcher.players) || 1)));
   const playerNames = Array.isArray(launcher.playerNames)
@@ -850,24 +851,35 @@ const buildLauncherBasicQuizSettings = () => {
 
   settings.questionCount = Object.values(settings.questionTypes || {})
     .reduce((sum, cfg) => sum + ((cfg && cfg.enabled) ? (cfg.count || 0) : 0), 0);
+  const baseQuestionCount = Math.max(1, settings.questionCount);
+  const launcherQuizCountLimit = launcherQuizCountLimitRaw > 0
+    ? Math.max(1, Math.min(baseQuestionCount, launcherQuizCountLimitRaw))
+    : baseQuestionCount;
+  if (launcherQuizEndMode !== 'time') {
+    settings.questionCount = launcherQuizCountLimit;
+  }
   settings.loopQuestions = settings.quizEndMode === 'time';
   const launcherCsv = buildCsvBankFromLauncherSetup(launcher);
   return {
     settings,
-    launcherCsv
+    launcherCsv,
+    launcherQuizCountLimit
   };
 };
 
 const maybeAutoStartQuizFromLauncher = () => {
   const launcherConfig = buildLauncherBasicQuizSettings();
   if (!launcherConfig) return false;
-  const { settings, launcherCsv } = launcherConfig;
+  const { settings, launcherCsv, launcherQuizCountLimit } = launcherConfig;
   if (launcherCsv?.bank) {
     uploadedCsvQuestionBank = launcherCsv.bank;
     settings.customQuestionMode = true;
     settings.customCsvMode = true;
     settings.customQuestionIds = [];
-    settings.questionCount = launcherCsv.bank.questions.length;
+    const availableCount = launcherCsv.bank.questions.length;
+    settings.questionCount = settings.quizEndMode === 'time'
+      ? availableCount
+      : Math.max(1, Math.min(availableCount, launcherQuizCountLimit || availableCount));
     setLoadStatus(launcherCsv.message || '런처 CSV 문제를 불러왔습니다.', 'success');
   } else if (launcherCsv?.message) {
     uploadedCsvQuestionBank = null;
@@ -2701,8 +2713,18 @@ const startQuizWithSettings = (settings, faceToFace, customBank) => {
       setLoadStatus(`영역모델 데모 문제로 시작합니다. (${questionBank.questions.length}문항)`, 'success');
     }
   }
-  settings.questionCount = questionBank.questions.length;
-  settings.loopQuestions = settings.quizEndMode === 'time';
+  const availableQuestionCount = questionBank.questions.length;
+  if (availableQuestionCount <= 0) {
+    settings.questionCount = 0;
+    settings.loopQuestions = false;
+  } else if (settings.quizEndMode === 'time') {
+    settings.questionCount = availableQuestionCount;
+    settings.loopQuestions = true;
+  } else {
+    const requestedCount = Math.round(Number(settings.questionCount) || availableQuestionCount);
+    settings.questionCount = Math.max(1, Math.min(availableQuestionCount, requestedCount));
+    settings.loopQuestions = false;
+  }
 
   const isMobile = window.innerWidth < 720;
   const requestedPlayers = settings.playerCount || 1;

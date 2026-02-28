@@ -422,6 +422,10 @@
           <div class="section">
             <div class="section-title">2-2. 퀴즈 종료 기준</div>
             <div class="endmode-row" id="endmode-buttons"></div>
+            <div class="field" id="quiz-count-field">
+              <label for="quiz-count-limit-input">몇 문제 다 풀면 종료</label>
+              <input type="number" id="quiz-count-limit-input" min="1" max="500" value="30" />
+            </div>
             <div class="field" id="quiz-time-field">
               <label for="quiz-time-limit-input">총 플레이 시간(초)</label>
               <input type="number" id="quiz-time-limit-input" min="10" max="3600" value="180" />
@@ -520,7 +524,7 @@
         ];
         const CSV_UPLOAD_PRESET_ID = 'csv-upload';
         const END_MODE_OPTIONS = [
-          { id: 'count', label: '문제 다 풀면 종료' },
+          { id: 'count', label: '몇 문제 다 풀면 종료' },
           { id: 'time', label: '시간 종료 시 종료' }
         ];
         const RUNTIME_MAP_CANDIDATES = [
@@ -536,6 +540,7 @@
           characterId: 'sejong',
           jumpmapStartPointId: '',
           quizEndMode: 'count',
+          quizCountLimit: 30,
           quizTimeLimitSec: 180,
           customCsvEnabled: false,
           customCsvText: '',
@@ -570,6 +575,8 @@
           csvStatus: document.getElementById('csv-status'),
           csvPreview: document.getElementById('csv-preview'),
           endModeButtons: document.getElementById('endmode-buttons'),
+          quizCountField: document.getElementById('quiz-count-field'),
+          quizCountLimitInput: document.getElementById('quiz-count-limit-input'),
           quizTimeField: document.getElementById('quiz-time-field'),
           quizTimeLimitInput: document.getElementById('quiz-time-limit-input'),
           endModeNote: document.getElementById('endmode-note')
@@ -643,6 +650,39 @@
           els.quizTimeLimitInput.value = String(value);
           persistAndRefresh();
         });
+        els.quizCountLimitInput?.addEventListener('change', () => {
+          const fallback = resolveQuizPresetQuestionCount(state.quizPresetId, state.customCsvText) || 1;
+          const normalized = normalizeQuizCountLimit(els.quizCountLimitInput.value, fallback);
+          const value = fallback > 0 ? Math.min(fallback, normalized) : normalized;
+          state.quizCountLimit = value;
+          els.quizCountLimitInput.value = String(value);
+          persistAndRefresh();
+        });
+
+        function resolveQuizPresetQuestionCount(presetId, csvText) {
+          switch (presetId) {
+            case 'jumpmap-net-30':
+              return 30;
+            case 'jumpmap-net-12':
+              return 12;
+            case 'cube-only-24':
+            case 'cuboid-only-24':
+              return 24;
+            case CSV_UPLOAD_PRESET_ID: {
+              const preview = buildCsvPreviewModel(csvText || '');
+              return preview.total > 0 ? preview.total : 0;
+            }
+            default:
+              return 12;
+          }
+        }
+
+        function normalizeQuizCountLimit(rawValue, fallback) {
+          const parsed = Math.round(Number(rawValue));
+          const fallbackSafe = Math.max(1, Math.min(500, Math.round(Number(fallback) || 1)));
+          if (!Number.isFinite(parsed) || parsed <= 0) return fallbackSafe;
+          return Math.max(1, Math.min(500, parsed));
+        }
 
         function loadSetup() {
           try {
@@ -703,6 +743,11 @@
           if (!availablePresetIds.has(target.quizPresetId)) {
             target.quizPresetId = QUIZ_PRESETS[0].id;
           }
+          const presetQuestionCount = resolveQuizPresetQuestionCount(target.quizPresetId, target.customCsvText);
+          const normalizedCountLimit = normalizeQuizCountLimit(target.quizCountLimit, presetQuestionCount || 1);
+          target.quizCountLimit = presetQuestionCount > 0
+            ? Math.min(presetQuestionCount, normalizedCountLimit)
+            : normalizedCountLimit;
         }
 
         function persistAndRefresh() {
@@ -902,11 +947,25 @@
             });
             els.endModeButtons.appendChild(btn);
           });
+          const presetQuestionCount = resolveQuizPresetQuestionCount(state.quizPresetId, state.customCsvText);
+          const availableCount = Math.max(1, presetQuestionCount || state.quizCountLimit || 1);
+          const appliedCount = Math.max(1, Math.min(availableCount, state.quizCountLimit || availableCount));
+          if (els.quizCountLimitInput) {
+            els.quizCountLimitInput.value = String(appliedCount);
+          }
           if (els.quizTimeLimitInput) {
             els.quizTimeLimitInput.value = String(state.quizTimeLimitSec);
           }
+          if (els.quizCountField) {
+            els.quizCountField.classList.toggle('hidden', state.quizEndMode !== 'count');
+          }
           if (els.quizTimeField) {
             els.quizTimeField.classList.toggle('hidden', state.quizEndMode !== 'time');
+          }
+          if (els.endModeNote) {
+            els.endModeNote.textContent = state.quizEndMode === 'time'
+              ? '기본 퀴즈 모드에서 적용됩니다.'
+              : `기본 퀴즈 모드에서 적용됩니다. 전체 ${availableCount}문제 중 무작위 ${appliedCount}문제를 냅니다.`;
           }
         }
 
@@ -1133,9 +1192,12 @@
           const csvSummary = state.customCsvEnabled && state.customCsvText.trim()
             ? `CSV 업로드 사용 (${state.customCsvFileName || '이름 없음'})${state.gameMode === 'jumpmap' ? ' · 현재는 기본 퀴즈 경로에서 적용' : ''}`
             : 'CSV 업로드 사용 안 함';
+          const presetQuestionCount = resolveQuizPresetQuestionCount(state.quizPresetId, state.customCsvText);
+          const availableCount = Math.max(1, presetQuestionCount || state.quizCountLimit || 1);
+          const appliedCount = Math.max(1, Math.min(availableCount, state.quizCountLimit || availableCount));
           const endModeSummary = state.quizEndMode === 'time'
             ? `시간 종료 (${state.quizTimeLimitSec}초)`
-            : '문제 모두 풀이';
+            : `몇 문제 다 풀면 종료 (${appliedCount}문제 / 전체 ${availableCount})`;
           els.summaryBox.innerHTML = `
             <div><strong>인원</strong>: ${state.players}명</div>
             <div><strong>플레이어</strong>: ${names}</div>
