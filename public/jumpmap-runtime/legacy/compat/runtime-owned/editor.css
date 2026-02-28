@@ -1911,6 +1911,68 @@ body.play-launch .test-header {
   object-fit: contain;
 }
 
+.test-quiz-choice-text {
+  display: block;
+  max-width: 100%;
+  font-size: clamp(20px, 3.2cqw, 44px);
+  line-height: 1.3;
+  font-weight: 800;
+  color: #2f241b;
+  text-align: center;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  padding: 16px 12px 10px;
+}
+
+.test-quiz-short-answer {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  border: 3px dashed rgba(48, 35, 24, 0.2);
+  border-radius: 14px;
+  background: #fff;
+  padding: 12px;
+}
+
+.test-quiz-short-answer.hidden {
+  display: none;
+}
+
+.test-quiz-short-answer-input {
+  width: 100%;
+  min-height: 68px;
+  border: 3px solid rgba(46, 35, 24, 0.3);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: clamp(22px, 3.4cqw, 46px);
+  font-weight: 800;
+  color: #2f241b;
+  background: #fffef8;
+}
+
+.test-quiz-short-answer-input:disabled {
+  opacity: 0.72;
+}
+
+.test-quiz-short-answer-submit {
+  min-width: 120px;
+  min-height: 68px;
+  border: 3px solid rgba(48, 35, 24, 0.38);
+  border-radius: 12px;
+  background: rgba(249, 240, 212, 0.95);
+  color: #2f241b;
+  font-size: clamp(19px, 2.7cqw, 34px);
+  font-weight: 900;
+  padding: 10px 16px;
+}
+
+.test-quiz-short-answer-submit:disabled {
+  opacity: 0.6;
+}
+
 .test-quiz-choice-badge {
   position: absolute;
   top: 10px;
@@ -2335,6 +2397,28 @@ body.play-launch .test-header {
   .test-quiz-choice img {
     max-height: min(21vh, 220px);
   }
+  .test-quiz-choice-text {
+    font-size: clamp(14px, 3.8cqw, 24px);
+    padding: 10px 8px 8px;
+  }
+  .test-quiz-short-answer {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 10px;
+    border-width: 2px;
+  }
+  .test-quiz-short-answer-input {
+    min-height: 52px;
+    border-width: 2px;
+    font-size: clamp(16px, 4.2cqw, 28px);
+    padding: 8px 10px;
+  }
+  .test-quiz-short-answer-submit {
+    width: 100%;
+    min-height: 46px;
+    border-width: 2px;
+    font-size: clamp(14px, 3.2cqw, 20px);
+  }
   .test-quiz-choice-badge {
     width: 30px;
     height: 30px;
@@ -2498,6 +2582,33 @@ body.play-launch .test-header {
 
 .test-views[data-player-count]:not([data-player-count="1"]) .test-quiz-choice img {
   max-height: min(22cqh, 20vh);
+}
+
+.test-views[data-player-count]:not([data-player-count="1"]) .test-quiz-choice-text {
+  font-size: clamp(10px, 3.1cqw, 16px);
+  padding: 8px 6px 6px;
+}
+
+.test-views[data-player-count]:not([data-player-count="1"]) .test-quiz-short-answer {
+  grid-template-columns: 1fr;
+  gap: clamp(4px, 1.4cqw, 8px);
+  padding: clamp(6px, 1.6cqw, 10px);
+  border-width: 2px;
+}
+
+.test-views[data-player-count]:not([data-player-count="1"]) .test-quiz-short-answer-input {
+  min-height: clamp(28px, 8.8cqw, 42px);
+  border-width: 2px;
+  padding: clamp(4px, 1.2cqw, 8px);
+  font-size: clamp(12px, 3.2cqw, 18px);
+}
+
+.test-views[data-player-count]:not([data-player-count="1"]) .test-quiz-short-answer-submit {
+  width: 100%;
+  min-height: clamp(26px, 8.2cqw, 38px);
+  border-width: 2px;
+  padding: clamp(3px, 1cqw, 6px);
+  font-size: clamp(11px, 2.8cqw, 15px);
 }
 
 .test-views[data-player-count]:not([data-player-count="1"]) .test-quiz-choice-badge {

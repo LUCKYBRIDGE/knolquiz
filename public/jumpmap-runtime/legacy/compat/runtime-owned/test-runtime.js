@@ -164,7 +164,13 @@
     const quizRuntimeState = {
       resourcesPromise: null,
       gatewayInstalled: false,
-      sessions: new Map()
+      sessions: new Map(),
+      launcherCsvCache: {
+        source: '',
+        bank: null,
+        message: '',
+        loaded: false
+      }
     };
     const recordRuntimeState = {
       modulePromise: null,
@@ -808,6 +814,71 @@
       }
       return next;
     };
+    const shouldUseLauncherCsvBank = (launcherSetup) => {
+      if (!launcherSetup || typeof launcherSetup !== 'object') return false;
+      const presetId = String(launcherSetup.quizPresetId || '').trim();
+      if (presetId !== 'csv-upload') return false;
+      if (launcherSetup.customCsvEnabled !== true) return false;
+      const csvText = typeof launcherSetup.customCsvText === 'string' ? launcherSetup.customCsvText : '';
+      return csvText.trim().length > 0;
+    };
+    const resolveLauncherCsvQuestionBank = (resources) => {
+      const launcherSetup = getLauncherSetup();
+      if (!shouldUseLauncherCsvBank(launcherSetup)) {
+        quizRuntimeState.launcherCsvCache = {
+          source: '',
+          bank: null,
+          message: '',
+          loaded: true
+        };
+        return { bank: null, message: '' };
+      }
+      const csvText = String(launcherSetup.customCsvText || '');
+      const cache = quizRuntimeState.launcherCsvCache || {};
+      if (cache.loaded && cache.source === csvText) {
+        return { bank: cache.bank || null, message: cache.message || '' };
+      }
+      const parsed = resources.parseCsvQuestionBank
+        ? resources.parseCsvQuestionBank(csvText)
+        : { valid: false, errors: ['csv parser unavailable'], bank: null };
+      if (!parsed?.valid || !parsed?.bank) {
+        const message = parsed?.errors?.[0] || 'CSV 파싱 실패';
+        console.warn('[JumpmapTestRuntime] launcher CSV parse failed', { message });
+        quizRuntimeState.launcherCsvCache = {
+          source: csvText,
+          bank: null,
+          message,
+          loaded: true
+        };
+        return { bank: null, message };
+      }
+      const validation = resources.validateQuestionBank
+        ? resources.validateQuestionBank(parsed.bank)
+        : { valid: true, errors: [] };
+      if (!validation?.valid) {
+        const message = validation?.errors?.[0] || 'CSV 문제 검증 실패';
+        console.warn('[JumpmapTestRuntime] launcher CSV validate failed', { message });
+        quizRuntimeState.launcherCsvCache = {
+          source: csvText,
+          bank: null,
+          message,
+          loaded: true
+        };
+        return { bank: null, message };
+      }
+      const warningMessage = parsed?.warnings?.[0] ? ` · ${parsed.warnings[0]}` : '';
+      const message = `CSV ${parsed.bank.questions.length}문항 적용${warningMessage}`;
+      quizRuntimeState.launcherCsvCache = {
+        source: csvText,
+        bank: parsed.bank,
+        message,
+        loaded: true
+      };
+      console.log('[JumpmapTestRuntime] launcher CSV loaded', {
+        count: parsed.bank.questions.length
+      });
+      return { bank: parsed.bank, message };
+    };
     const getBridgePlayerId = (index) => `player-${index + 1}`;
     const getBridgeZoneId = (index) => `zone-${index + 1}`;
     const buildQuizAssetUrl = (assetPath) => resolveEditorRuntimeAssetUrl(`../quiz/nets/${assetPath}`);
@@ -945,6 +1016,8 @@
         const [
           engineMod,
           bankMod,
+          csvImporterMod,
+          validateMod,
           defaults,
           facecolor,
           edgecolor,
@@ -952,6 +1025,8 @@
         ] = await Promise.all([
           import(resolveEditorRuntimeAssetUrl('../quiz/core/engine.js')),
           import(resolveEditorRuntimeAssetUrl('../quiz/core/bank.js')),
+          import(resolveEditorRuntimeAssetUrl('../../../../quiz/core/importers/csv-question-bank.js')),
+          import(resolveEditorRuntimeAssetUrl('../../../../quiz/core/validate.js')),
           loadJson(buildQuizDataUrl('quiz-settings.default.json')),
           loadJson(buildQuizDataUrl('facecolor-questions.json')),
           loadJson(buildQuizDataUrl('edgecolor-questions.json')),
@@ -962,6 +1037,8 @@
         return {
           createQuizEngine: engineMod.createQuizEngine,
           buildWeightedQuestionBank: bankMod.buildWeightedQuestionBank,
+          parseCsvQuestionBank: csvImporterMod.parseCsvQuestionBank,
+          validateQuestionBank: validateMod.validateQuestionBank,
           defaults: mergeQuizSettings(defaults),
           banks: { facecolor, edgecolor, validity }
         };
@@ -981,10 +1058,23 @@
         score: { ...(resources.defaults?.score || {}) },
         questionTypes: { ...(resources.defaults?.questionTypes || {}) }
       });
-      const questionBank = resources.buildWeightedQuestionBank(resources.banks, settings);
+      const launcherCsv = resolveLauncherCsvQuestionBank(resources);
+      const questionBank = launcherCsv.bank
+        ? launcherCsv.bank
+        : resources.buildWeightedQuestionBank(resources.banks, settings);
+      if (launcherCsv.bank) {
+        settings.questionCount = Math.max(1, launcherCsv.bank.questions.length);
+        settings.selectionMode = 'random';
+        settings.avoidRepeat = true;
+        settings.shuffleChoices = true;
+        settings.loopQuestions = true;
+        settings.quizEndMode = 'time';
+      }
       console.log('[JumpmapTestRuntime] quiz session:create done', {
         index,
-        questionCount: Number(questionBank?.questions?.length || 0)
+        questionCount: Number(questionBank?.questions?.length || 0),
+        source: launcherCsv.bank ? 'launcher-csv' : 'preset',
+        launcherCsvMessage: launcherCsv.message || ''
       });
       return {
         index,
@@ -1553,10 +1643,26 @@
       questionImg.alt = 'quiz question';
       questionWrap.appendChild(questionImg);
 
+      const shortAnswerWrap = document.createElement('div');
+      shortAnswerWrap.className = 'test-quiz-short-answer hidden';
+      const shortAnswerInput = document.createElement('input');
+      shortAnswerInput.type = 'text';
+      shortAnswerInput.className = 'test-quiz-short-answer-input';
+      shortAnswerInput.placeholder = '정답 입력';
+      shortAnswerInput.setAttribute('autocomplete', 'off');
+      shortAnswerInput.setAttribute('spellcheck', 'false');
+      const shortAnswerSubmitBtn = document.createElement('button');
+      shortAnswerSubmitBtn.type = 'button';
+      shortAnswerSubmitBtn.className = 'test-quiz-short-answer-submit';
+      shortAnswerSubmitBtn.textContent = '제출';
+      shortAnswerWrap.appendChild(shortAnswerInput);
+      shortAnswerWrap.appendChild(shortAnswerSubmitBtn);
+
       const choices = document.createElement('div');
       choices.className = 'test-quiz-choices';
 
       panelBody.appendChild(questionWrap);
+      panelBody.appendChild(shortAnswerWrap);
       panelBody.appendChild(choices);
 
       const feedback = document.createElement('div');
@@ -1593,6 +1699,9 @@
         panelPrompt,
         questionWrap,
         questionImg,
+        shortAnswerWrap,
+        shortAnswerInput,
+        shortAnswerSubmitBtn,
         choices,
         feedback,
         actions,
@@ -1731,12 +1840,28 @@
 
     const closeQuizPanel = (playerView, meta = {}) => {
       const quizState = getQuizState(playerView);
+      const ui = playerView?.quizUi;
       quizState.phase = 'idle';
       quizState.loading = false;
       quizState.question = null;
       quizState.result = null;
       quizState.reward = null;
       quizState.lockUntil = 0;
+      if (ui?.shortAnswerInput) {
+        ui.shortAnswerInput.value = '';
+        ui.shortAnswerInput.disabled = false;
+        ui.shortAnswerInput.onkeydown = null;
+      }
+      if (ui?.shortAnswerSubmitBtn) {
+        ui.shortAnswerSubmitBtn.disabled = false;
+        ui.shortAnswerSubmitBtn.onclick = null;
+      }
+      if (ui?.shortAnswerWrap) {
+        ui.shortAnswerWrap.classList.add('hidden');
+      }
+      if (ui?.choices) {
+        ui.choices.classList.remove('hidden');
+      }
       clearQuizResultFx(playerView);
       setQuizPanelVisible(playerView, false);
       if (typeof integration.emit === 'function') {
@@ -1751,16 +1876,71 @@
       }
     };
 
+    const isTextChoiceQuestion = (question) => (
+      question?.renderKind === 'text_choice'
+      || question?.type === 'csv_choice'
+    );
+
+    const isTextShortAnswerQuestion = (question) => (
+      question?.renderKind === 'text_short_answer'
+      || question?.type === 'csv_subjective'
+    );
+
+    const gradeShortAnswerForJumpmap = (question, rawInput) => {
+      const userAnswer = String(rawInput ?? '').trim();
+      const acceptedAnswers = Array.isArray(question?.acceptedAnswers)
+        ? question.acceptedAnswers
+            .map((value) => String(value ?? '').trim())
+            .filter(Boolean)
+        : [];
+      const containsMatch = Boolean(question?.acceptedMatchContains);
+      if (!acceptedAnswers.length) {
+        return { correct: false, userAnswer };
+      }
+      const normalizedUser = userAnswer.toLowerCase();
+      const correct = containsMatch
+        ? acceptedAnswers.some((word) => normalizedUser.includes(word.toLowerCase()))
+        : acceptedAnswers.some((word) => normalizedUser === word.toLowerCase());
+      return { correct, userAnswer };
+    };
+
+    const buildQuizSubmissionValue = (question, rawInput) => {
+      if (!isTextShortAnswerQuestion(question)) {
+        return {
+          engineAnswer: rawInput,
+          submittedChoice: rawInput
+        };
+      }
+      const graded = gradeShortAnswerForJumpmap(question, rawInput);
+      const acceptedFirst = Array.isArray(question?.acceptedAnswers) && question.acceptedAnswers.length
+        ? String(question.acceptedAnswers[0] ?? '').trim()
+        : '';
+      const canonicalAnswer = String(question?.answer || acceptedFirst || '').trim();
+      const engineAnswer = graded.correct
+        ? (canonicalAnswer || graded.userAnswer)
+        : `__jumpmap_short_answer_wrong__${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      return {
+        engineAnswer,
+        submittedChoice: graded.userAnswer
+      };
+    };
+
     const renderQuizQuestion = (playerView) => {
       const quizState = getQuizState(playerView);
       const ui = playerView.quizUi;
       const question = quizState.question;
       if (!ui || !question) return;
+      const textChoiceQuestion = isTextChoiceQuestion(question);
+      const shortAnswerQuestion = isTextShortAnswerQuestion(question);
       ui.panelPrompt.textContent = question.type === 'validity'
         ? (question.mode === 'invalid' ? '잘못된 형태의 전개도를 고르세요' : '올바른 형태의 전개도를 고르세요')
         : (question.prompt || '문제를 풀어주세요');
 
-      const showQuestionImage = question.type !== 'validity';
+      const hasQuestionAsset = typeof question.question === 'string' && question.question.trim().length > 0;
+      const showQuestionImage = question.type !== 'validity'
+        && !textChoiceQuestion
+        && !shortAnswerQuestion
+        && hasQuestionAsset;
       ui.questionWrap.classList.toggle('hidden', !showQuestionImage);
       if (showQuestionImage) {
         ui.questionImg.src = buildQuizAssetUrl(question.question);
@@ -1768,28 +1948,77 @@
         ui.questionImg.removeAttribute('src');
       }
 
+      if (ui.shortAnswerWrap) {
+        ui.shortAnswerWrap.classList.toggle('hidden', !shortAnswerQuestion);
+      }
+      if (ui.choices) {
+        ui.choices.classList.toggle('hidden', !!shortAnswerQuestion);
+      }
       ui.choices.innerHTML = '';
-      (question.choices || []).forEach((choice, idx) => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = `test-quiz-choice choice-tone-${(idx % 4) + 1}`;
-        btn.dataset.choice = choice;
+      if (shortAnswerQuestion) {
+        if (ui.shortAnswerInput) {
+          ui.shortAnswerInput.value = '';
+          ui.shortAnswerInput.disabled = false;
+        }
+        if (ui.shortAnswerSubmitBtn) {
+          ui.shortAnswerSubmitBtn.disabled = false;
+          ui.shortAnswerSubmitBtn.onclick = () => {
+            const value = String(ui.shortAnswerInput?.value || '').trim();
+            submitQuizAnswer(playerView, value);
+          };
+        }
+        if (ui.shortAnswerInput) {
+          ui.shortAnswerInput.onkeydown = (event) => {
+            if (event.key !== 'Enter') return;
+            event.preventDefault();
+            const value = String(ui.shortAnswerInput?.value || '').trim();
+            submitQuizAnswer(playerView, value);
+          };
+          window.requestAnimationFrame(() => {
+            try {
+              ui.shortAnswerInput.focus({ preventScroll: true });
+            } catch (_error) {
+              ui.shortAnswerInput.focus();
+            }
+          });
+        }
+      } else {
+        if (ui.shortAnswerInput) {
+          ui.shortAnswerInput.value = '';
+          ui.shortAnswerInput.onkeydown = null;
+        }
+        if (ui.shortAnswerSubmitBtn) {
+          ui.shortAnswerSubmitBtn.onclick = null;
+        }
+        (question.choices || []).forEach((choice, idx) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = `test-quiz-choice choice-tone-${(idx % 4) + 1}`;
+          btn.dataset.choice = choice;
 
-        const badge = document.createElement('span');
-        badge.className = 'test-quiz-choice-badge';
-        badge.textContent = `${idx + 1}`;
-        btn.appendChild(badge);
+          const badge = document.createElement('span');
+          badge.className = 'test-quiz-choice-badge';
+          badge.textContent = `${idx + 1}`;
+          btn.appendChild(badge);
 
-        const img = document.createElement('img');
-        img.alt = `choice-${idx + 1}`;
-        img.src = buildQuizAssetUrl(choice);
-        btn.appendChild(img);
+          if (textChoiceQuestion) {
+            const label = document.createElement('span');
+            label.className = 'test-quiz-choice-text';
+            label.textContent = String(choice || '');
+            btn.appendChild(label);
+          } else {
+            const img = document.createElement('img');
+            img.alt = `choice-${idx + 1}`;
+            img.src = buildQuizAssetUrl(choice);
+            btn.appendChild(img);
+          }
 
-        btn.addEventListener('click', () => {
-          submitQuizAnswer(playerView, choice);
+          btn.addEventListener('click', () => {
+            submitQuizAnswer(playerView, choice);
+          });
+          ui.choices.appendChild(btn);
         });
-        ui.choices.appendChild(btn);
-      });
+      }
 
       ui.actions.classList.add('hidden');
       clearQuizResultFx(playerView);
@@ -1840,7 +2069,18 @@
         ui.panelPrompt.textContent = '문제를 불러오는 중...';
         if (ui.questionWrap) ui.questionWrap.classList.add('hidden');
         if (ui.questionImg) ui.questionImg.removeAttribute('src');
+        if (ui.shortAnswerWrap) ui.shortAnswerWrap.classList.add('hidden');
+        if (ui.shortAnswerInput) {
+          ui.shortAnswerInput.value = '';
+          ui.shortAnswerInput.disabled = false;
+          ui.shortAnswerInput.onkeydown = null;
+        }
+        if (ui.shortAnswerSubmitBtn) {
+          ui.shortAnswerSubmitBtn.disabled = false;
+          ui.shortAnswerSubmitBtn.onclick = null;
+        }
         if (ui.choices) ui.choices.innerHTML = '';
+        if (ui.choices) ui.choices.classList.remove('hidden');
         if (ui.actions) ui.actions.classList.add('hidden');
         clearQuizResultFx(playerView);
         setQuizFeedback(playerView, '', '');
@@ -1879,7 +2119,9 @@
           ui.panelPrompt.textContent = '문제를 불러오지 못했습니다';
           ui.questionWrap.classList.add('hidden');
           ui.questionImg.removeAttribute('src');
+          if (ui.shortAnswerWrap) ui.shortAnswerWrap.classList.add('hidden');
           ui.choices.innerHTML = '';
+          ui.choices.classList.remove('hidden');
           ui.actions.classList.remove('hidden');
           ui.nextBtn.disabled = false;
           ui.returnBtn.disabled = false;
@@ -1898,7 +2140,9 @@
           ui.panelPrompt.textContent = '문제 표시 중 오류가 발생했습니다';
           ui.questionWrap.classList.add('hidden');
           ui.questionImg.removeAttribute('src');
+          if (ui.shortAnswerWrap) ui.shortAnswerWrap.classList.add('hidden');
           ui.choices.innerHTML = '';
+          ui.choices.classList.remove('hidden');
           ui.actions.classList.remove('hidden');
           ui.nextBtn.disabled = false;
           ui.returnBtn.disabled = false;
@@ -1911,7 +2155,9 @@
         ui.panelPrompt.textContent = '문제를 불러오지 못했습니다';
         ui.questionWrap.classList.add('hidden');
         ui.questionImg.removeAttribute('src');
+        if (ui.shortAnswerWrap) ui.shortAnswerWrap.classList.add('hidden');
         ui.choices.innerHTML = '';
+        ui.choices.classList.remove('hidden');
         ui.actions.classList.remove('hidden');
         ui.nextBtn.disabled = false;
         ui.returnBtn.disabled = false;
@@ -1927,16 +2173,19 @@
       [...ui.choices.querySelectorAll('.test-quiz-choice')].forEach((btn) => {
         btn.disabled = true;
       });
+      if (ui.shortAnswerInput) ui.shortAnswerInput.disabled = true;
+      if (ui.shortAnswerSubmitBtn) ui.shortAnswerSubmitBtn.disabled = true;
       const question = quizState.question;
+      const submission = buildQuizSubmissionValue(question, choice);
       const session = await getOrCreatePlayerQuizSession(playerView.index);
-      const result = session.engine.submitAnswer(choice);
+      const result = session.engine.submitAnswer(submission.engineAnswer);
       if (!result) {
         setQuizFeedback(playerView, '채점 실패', 'is-fail');
         return;
       }
       const quizResult = {
         ...result,
-        choice,
+        choice: submission.submittedChoice,
         correct: !!result.correct
       };
       if (playerView?.sessionStats) {
