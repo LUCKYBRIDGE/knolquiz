@@ -983,9 +983,10 @@ const updateGame = (dtSec, nowMs) => {
     const touched = distance(enemy.x, enemy.y, state.ship.x, state.ship.y) <= enemy.radius + state.ship.radius;
     if (!touched) continue;
 
-    state.ship.hp = Math.max(0, state.ship.hp - enemy.touchDamage);
+    const touchDamage = Math.max(1, Math.round(enemy.touchDamage * 3));
+    state.ship.hp = Math.max(0, state.ship.hp - touchDamage);
     state.enemies.splice(i, 1);
-    setStatus(`거북선 피격! HP -${enemy.touchDamage}`);
+    setStatus(`거북선 피격! HP -${touchDamage}`);
     if (state.ship.hp <= 0) {
       state.endReason = '거북선 체력 0';
       state.running = false;
