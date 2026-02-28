@@ -14,7 +14,8 @@ const QUIZ_PRESET_LABELS = {
 };
 
 const CHARACTER_LABELS = {
-  sejong: '세종'
+  sejong: '세종',
+  leesunsin: '이순신'
 };
 
 const readLauncherSetup = () => {
@@ -46,8 +47,10 @@ const normalizeSetup = (setup) => {
   const quizTimeLimitSec = Math.max(10, Math.min(3600, Math.round(Number(setup.quizTimeLimitSec) || 180)));
   const playerNames = Array.isArray(setup.playerNames) ? setup.playerNames.slice(0, 6) : [];
   const playerTags = Array.isArray(setup.playerTags) ? setup.playerTags.slice(0, 6) : [];
+  const playerCharacterIds = Array.isArray(setup.playerCharacterIds) ? setup.playerCharacterIds.slice(0, 6) : [];
   while (playerNames.length < players) playerNames.push(`사용자${playerNames.length + 1}`);
   while (playerTags.length < players) playerTags.push('');
+  while (playerCharacterIds.length < players) playerCharacterIds.push(characterId);
   const normalizedNames = playerNames.slice(0, players).map((name, index) => {
     const trimmed = typeof name === 'string' ? name.trim() : '';
     return trimmed || `사용자${index + 1}`;
@@ -68,7 +71,11 @@ const normalizeSetup = (setup) => {
     quizCountLimit,
     quizTimeLimitSec,
     playerNames: normalizedNames,
-    playerTags: normalizedTags
+    playerTags: normalizedTags,
+    playerCharacterIds: playerCharacterIds.slice(0, players).map((id) => {
+      if (typeof id !== 'string' || !id.trim()) return characterId;
+      return id.trim();
+    })
   };
 };
 
@@ -106,7 +113,18 @@ const renderSummary = (box, setup) => {
         ? `CSV 업로드 (${setup.customCsvFileName || '이름 없음'})`
         : '기본 프리셋'
     ],
-    ['캐릭터', setup.gameMode === 'jumpmap' ? (CHARACTER_LABELS[setup.characterId] || setup.characterId) : '사용 안 함'],
+    [
+      '캐릭터',
+      setup.gameMode === 'jumpmap'
+        ? setup.playerCharacterIds
+          .map((id, idx) => {
+            const tag = setup.playerTags?.[idx];
+            const label = CHARACTER_LABELS[id] || id;
+            return tag ? `${idx + 1}P ${label}(${tag}번)` : `${idx + 1}P ${label}`;
+          })
+          .join(', ')
+        : '사용 안 함'
+    ],
     ['점프맵 종료 기준', setup.gameMode === 'jumpmap' ? (setup.jumpmapEndMode === 'reach-top' ? '꼭대기 도달 시 종료' : '종료 조건 없음') : '해당 없음'],
     ['스타트 후보', setup.gameMode === 'jumpmap' ? (setup.jumpmapStartPointId || '시작지점') : '해당 없음'],
     [

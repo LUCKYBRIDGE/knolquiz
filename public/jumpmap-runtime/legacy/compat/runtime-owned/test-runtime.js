@@ -11,7 +11,59 @@
     const integration = integrationBridge && typeof integrationBridge.emit === 'function'
       ? integrationBridge
       : { emit: () => {} };
-    const { plateBase, sejongBase, SPRITES } = assets;
+    const { plateBase, sejongBase, SPRITES, characterSets } = assets;
+    const DEFAULT_CHARACTER_ID = 'sejong';
+    const CHARACTER_SETS = (() => {
+      const baseMap = (characterSets && typeof characterSets === 'object') ? characterSets : {};
+      const fallbackSprites = {
+        idle: SPRITES.idle,
+        walk: Array.isArray(SPRITES.walk) ? SPRITES.walk.slice(0) : [],
+        jump: SPRITES.jump,
+        fall: SPRITES.fall,
+        hurt: SPRITES.hurt
+      };
+      const fallbackSet = {
+        id: DEFAULT_CHARACTER_ID,
+        base: sejongBase,
+        sprites: fallbackSprites
+      };
+      const normalized = {};
+      Object.entries(baseMap).forEach(([id, raw]) => {
+        if (!id || !raw || typeof raw !== 'object') return;
+        const base = typeof raw.base === 'string' && raw.base.trim() ? raw.base.trim() : sejongBase;
+        const spritesRaw = raw.sprites && typeof raw.sprites === 'object' ? raw.sprites : {};
+        const walk = Array.isArray(spritesRaw.walk)
+          ? spritesRaw.walk.map((name) => String(name || '').trim()).filter(Boolean)
+          : [];
+        const sprites = {
+          idle: String(spritesRaw.idle || fallbackSprites.idle || '').trim(),
+          walk: walk.length ? walk : fallbackSprites.walk.slice(0),
+          jump: String(spritesRaw.jump || fallbackSprites.jump || '').trim(),
+          fall: String(spritesRaw.fall || fallbackSprites.fall || '').trim(),
+          hurt: String(spritesRaw.hurt || fallbackSprites.hurt || '').trim()
+        };
+        if (!sprites.idle || !sprites.jump || !sprites.fall || !sprites.walk.length) return;
+        normalized[id] = { id, base, sprites };
+      });
+      if (!normalized[DEFAULT_CHARACTER_ID]) normalized[DEFAULT_CHARACTER_ID] = fallbackSet;
+      return normalized;
+    })();
+    const normalizeCharacterId = (raw, fallback = DEFAULT_CHARACTER_ID) => {
+      const id = typeof raw === 'string' ? raw.trim() : '';
+      if (id && CHARACTER_SETS[id]) return id;
+      const fallbackId = typeof fallback === 'string' ? fallback.trim() : '';
+      if (fallbackId && CHARACTER_SETS[fallbackId]) return fallbackId;
+      return DEFAULT_CHARACTER_ID;
+    };
+    const getCharacterSetById = (characterId) => CHARACTER_SETS[normalizeCharacterId(characterId)] || CHARACTER_SETS[DEFAULT_CHARACTER_ID];
+    const getPlayerCharacterId = (playerIndex) => {
+      const index = Math.max(0, Math.round(Number(playerIndex) || 0));
+      const rawList = Array.isArray(state?.test?.playerCharacterIds) ? state.test.playerCharacterIds : [];
+      const fromPlayer = rawList[index];
+      if (typeof fromPlayer === 'string' && fromPlayer.trim()) return normalizeCharacterId(fromPlayer, state?.test?.characterId);
+      return normalizeCharacterId(state?.test?.characterId, DEFAULT_CHARACTER_ID);
+    };
+    const getPlayerCharacterSet = (playerIndex) => getCharacterSetById(getPlayerCharacterId(playerIndex));
     const TEXTURE_OBJECT_PREFIX = '__texture__:';
     const textureBase = './textures/';
     const DEFAULT_SOLID_TEXTURE_COLOR = '#c3b18b';
@@ -195,14 +247,27 @@
       ready: false,
       promise: null
     };
-    const getPlayerSpriteKeys = () => {
-      const keys = [SPRITES.idle, SPRITES.jump, SPRITES.fall, SPRITES.hurt, ...(SPRITES.walk || [])];
-      return [...new Set(keys.filter((key) => typeof key === 'string' && key.trim()))];
+    const getPlayerSpriteUrlsForWarmup = () => {
+      const urls = new Set();
+      Object.values(CHARACTER_SETS).forEach((set) => {
+        if (!set || typeof set !== 'object') return;
+        const base = typeof set.base === 'string' ? set.base : sejongBase;
+        const sprites = set.sprites && typeof set.sprites === 'object' ? set.sprites : SPRITES;
+        const keys = [
+          sprites.idle,
+          sprites.jump,
+          sprites.fall,
+          sprites.hurt,
+          ...(Array.isArray(sprites.walk) ? sprites.walk : [])
+        ].filter((key) => typeof key === 'string' && key.trim());
+        keys.forEach((key) => urls.add(`${base}${key}`));
+      });
+      return [...urls];
     };
     const warmupPlayerSprites = () => {
       if (spriteWarmupState.promise) return spriteWarmupState.promise;
-      const keys = getPlayerSpriteKeys();
-      if (!keys.length || typeof Image !== 'function') {
+      const urls = getPlayerSpriteUrlsForWarmup();
+      if (!urls.length || typeof Image !== 'function') {
         spriteWarmupState.ready = true;
         spriteWarmupState.promise = Promise.resolve();
         return spriteWarmupState.promise;
@@ -222,7 +287,7 @@
           img.decode().then(done).catch(done);
         }
       });
-      spriteWarmupState.promise = Promise.all(keys.map((key) => loadOne(`${sejongBase}${key}`)))
+      spriteWarmupState.promise = Promise.all(urls.map((src) => loadOne(src)))
         .catch(() => {})
         .then(() => {
           spriteWarmupState.ready = true;
@@ -2584,7 +2649,20 @@
       }
     };
 
-    const getSpriteKeyForState = (playerState, dt, options = null) => {
+    const getSpriteKeyForState = (playerState, dt, sprites, options = null) => {
+      const spriteSet = sprites && typeof sprites === 'object' ? sprites : SPRITES;
+      const walkSprites = Array.isArray(spriteSet.walk) && spriteSet.walk.length
+        ? spriteSet.walk
+        : (Array.isArray(SPRITES.walk) ? SPRITES.walk : []);
+      const idleSprite = typeof spriteSet.idle === 'string' && spriteSet.idle.trim()
+        ? spriteSet.idle
+        : SPRITES.idle;
+      const jumpSprite = typeof spriteSet.jump === 'string' && spriteSet.jump.trim()
+        ? spriteSet.jump
+        : SPRITES.jump;
+      const fallSprite = typeof spriteSet.fall === 'string' && spriteSet.fall.trim()
+        ? spriteSet.fall
+        : SPRITES.fall;
       const groundedForSprite = typeof options?.groundedForSprite === 'boolean'
         ? options.groundedForSprite
         : !!playerState.onGround;
@@ -2606,24 +2684,26 @@
         vy > -24
       );
       const moveVisual = hasMoveInput || nextMoveLatch > 0;
-      if (!groundedVisual && vy < 0) return SPRITES.jump;
-      if (!groundedVisual && vy > 0) return SPRITES.fall;
+      if (!groundedVisual && vy < 0) return jumpSprite;
+      if (!groundedVisual && vy > 0) return fallSprite;
       // Keep walk animation cycling while a direction key is held on the ground,
       // even if horizontal velocity is temporarily near zero (e.g., wall contact).
       const shouldWalk = groundedVisual && (moveVisual || Math.abs(playerState.vx) > 1);
       if (shouldWalk) {
-        const wasWalkSprite = /^sejong_walk[1-4]\.png$/i.test(prevSpriteKey);
+        const wasWalkSprite = walkSprites.includes(prevSpriteKey);
         if (!wasWalkSprite) {
           // On movement-start / landing contact, immediately show walk1.
           playerState.walkTimer = 0;
-          return SPRITES.walk[0];
+          return walkSprites[0] || idleSprite;
         }
         playerState.walkTimer += safeDt;
-        const idx = Math.floor(playerState.walkTimer / WALK_FRAME_INTERVAL_SEC) % SPRITES.walk.length;
-        return SPRITES.walk[idx];
+        const idx = walkSprites.length > 0
+          ? Math.floor(playerState.walkTimer / WALK_FRAME_INTERVAL_SEC) % walkSprites.length
+          : 0;
+        return walkSprites[idx] || idleSprite;
       }
       playerState.walkTimer = 0;
-      return SPRITES.idle;
+      return idleSprite;
     };
 
     const buildTestViews = (count) => {
@@ -2664,8 +2744,10 @@
           nameTag.style.setProperty('--player-name-color', getPlayerNameColor(j));
           player.appendChild(nameTag);
           const img = document.createElement('img');
-          img.src = `${sejongBase}${SPRITES.idle}`;
-          img.dataset.spriteKey = SPRITES.idle;
+          const characterSet = getPlayerCharacterSet(j);
+          img.src = `${characterSet.base}${characterSet.sprites.idle}`;
+          img.dataset.spriteKey = characterSet.sprites.idle;
+          img.dataset.characterId = characterSet.id;
           player.appendChild(img);
           applyPlayerSpriteToElement(player, img);
           world.appendChild(player);
@@ -2907,7 +2989,8 @@
           const best = Math.max(Number(ps.maxHeight) || 0, currentHeight);
           ps.maxHeight = best;
           const groundedForSprite = hasSpriteGroundContact(ps, metrics, obstacleCache, playerHitboxPolygon);
-          ps._spriteKey = getSpriteKeyForState(ps, dt, { groundedForSprite });
+          const playerCharacterSet = getPlayerCharacterSet(playerView.index);
+          ps._spriteKey = getSpriteKeyForState(ps, dt, playerCharacterSet.sprites, { groundedForSprite });
           if (
             reachedTopPlayerIndex < 0 &&
             topGoalObstacle &&
@@ -2953,10 +3036,12 @@
             if (img.style.transform !== nextFacingTransform) {
               img.style.transform = nextFacingTransform;
             }
-            const spriteKey = ps._spriteKey || SPRITES.idle;
-            if (img.dataset.spriteKey !== spriteKey) {
-              img.src = `${sejongBase}${spriteKey}`;
+            const characterSet = getPlayerCharacterSet(index);
+            const spriteKey = ps._spriteKey || characterSet.sprites.idle;
+            if (img.dataset.characterId !== characterSet.id || img.dataset.spriteKey !== spriteKey) {
+              img.src = `${characterSet.base}${spriteKey}`;
               img.dataset.spriteKey = spriteKey;
+              img.dataset.characterId = characterSet.id;
             }
             if (showDebug && debugHitbox) {
               debugHitbox.style.display = 'block';

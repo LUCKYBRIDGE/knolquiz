@@ -1,5 +1,6 @@
 const plateBase = '../quiz_plate/';
 const sejongBase = '../quiz_sejong/';
+const leesunsinBase = '../quiz_leesunsin/';
 const textureBase = './textures/';
 const DEFAULT_GEUMGANG_BACKGROUND = '../quiz_background/Geumgangjeondo.jpg';
 const LAUNCHER_SETUP_STORAGE_KEY = 'jumpmap.launcher.setup.v1';
@@ -75,9 +76,11 @@ const normalizeBackgroundImagePath = (value) => {
   if (trimmed.startsWith('/quiz_background/')) return `..${trimmed}`;
   if (trimmed.startsWith('/quiz_plate/')) return `..${trimmed}`;
   if (trimmed.startsWith('/quiz_sejong/')) return `..${trimmed}`;
+  if (trimmed.startsWith('/quiz_leesunsin/')) return `..${trimmed}`;
   if (trimmed.startsWith('quiz_background/')) return `../${trimmed}`;
   if (trimmed.startsWith('quiz_plate/')) return `../${trimmed}`;
   if (trimmed.startsWith('quiz_sejong/')) return `../${trimmed}`;
+  if (trimmed.startsWith('quiz_leesunsin/')) return `../${trimmed}`;
   return trimmed;
 };
 
@@ -89,12 +92,38 @@ const resolveTextureUrl = (name) => {
   return '';
 };
 
-const SPRITES = {
-  idle: 'sejong_rightside.png',
-  walk: ['sejong_walk1.png', 'sejong_walk2.png', 'sejong_walk3.png', 'sejong_walk4.png'],
-  jump: 'sejong_jump.png',
-  fall: 'sejong_fall.png',
-  hurt: 'sejong_damaged.png'
+const CHARACTER_ASSETS = Object.freeze({
+  sejong: Object.freeze({
+    id: 'sejong',
+    base: sejongBase,
+    sprites: Object.freeze({
+      idle: 'sejong_rightside.png',
+      walk: Object.freeze(['sejong_walk1.png', 'sejong_walk2.png', 'sejong_walk3.png', 'sejong_walk4.png']),
+      jump: 'sejong_jump.png',
+      fall: 'sejong_fall.png',
+      hurt: 'sejong_damaged.png'
+    })
+  }),
+  leesunsin: Object.freeze({
+    id: 'leesunsin',
+    base: leesunsinBase,
+    sprites: Object.freeze({
+      idle: 'leesunsin_rightside.png',
+      walk: Object.freeze(['leesunsin_walk1.png', 'leesunsin_walk2.png', 'leesunsin_walk3.png', 'leesunsin_walk4.png']),
+      jump: 'leesunsin_jump.png',
+      fall: 'leesunsin_fall.png',
+      hurt: 'leesunsin_damaged.png'
+    })
+  })
+});
+const SPRITES = CHARACTER_ASSETS.sejong.sprites;
+
+const normalizeCharacterId = (value, fallback = 'sejong') => {
+  const id = typeof value === 'string' ? value.trim() : '';
+  if (id && CHARACTER_ASSETS[id]) return id;
+  const fallbackId = typeof fallback === 'string' ? fallback.trim() : '';
+  if (fallbackId && CHARACTER_ASSETS[fallbackId]) return fallbackId;
+  return 'sejong';
 };
 
 const isTextureSprite = (sprite) =>
@@ -273,7 +302,13 @@ const state = {
   selectedId: null,
   mode: 'select',
   flatZoneEdit: false,
-  test: { active: false, players: 1, showDebugHitbox: false },
+  test: {
+    active: false,
+    players: 1,
+    showDebugHitbox: false,
+    characterId: 'sejong',
+    playerCharacterIds: ['sejong']
+  },
   history: []
 };
 
@@ -11201,7 +11236,8 @@ const testRuntime = window.JumpmapTestRuntime.create({
   assets: {
     plateBase,
     sejongBase,
-    SPRITES
+    SPRITES,
+    characterSets: CHARACTER_ASSETS
   },
   hooks: {
     getBackgroundLayers,
@@ -11233,6 +11269,7 @@ const readLauncherSetup = () => {
 const applyLauncherSetupToState = (setup) => {
   if (!setup || typeof setup !== 'object') return;
   const players = Math.max(1, Math.min(6, Math.round(Number(setup.players) || 1)));
+  const launcherCharacterId = normalizeCharacterId(setup.characterId, 'sejong');
   testRuntime.setPlayerCount?.(players);
   if (Array.isArray(setup.playerNames)) {
     state.test.playerNames = setup.playerNames
@@ -11250,9 +11287,14 @@ const applyLauncherSetupToState = (setup) => {
         return tag.trim();
       });
   }
-  if (typeof setup.characterId === 'string' && setup.characterId.trim()) {
-    state.test.characterId = setup.characterId.trim();
-  }
+  state.test.characterId = launcherCharacterId;
+  const rawPlayerCharacterIds = Array.isArray(setup.playerCharacterIds)
+    ? setup.playerCharacterIds.slice(0, 6)
+    : [];
+  while (rawPlayerCharacterIds.length < players) rawPlayerCharacterIds.push(launcherCharacterId);
+  state.test.playerCharacterIds = rawPlayerCharacterIds
+    .slice(0, players)
+    .map((value) => normalizeCharacterId(value, launcherCharacterId));
 };
 
 const maybeAutoStartJumpmapPlayMode = () => {

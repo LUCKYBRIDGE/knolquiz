@@ -1,5 +1,14 @@
 export const JUMPMAP_LAUNCHER_SETUP_STORAGE_KEY = 'jumpmap.launcher.setup.v1';
 export const JUMPMAP_RUNTIME_BOOTSTRAP_SESSION_KEY = 'jumpmap.runtime.bootstrap.v1';
+const CHARACTER_IDS = new Set(['sejong', 'leesunsin']);
+
+const normalizeCharacterId = (value, fallback = 'sejong') => {
+  const trimmed = typeof value === 'string' ? value.trim() : '';
+  if (trimmed && CHARACTER_IDS.has(trimmed)) return trimmed;
+  const fallbackTrimmed = typeof fallback === 'string' ? fallback.trim() : '';
+  if (fallbackTrimmed && CHARACTER_IDS.has(fallbackTrimmed)) return fallbackTrimmed;
+  return 'sejong';
+};
 
 const normalizeRuntimeMapName = (value) => {
   if (typeof value !== 'string') return '';
@@ -37,10 +46,13 @@ export const readJumpmapLauncherSetup = () => {
 export const normalizeJumpmapLauncherSetup = (setup) => {
   if (!setup || typeof setup !== 'object') return null;
   const players = Math.max(1, Math.min(6, Math.round(Number(setup.players) || 1)));
+  const characterId = normalizeCharacterId(setup.characterId, 'sejong');
   const names = Array.isArray(setup.playerNames) ? setup.playerNames.slice(0, 6) : [];
   const tags = Array.isArray(setup.playerTags) ? setup.playerTags.slice(0, 6) : [];
+  const playerCharacterIds = Array.isArray(setup.playerCharacterIds) ? setup.playerCharacterIds.slice(0, 6) : [];
   while (names.length < players) names.push(`사용자${names.length + 1}`);
   while (tags.length < players) tags.push('');
+  while (playerCharacterIds.length < players) playerCharacterIds.push(characterId);
   return {
     ...setup,
     players,
@@ -48,17 +60,17 @@ export const normalizeJumpmapLauncherSetup = (setup) => {
       typeof setup.quizPresetId === 'string' && setup.quizPresetId.trim()
         ? setup.quizPresetId.trim()
         : 'jumpmap-net-30',
-    characterId:
-      typeof setup.characterId === 'string' && setup.characterId.trim()
-        ? setup.characterId.trim()
-        : 'sejong',
+    characterId,
     jumpmapStartPointId: typeof setup.jumpmapStartPointId === 'string' ? setup.jumpmapStartPointId : '',
     jumpmapEndMode: setup.jumpmapEndMode === 'reach-top' ? 'reach-top' : 'none',
     playerNames: names.slice(0, players).map((name, index) => {
       const trimmed = typeof name === 'string' ? name.trim() : '';
       return trimmed || `사용자${index + 1}`;
     }),
-    playerTags: tags.slice(0, players).map((tag) => (typeof tag === 'string' ? tag.trim() : ''))
+    playerTags: tags.slice(0, players).map((tag) => (typeof tag === 'string' ? tag.trim() : '')),
+    playerCharacterIds: playerCharacterIds
+      .slice(0, players)
+      .map((id) => normalizeCharacterId(id, characterId))
   };
 };
 

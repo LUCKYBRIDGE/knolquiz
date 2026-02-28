@@ -184,7 +184,7 @@
       }
       .name-row {
         display: grid;
-        grid-template-columns: 78px 1fr 72px;
+        grid-template-columns: 78px 1fr 72px 126px;
         gap: 8px;
         align-items: center;
       }
@@ -196,6 +196,14 @@
         padding: 8px 8px;
         font: inherit;
         text-align: center;
+      }
+      .name-character {
+        border: 2px solid rgba(47, 38, 31, 0.5);
+        border-radius: 10px;
+        background: #fff;
+        min-height: 42px;
+        padding: 8px 8px;
+        font: inherit;
       }
       .name-badge {
         border-radius: 10px;
@@ -465,6 +473,8 @@
         .player-buttons { grid-template-columns: repeat(3, minmax(0, 1fr)); }
         .game-buttons { grid-template-columns: 1fr; }
         .field-grid { grid-template-columns: 1fr; }
+        .name-row { grid-template-columns: 1fr 1fr; }
+        .name-badge { grid-column: 1 / -1; }
         .quiz-search-row { grid-template-columns: 1fr; }
         .tool-links { grid-template-columns: 1fr; }
         .start-btn { font-size: 19px; min-height: 56px; }
@@ -475,7 +485,7 @@
     <main>
       <section class="hero">
         <h1>퀴즈 게임 시작</h1>
-        <p>인원, 퀴즈, 게임을 먼저 고르고 바로 시작합니다. 점프맵 선택 시 캐릭터도 고를 수 있습니다(현재 1종).</p>
+        <p>인원, 퀴즈, 게임을 먼저 고르고 바로 시작합니다. 점프맵 선택 시 캐릭터도 고를 수 있습니다(현재 2종).</p>
       </section>
 
       <section class="grid">
@@ -555,9 +565,10 @@
             <div class="section-title">4. 캐릭터 선택 (점프맵)</div>
             <div class="field-grid">
               <div class="field">
-                <label for="character-select">캐릭터</label>
+                <label for="character-select">캐릭터(현재 인원 일괄 적용)</label>
                 <select id="character-select">
                   <option value="sejong">세종 (기본)</option>
+                  <option value="leesunsin">이순신</option>
                 </select>
               </div>
               <div class="field">
@@ -567,6 +578,7 @@
                 </select>
               </div>
             </div>
+            <p class="note">플레이어별 캐릭터는 아래 학생 번호 행에서 개별 변경할 수 있고, 해당 번호의 대표 캐릭터로 저장됩니다.</p>
             <p class="note" id="startpoint-note">운영 맵에서 시작 위치 목록을 불러오는 중입니다.</p>
             <div class="field" id="jumpmap-endmode-field">
               <label>점프맵 종료 기준</label>
@@ -648,6 +660,16 @@
           }
         ];
         const CSV_UPLOAD_PRESET_ID = 'csv-upload';
+        const CHARACTER_OPTIONS = Object.freeze([
+          { id: 'sejong', label: '세종' },
+          { id: 'leesunsin', label: '이순신' }
+        ]);
+        const CHARACTER_LABELS = Object.freeze(
+          CHARACTER_OPTIONS.reduce((acc, option) => {
+            acc[option.id] = option.label;
+            return acc;
+          }, {})
+        );
         const END_MODE_OPTIONS = [
           { id: 'count', label: '몇 문제 다 풀면 종료' },
           { id: 'time', label: '시간 종료 시 종료' }
@@ -667,6 +689,8 @@
           gameMode: 'jumpmap',
           quizPresetId: 'jumpmap-net-30',
           characterId: 'sejong',
+          playerCharacterIds: ['sejong'],
+          studentCharacterMap: {},
           jumpmapStartPointId: '',
           jumpmapEndMode: 'none',
           quizEndMode: 'count',
@@ -738,7 +762,12 @@
         });
 
         els.characterSelect.addEventListener('change', (e) => {
-          state.characterId = String(e.target.value || 'sejong');
+          state.characterId = normalizeCharacterId(e.target.value, 'sejong');
+          for (let i = 0; i < state.players; i += 1) {
+            state.playerCharacterIds[i] = state.characterId;
+            const studentTag = normalizeStudentTag(state.playerTags[i]);
+            if (studentTag) state.studentCharacterMap[studentTag] = state.characterId;
+          }
           persistAndRefresh();
         });
         els.quizSearchInput?.addEventListener('input', () => {
@@ -1130,8 +1159,30 @@
             savedCsvItems: savedCsvFallback,
             playerNames: Array.isArray(source.playerNames) ? source.playerNames.slice(0, 6) : [],
             playerTags: Array.isArray(source.playerTags) ? source.playerTags.slice(0, 6) : [],
+            playerCharacterIds: Array.isArray(source.playerCharacterIds) ? source.playerCharacterIds.slice(0, 6) : [],
+            studentCharacterMap: normalizeStudentCharacterMap(source.studentCharacterMap),
             savedAt: typeof source.savedAt === 'string' ? source.savedAt : ''
           };
+        }
+
+        function normalizeCharacterId(raw, fallback = 'sejong') {
+          const value = typeof raw === 'string' ? raw.trim() : '';
+          if (value && CHARACTER_OPTIONS.some((option) => option.id === value)) return value;
+          if (fallback === '') return '';
+          const fallbackValue = typeof fallback === 'string' ? fallback.trim() : '';
+          if (fallbackValue && CHARACTER_OPTIONS.some((option) => option.id === fallbackValue)) return fallbackValue;
+          return 'sejong';
+        }
+
+        function normalizeStudentCharacterMap(rawMap) {
+          if (!rawMap || typeof rawMap !== 'object') return {};
+          const next = {};
+          Object.entries(rawMap).forEach(([key, value]) => {
+            const studentNo = normalizeStudentTag(key);
+            if (!studentNo) return;
+            next[studentNo] = normalizeCharacterId(value, 'sejong');
+          });
+          return next;
         }
 
         function normalizeStudentTag(raw) {
@@ -1180,22 +1231,37 @@
         function normalizeState(target) {
           target.players = Math.max(1, Math.min(6, Math.round(Number(target.players) || 1)));
           if (!GAME_OPTIONS.some((item) => item.id === target.gameMode)) target.gameMode = 'jumpmap';
-          if (typeof target.characterId !== 'string' || !target.characterId.trim()) target.characterId = 'sejong';
+          target.characterId = normalizeCharacterId(target.characterId, 'sejong');
           if (!Array.isArray(target.playerNames)) target.playerNames = [];
           if (!Array.isArray(target.playerTags)) target.playerTags = [];
+          if (!Array.isArray(target.playerCharacterIds)) target.playerCharacterIds = [];
+          target.studentCharacterMap = normalizeStudentCharacterMap(target.studentCharacterMap);
           target.playerNames = target.playerNames.slice(0, 6);
           target.playerTags = target.playerTags.slice(0, 6);
+          target.playerCharacterIds = target.playerCharacterIds.slice(0, 6);
           while (target.playerNames.length < target.players) {
             target.playerNames.push(`사용자${target.playerNames.length + 1}`);
           }
           while (target.playerTags.length < target.players) {
             target.playerTags.push('');
           }
+          while (target.playerCharacterIds.length < target.players) {
+            target.playerCharacterIds.push(target.characterId);
+          }
           target.playerNames = target.playerNames.slice(0, target.players).map((name, idx) => {
             const trimmed = typeof name === 'string' ? name.trim() : '';
             return trimmed || `사용자${idx + 1}`;
           });
           target.playerTags = normalizePlayerTags(target.playerTags, target.players);
+          target.playerCharacterIds = target.playerCharacterIds
+            .slice(0, target.players)
+            .map((id) => normalizeCharacterId(id, target.characterId));
+          for (let i = 0; i < target.players; i += 1) {
+            const studentTag = normalizeStudentTag(target.playerTags[i]);
+            if (!studentTag) continue;
+            const mapped = normalizeCharacterId(target.studentCharacterMap?.[studentTag], '');
+            if (mapped) target.playerCharacterIds[i] = mapped;
+          }
           applyClassroomNamesByTag(target);
           target.jumpmapStartPointId = typeof target.jumpmapStartPointId === 'string' ? target.jumpmapStartPointId : '';
           target.jumpmapEndMode = target.jumpmapEndMode === 'reach-top' ? 'reach-top' : 'none';
@@ -1694,6 +1760,7 @@
             badge.style.background = PLAYER_COLORS[i % PLAYER_COLORS.length];
             badge.style.color = PLAYER_TEXT_COLORS[i % PLAYER_TEXT_COLORS.length];
             const input = document.createElement('input');
+            input.className = 'name-input';
             input.type = 'text';
             input.maxLength = 20;
             input.value = state.playerNames[i] || `사용자${i + 1}`;
@@ -1712,10 +1779,35 @@
             }
             tagInput.value = normalizeStudentTag(state.playerTags[i]) || '1';
             tagInput.addEventListener('change', () => {
-              state.playerTags[i] = normalizeStudentTag(tagInput.value);
+              const studentTag = normalizeStudentTag(tagInput.value);
+              state.playerTags[i] = studentTag;
+              const mappedCharacter = normalizeCharacterId(state.studentCharacterMap?.[studentTag], '');
+              if (mappedCharacter) {
+                state.playerCharacterIds[i] = mappedCharacter;
+              } else if (studentTag) {
+                const fallbackCharacter = normalizeCharacterId(state.characterId, 'sejong');
+                state.playerCharacterIds[i] = fallbackCharacter;
+                state.studentCharacterMap[studentTag] = fallbackCharacter;
+              }
               persistAndRefresh();
             });
-            row.append(badge, input, tagInput);
+            const characterInput = document.createElement('select');
+            characterInput.className = 'name-character';
+            CHARACTER_OPTIONS.forEach((option) => {
+              const opt = document.createElement('option');
+              opt.value = option.id;
+              opt.textContent = option.label;
+              characterInput.appendChild(opt);
+            });
+            characterInput.value = normalizeCharacterId(state.playerCharacterIds[i], state.characterId);
+            characterInput.addEventListener('change', () => {
+              const characterId = normalizeCharacterId(characterInput.value, state.characterId);
+              state.playerCharacterIds[i] = characterId;
+              const studentTag = normalizeStudentTag(state.playerTags[i]);
+              if (studentTag) state.studentCharacterMap[studentTag] = characterId;
+              persistAndRefresh();
+            });
+            row.append(badge, input, tagInput, characterInput);
             els.namesList.appendChild(row);
           }
         }
@@ -1723,7 +1815,17 @@
         function renderGameConditional() {
           const isJumpmap = state.gameMode === 'jumpmap';
           els.characterSection.classList.toggle('hidden', !isJumpmap);
-          els.characterSelect.value = state.characterId || 'sejong';
+          if (els.characterSelect) {
+            const existingValues = new Set(Array.from(els.characterSelect.options).map((opt) => opt.value));
+            CHARACTER_OPTIONS.forEach((option) => {
+              if (existingValues.has(option.id)) return;
+              const opt = document.createElement('option');
+              opt.value = option.id;
+              opt.textContent = option.label;
+              els.characterSelect.appendChild(opt);
+            });
+            els.characterSelect.value = normalizeCharacterId(state.characterId, 'sejong');
+          }
           if (els.endModeNote) {
             els.endModeNote.textContent = isJumpmap
               ? '현재 설정은 기본 퀴즈 모드에서 적용됩니다. (점프맵은 별도 규칙 사용)'
@@ -1808,8 +1910,19 @@
           const game = GAME_OPTIONS.find((item) => item.id === state.gameMode) || GAME_OPTIONS[0];
           const names = state.playerNames.slice(0, state.players).map((name, idx) => {
             const tag = state.playerTags[idx];
-            return tag ? `${name}(${tag})` : name;
+            const characterId = normalizeCharacterId(state.playerCharacterIds[idx], state.characterId);
+            const characterLabel = CHARACTER_LABELS[characterId] || characterId;
+            return tag ? `${name}(${tag}번·${characterLabel})` : `${name}(${characterLabel})`;
           }).join(', ');
+          const jumpmapCharacterSummary = state.playerCharacterIds
+            .slice(0, state.players)
+            .map((characterId, idx) => {
+              const normalizedCharacterId = normalizeCharacterId(characterId, state.characterId);
+              const label = CHARACTER_LABELS[normalizedCharacterId] || normalizedCharacterId;
+              const studentTag = normalizeStudentTag(state.playerTags[idx]);
+              return studentTag ? `${idx + 1}P:${label}(${studentTag}번)` : `${idx + 1}P:${label}`;
+            })
+            .join(', ');
           const csvSummary = state.customCsvEnabled && state.customCsvText.trim()
             ? `CSV 업로드 사용 (${state.customCsvFileName || '이름 없음'})${state.gameMode === 'jumpmap' ? ' · 현재는 기본 퀴즈 경로에서 적용' : ''}`
             : 'CSV 업로드 사용 안 함';
@@ -1829,7 +1942,7 @@
             <div><strong>문제 소스</strong>: ${csvSummary}</div>
             <div><strong>종료 기준</strong>: ${endModeSummary}</div>
             <div><strong>게임</strong>: ${game.label}</div>
-            ${state.gameMode === 'jumpmap' ? `<div><strong>캐릭터</strong>: 세종 (기본)</div>` : ''}
+            ${state.gameMode === 'jumpmap' ? `<div><strong>캐릭터</strong>: ${jumpmapCharacterSummary}</div>` : ''}
             ${state.gameMode === 'jumpmap' ? `<div><strong>점프맵 종료 기준</strong>: ${jumpmapEndModeSummary}</div>` : ''}
             <div style="margin-top:8px;color:#5a4b3e;">시작 버튼을 누르면 설정이 로컬에 저장되고 게임이 바로 시작됩니다.</div>
           `;

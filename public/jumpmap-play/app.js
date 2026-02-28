@@ -1,4 +1,8 @@
 const STORAGE_KEY = 'jumpmap.launcher.setup.v1';
+const CHARACTER_LABELS = {
+  sejong: '세종',
+  leesunsin: '이순신'
+};
 
 const normalizeRuntimeImpl = (value) => {
   const normalized = typeof value === 'string' ? value.trim().toLowerCase() : '';
@@ -34,8 +38,10 @@ const normalizeSetup = (setup) => {
   const jumpmapEndMode = setup.jumpmapEndMode === 'reach-top' ? 'reach-top' : 'none';
   const names = Array.isArray(setup.playerNames) ? setup.playerNames.slice(0, 6) : [];
   const tags = Array.isArray(setup.playerTags) ? setup.playerTags.slice(0, 6) : [];
+  const playerCharacterIds = Array.isArray(setup.playerCharacterIds) ? setup.playerCharacterIds.slice(0, 6) : [];
   while (names.length < players) names.push(`사용자${names.length + 1}`);
   while (tags.length < players) tags.push('');
+  while (playerCharacterIds.length < players) playerCharacterIds.push(characterId);
   return {
     ...setup,
     players,
@@ -50,6 +56,10 @@ const normalizeSetup = (setup) => {
     playerTags: tags.slice(0, players).map((tag) => {
       if (typeof tag !== 'string') return '';
       return tag.trim();
+    }),
+    playerCharacterIds: playerCharacterIds.slice(0, players).map((id) => {
+      if (typeof id !== 'string' || !id.trim()) return characterId;
+      return id.trim();
     })
   };
 };
@@ -80,7 +90,16 @@ const renderSummary = (setup) => {
   const rows = [
     ['플레이 인원', `${setup.players}명`],
     ['퀴즈 프리셋', setup.quizPresetId],
-    ['캐릭터', setup.characterId],
+    [
+      '캐릭터',
+      setup.playerCharacterIds
+        .map((id, idx) => {
+          const tag = setup.playerTags?.[idx];
+          const label = CHARACTER_LABELS[id] || id;
+          return tag ? `${idx + 1}P ${label}(${tag}번)` : `${idx + 1}P ${label}`;
+        })
+        .join(', ')
+    ],
     ['점프맵 종료 기준', setup.jumpmapEndMode === 'reach-top' ? '꼭대기 도달 시 종료' : '종료 조건 없음'],
     ['스타트 후보', setup.jumpmapStartPointId || '시작지점'],
     [

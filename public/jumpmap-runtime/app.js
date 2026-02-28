@@ -311,10 +311,18 @@ const renderSetupSummary = (setup) => {
     renderRows('setup-summary-rows', [['상태', '설정 없음']]);
     return;
   }
+  const playerCharacterSummary = Array.isArray(setup.playerCharacterIds) && setup.playerCharacterIds.length
+    ? setup.playerCharacterIds
+      .map((id, idx) => {
+        const tag = Array.isArray(setup.playerTags) ? setup.playerTags[idx] : '';
+        return tag ? `${idx + 1}P:${id}(${tag}번)` : `${idx + 1}P:${id}`;
+      })
+      .join(', ')
+    : (setup.characterId || '-');
   renderRows('setup-summary-rows', [
     ['인원', `${setup.players || 1}명`],
     ['퀴즈', setup.quizPresetId || '-'],
-    ['캐릭터', setup.characterId || '-'],
+    ['캐릭터', playerCharacterSummary],
     ['점프맵 종료', setup.jumpmapEndMode === 'reach-top' ? '꼭대기 도달 시 종료' : '종료 조건 없음'],
     ['스타트', setup.jumpmapStartPointId || '시작지점'],
     ['플레이어', Array.isArray(setup.playerNames) ? setup.playerNames.join(', ') : '-']
