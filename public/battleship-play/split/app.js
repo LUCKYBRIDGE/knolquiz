@@ -41,6 +41,23 @@ const getGridColumns = (players) => {
   return 3;
 };
 
+const applyGridLayout = (setup) => {
+  if (!els.grid) return;
+  const players = setup.players;
+  const columns = getGridColumns(players);
+  const rows = Math.max(1, Math.ceil(players / columns));
+  const topbarHeight = document.querySelector('.topbar')?.offsetHeight || 0;
+  const statusHeight = els.status?.offsetHeight || 0;
+  const viewportHeight = Math.max(540, window.innerHeight || 0);
+  const verticalPadding = 44;
+  const gapY = 10;
+  const available = Math.max(320, viewportHeight - topbarHeight - statusHeight - verticalPadding);
+  const paneHeight = Math.max(240, Math.floor((available - (rows - 1) * gapY) / rows));
+
+  els.grid.style.gridTemplateColumns = `repeat(${columns}, minmax(0, 1fr))`;
+  els.grid.style.gridAutoRows = `${paneHeight}px`;
+};
+
 const setStatus = (text) => {
   if (els.status) els.status.textContent = text;
 };
@@ -48,9 +65,7 @@ const setStatus = (text) => {
 const renderSplitFrames = (setup) => {
   if (!els.grid) return;
   els.grid.innerHTML = '';
-  const players = setup.players;
-  const columns = getGridColumns(players);
-  els.grid.style.gridTemplateColumns = `repeat(${columns}, minmax(0, 1fr))`;
+  applyGridLayout(setup);
 
   setup.participants.forEach((participant, index) => {
     const pane = document.createElement('section');
@@ -102,6 +117,7 @@ const start = () => {
   }
   renderSplitFrames(setup);
   setStatus(`${setup.players}인 분할 화면 구성 완료 · 각 화면에서 개별 플레이가 진행됩니다.`);
+  window.addEventListener('resize', () => applyGridLayout(setup), { passive: true });
 };
 
 start();

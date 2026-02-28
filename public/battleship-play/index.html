@@ -26,10 +26,19 @@
         margin: 8px auto;
         height: calc(100% - 16px);
       }
+      body.split-mode .layout {
+        width: calc(100% - 8px);
+        margin: 4px auto;
+        gap: 6px;
+        height: calc(100% - 8px);
+      }
       body.layout-bottom .layout {
         grid-template-columns: 1fr;
         height: auto;
         min-height: calc(100% - 16px);
+      }
+      body.split-mode.layout-bottom .layout {
+        min-height: calc(100% - 8px);
       }
       .stage-wrap {
         border: 2px solid var(--line);
@@ -41,6 +50,11 @@
         aspect-ratio: 1 / 1;
         max-height: 100%;
         min-height: 0;
+      }
+      body.split-mode .stage-wrap {
+        border-radius: 10px;
+        aspect-ratio: auto;
+        min-height: 240px;
       }
       body.layout-bottom .stage-wrap { max-height: none; }
       #game-canvas {
@@ -56,9 +70,15 @@
         min-height: 0;
         overflow: auto;
       }
+      body.split-mode .side {
+        gap: 6px;
+      }
       body.layout-bottom .side {
         grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
         overflow: visible;
+      }
+      body.split-mode.layout-bottom .side {
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
       }
       .card {
         border: 2px solid var(--line);
@@ -66,9 +86,17 @@
         background: var(--panel);
         padding: 10px;
       }
+      body.split-mode .card {
+        padding: 7px;
+        border-radius: 9px;
+      }
       .card h2 {
         margin: 0 0 8px;
         font-size: 16px;
+      }
+      body.split-mode .card h2 {
+        margin-bottom: 5px;
+        font-size: 13px;
       }
       .stat-grid {
         display: grid;
@@ -81,9 +109,16 @@
         padding: 8px;
         background: rgba(255,255,255,0.78);
       }
+      body.split-mode .stat {
+        border-radius: 8px;
+        padding: 6px;
+      }
       .stat .k { font-size: 12px; color: #51607f; font-weight: 700; }
       .stat .v { margin-top: 2px; font-size: 18px; font-weight: 900; }
+      body.split-mode .stat .k { font-size: 10px; }
+      body.split-mode .stat .v { font-size: 14px; }
       .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      body.split-mode .row { gap: 6px; }
       .btn {
         border: 2px solid #2b2e34;
         border-radius: 10px;
@@ -93,6 +128,11 @@
         font-weight: 900;
         cursor: pointer;
       }
+      body.split-mode .btn {
+        min-height: 34px;
+        font-size: 12px;
+        border-radius: 8px;
+      }
       .btn.primary {
         background: linear-gradient(180deg, #fae296 0%, var(--accent) 100%);
       }
@@ -100,6 +140,8 @@
       .hidden { display: none !important; }
       .hint { font-size: 12px; color: #5d4d40; line-height: 1.4; }
       .status { font-size: 13px; font-weight: 700; color: #2b426f; min-height: 18px; }
+      body.split-mode .hint { font-size: 10px; line-height: 1.3; }
+      body.split-mode .status { font-size: 11px; min-height: 14px; }
       .meta-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -288,6 +330,11 @@
         .layout { grid-template-columns: 1fr; height: auto; min-height: calc(100% - 16px); }
         .stage-wrap { max-height: none; }
         .side { grid-template-columns: 1fr; overflow: visible; }
+      }
+      @media (max-width: 760px) {
+        body.split-mode.layout-bottom .side {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
   </head>

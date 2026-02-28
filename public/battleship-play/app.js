@@ -177,6 +177,7 @@ const setup = (() => {
 
 const query = new URLSearchParams(window.location.search);
 const singleMode = query.get('single') === '1';
+const splitMode = query.get('split') === '1';
 const requestedPlayerIndex = Math.round(Number(query.get('playerIndex')));
 const activePlayerIndex = clamp(
   Number.isFinite(requestedPlayerIndex) ? requestedPlayerIndex : 0,
@@ -190,6 +191,7 @@ const activeParticipantLabel = activeParticipant.tag
 const shouldRedirectToSplitHost = setup.players > 1 && !singleMode;
 
 const resolveLayoutMode = () => {
+  if (splitMode) return 'bottom';
   const width = Math.max(1, Number(window.innerWidth) || 1);
   const height = Math.max(1, Number(window.innerHeight) || 1);
   const aspect = width / height;
@@ -1436,6 +1438,9 @@ if (shouldRedirectToSplitHost) {
   splitUrl.searchParams.set('fromLauncher', query.get('fromLauncher') || '1');
   window.location.replace(splitUrl.toString());
 } else {
+  if (splitMode) {
+    document.body.classList.add('split-mode');
+  }
   refreshHud();
   applyLayoutMode();
   window.addEventListener('resize', applyLayoutMode, { passive: true });

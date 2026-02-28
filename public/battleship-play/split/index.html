@@ -70,6 +70,7 @@
       .grid {
         display: grid;
         gap: 10px;
+        align-items: stretch;
       }
       .pane {
         border: 1px solid var(--line);
@@ -78,7 +79,7 @@
         background: var(--panel);
         display: grid;
         grid-template-rows: auto 1fr;
-        min-height: 330px;
+        min-height: 0;
       }
       .pane-head {
         display: flex;
