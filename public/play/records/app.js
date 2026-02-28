@@ -8,6 +8,7 @@ import {
 const els = {
   status: document.getElementById('status-box'),
   refresh: document.getElementById('refresh-btn'),
+  exportCsv: document.getElementById('export-csv-btn'),
   studentPageLink: document.getElementById('student-page-link'),
   studentFilter: document.getElementById('student-filter'),
   periodFilter: document.getElementById('period-filter'),
@@ -142,6 +143,127 @@ const createItem = () => {
   const item = document.createElement('div');
   item.className = 'item';
   return item;
+};
+
+const escapeCsvCell = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
+
+const downloadTextFile = (fileName, text, mimeType) => {
+  const normalizedText = String(text || '');
+  const withBom = mimeType.includes('text/csv') ? `\ufeff${normalizedText}` : normalizedText;
+  const blob = new Blob([withBom], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+  link.click();
+  URL.revokeObjectURL(url);
+};
+
+const buildRecordsCsv = ({ players, jumpmapSessions, quizSessions, wrongs }) => {
+  const selectedStudent = state.selectedStudentNo ? getStudentLabel(state.selectedStudentNo) : '전체';
+  const selectedPeriod = getPeriodLabel(state.selectedPeriodDays);
+  const criteria = `학생:${selectedStudent} / 기간:${selectedPeriod}`;
+  const rows = [[
+    '조회기준',
+    '구분',
+    '시각',
+    '학생번호',
+    '이름',
+    '값1',
+    '값2',
+    '값3',
+    '값4',
+    '값5'
+  ]];
+
+  (Array.isArray(players) ? players : []).forEach((player) => {
+    const studentNo = normalizeStudentNo(player?.tag);
+    const quizStats = player?.stats || {};
+    const jumpmapStats = player?.jumpmapStats || {};
+    rows.push([
+      criteria,
+      '플레이어 누적',
+      player?.updatedAt || '',
+      studentNo || '',
+      player?.name || player?.id || '',
+      `퀴즈판:${Number(quizStats?.quizRuns) || 0}`,
+      `정답률:${Number(quizStats?.accuracy) || 0}%`,
+      `누적점수:${Number(quizStats?.totalScore) || 0}`,
+      `점프맵판:${Number(jumpmapStats?.runs) || 0}`,
+      `최고높이:${pxToMeterText(jumpmapStats?.bestHeightPx)}`
+    ]);
+  });
+
+  (Array.isArray(jumpmapSessions) ? jumpmapSessions : []).forEach((session) => {
+    const mapSummary = session?.mapSummary || {};
+    const playersInSession = Array.isArray(session?.players) ? session.players : [];
+    playersInSession.forEach((player) => {
+      const studentNo = normalizeStudentNo(player?.tag);
+      const summary = player?.summary || {};
+      rows.push([
+        criteria,
+        '점프맵 세션',
+        session?.createdAt || '',
+        studentNo || '',
+        player?.name || player?.id || '',
+        `최고높이:${pxToMeterText(summary?.bestHeightPx)}`,
+        `퀴즈:${Number(summary?.quizCorrect) || 0}/${Number(summary?.quizAttempts) || 0}`,
+        `점프:${Number(summary?.jumps) || 0}`,
+        `더블:${Number(summary?.doubleJumps) || 0}`,
+        `종료:${mapSummary?.endReason || '-'}`
+      ]);
+    });
+  });
+
+  (Array.isArray(quizSessions) ? quizSessions : []).forEach((session) => {
+    const playersInSession = Array.isArray(session?.players) ? session.players : [];
+    playersInSession.forEach((player) => {
+      const studentNo = normalizeStudentNo(player?.tag);
+      const summary = player?.summary || {};
+      rows.push([
+        criteria,
+        '기본 퀴즈 세션',
+        session?.createdAt || '',
+        studentNo || '',
+        player?.name || player?.id || '',
+        `총점:${Number(summary?.totalScore) || 0}`,
+        `정답:${Number(summary?.correctCount) || 0}/${Number(summary?.totalCount) || 0}`,
+        `프리셋:${session?.launcherQuizPresetId || '-'}`,
+        `제한시간:${Number(session?.settingsSummary?.timeLimitSec) || 0}초`,
+        `플레이어수:${Number(session?.playerCount) || 0}`
+      ]);
+    });
+  });
+
+  (Array.isArray(wrongs) ? wrongs : []).forEach((wrong) => {
+    const studentNo = normalizeStudentNo(wrong?.playerTag);
+    rows.push([
+      criteria,
+      '오답',
+      wrong?.createdAt || '',
+      studentNo || '',
+      wrong?.playerName || wrong?.playerId || '',
+      `유형:${wrong?.type || '-'}`,
+      `문제ID:${wrong?.questionId || '-'}`,
+      `선택:${wrong?.selectedChoice ?? '-'}`,
+      `정답:${wrong?.correctChoice ?? '-'}`,
+      wrong?.prompt || wrong?.question || ''
+    ]);
+  });
+
+  return rows.map((row) => row.map((cell) => escapeCsvCell(cell)).join(',')).join('\n');
+};
+
+const exportFilteredRecordsCsv = () => {
+  const filtered = applyFilters(state.raw, state.selectedStudentNo, state.selectedPeriodDays);
+  const csvText = buildRecordsCsv(filtered);
+  const periodToken = state.selectedPeriodDays ? `${state.selectedPeriodDays}d` : 'all';
+  const studentToken = state.selectedStudentNo ? `${state.selectedStudentNo}` : 'all';
+  const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+  const fileName = `records-${studentToken}-${periodToken}-${stamp}.csv`;
+  downloadTextFile(fileName, csvText, 'text/csv;charset=utf-8;');
+  els.status.textContent =
+    `CSV 저장 완료 · 학생 ${state.selectedStudentNo ? getStudentLabel(state.selectedStudentNo) : '전체'} · 기간 ${getPeriodLabel(state.selectedPeriodDays)}`;
 };
 
 const populateStudentFilter = (players) => {
@@ -462,6 +584,9 @@ const loadAndRender = async () => {
 
 els.refresh?.addEventListener('click', () => {
   loadAndRender();
+});
+els.exportCsv?.addEventListener('click', () => {
+  exportFilteredRecordsCsv();
 });
 
 els.studentFilter?.addEventListener('change', () => {

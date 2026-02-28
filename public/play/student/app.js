@@ -11,6 +11,7 @@ import {
 const els = {
   status: document.getElementById('status-box'),
   refresh: document.getElementById('refresh-btn'),
+  exportStudentCsv: document.getElementById('export-student-csv-btn'),
   classroomPageLink: document.getElementById('classroom-page-link'),
   recordsPageLink: document.getElementById('records-page-link'),
   studentSelect: document.getElementById('student-select'),
@@ -81,6 +82,20 @@ const appendEmpty = (node, text) => {
   empty.className = 'empty';
   empty.textContent = text;
   node.appendChild(empty);
+};
+
+const escapeCsvCell = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
+
+const downloadTextFile = (fileName, text, mimeType) => {
+  const normalizedText = String(text || '');
+  const withBom = mimeType.includes('text/csv') ? `\ufeff${normalizedText}` : normalizedText;
+  const blob = new Blob([withBom], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+  link.click();
+  URL.revokeObjectURL(url);
 };
 
 const normalizePeriodDays = (raw) => {
@@ -332,6 +347,121 @@ const renderSeasonRows = () => {
   });
 };
 
+const buildStudentCsv = () => {
+  const studentNo = state.selectedStudentNo;
+  const student = state.studentsByNo.get(studentNo);
+  const playerStats = state.playerStatsByNo.get(studentNo) || {};
+  const quizStats = playerStats.stats || {};
+  const jumpmapStats = playerStats.jumpmapStats || {};
+  const studentName = student?.name || getStudentLabel(studentNo);
+  const periodText = getSelectedPeriodLabel();
+  const criteria = `학생:${studentName}(${studentNo}번) / 기간:${periodText}`;
+  const rows = [[
+    '조회기준',
+    '구분',
+    '시각',
+    '학생번호',
+    '이름',
+    '값1',
+    '값2',
+    '값3',
+    '값4',
+    '값5'
+  ]];
+
+  rows.push([
+    criteria,
+    '요약',
+    '',
+    studentNo,
+    studentName,
+    `출석:${Number(state.attendanceByNo.get(studentNo)) || 0}일`,
+    `퀴즈누적:${Number(quizStats?.quizRuns) || 0}판`,
+    `퀴즈정답률:${Number(quizStats?.accuracy) || 0}%`,
+    `점프맵누적:${Number(jumpmapStats?.runs) || 0}판`,
+    `점프맵최고:${pxToMeterText(jumpmapStats?.bestHeightPx)}`
+  ]);
+
+  state.quizRows.forEach((row) => {
+    rows.push([
+      criteria,
+      '기본 퀴즈',
+      row.createdAt || '',
+      studentNo,
+      studentName,
+      `점수:${row.score}`,
+      `정답:${row.correct}/${row.total}`,
+      `프리셋:${row.presetId || '-'}`,
+      `유형:${row.typeText || '-'}`,
+      `제한:${row.timeLimitSec}초`
+    ]);
+  });
+
+  state.jumpmapRows.forEach((row) => {
+    rows.push([
+      criteria,
+      '점프맵',
+      row.createdAt || '',
+      studentNo,
+      studentName,
+      `최고높이:${pxToMeterText(row.bestHeightPx)}`,
+      `퀴즈:${row.quizCorrect}/${row.quizAttempts}`,
+      `점프:${row.jumps}`,
+      `더블:${row.doubleJumps}`,
+      `종료:${row.endReason || '-'}`
+    ]);
+  });
+
+  state.wrongRows.forEach((row) => {
+    rows.push([
+      criteria,
+      '오답',
+      row.createdAt || '',
+      studentNo,
+      studentName,
+      `유형:${row.type || '-'}`,
+      `문제ID:${row.questionId || '-'}`,
+      `선택:${row.selectedChoice ?? '-'}`,
+      `정답:${row.correctChoice ?? '-'}`,
+      row.prompt || row.question || ''
+    ]);
+  });
+
+  state.seasonRows.forEach((row) => {
+    rows.push([
+      criteria,
+      '시즌 랭킹',
+      row.lastPlayedAt || '',
+      studentNo,
+      studentName,
+      `시즌:${row.seasonName}`,
+      `상태:${row.lifecycle}`,
+      `부문:${row.categoryLabel}`,
+      `순위:${row.rank}위`,
+      `최고:${row.bestScore} / 평균:${row.averageScore} / 시도:${row.attemptCount}`
+    ]);
+  });
+
+  return rows.map((row) => row.map((cell) => escapeCsvCell(cell)).join(',')).join('\n');
+};
+
+const exportStudentCsv = () => {
+  if (!state.selectedStudentNo) {
+    setStatus('학생을 먼저 선택하세요.', 'error');
+    return;
+  }
+  const csvText = buildStudentCsv();
+  const periodToken = state.selectedPeriodDays ? `${state.selectedPeriodDays}d` : 'all';
+  const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+  const fileName = `student-records-${state.selectedStudentNo}-${periodToken}-${stamp}.csv`;
+  downloadTextFile(fileName, csvText, 'text/csv;charset=utf-8;');
+  const student = state.studentsByNo.get(state.selectedStudentNo);
+  const studentName = student?.name || getStudentLabel(state.selectedStudentNo);
+  setStatus(
+    `CSV 저장 완료 · ${studentName}(${state.selectedStudentNo}번) · 기간 ${getSelectedPeriodLabel()} · 퀴즈 ${state.quizRows.length}건 · 점프맵 ${state.jumpmapRows.length}건 · 오답 ${state.wrongRows.length}건`
+  );
+};
+
 const rebuildFilteredRows = async () => {
   const studentNo = state.selectedStudentNo;
   const periodDays = state.selectedPeriodDays;
@@ -526,6 +656,9 @@ const loadAll = async () => {
 
 els.refresh?.addEventListener('click', () => {
   loadAll();
+});
+els.exportStudentCsv?.addEventListener('click', () => {
+  exportStudentCsv();
 });
 
 els.studentSelect?.addEventListener('change', async () => {
