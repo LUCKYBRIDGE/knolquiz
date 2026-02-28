@@ -80,6 +80,24 @@ const normalizeIsoDateInput = (raw) => {
   return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : '';
 };
 
+const getSeasonLifecycleStatus = (season, todayIso = getTodayLocalIsoDate()) => {
+  if (season?.active === false) {
+    return { code: 'inactive', label: '비활성' };
+  }
+  const startDate = normalizeIsoDateInput(season?.startDate || '');
+  const endDate = normalizeIsoDateInput(season?.endDate || '');
+  if (startDate && endDate && endDate < startDate) {
+    return { code: 'invalid', label: '기간오류' };
+  }
+  if (startDate && todayIso < startDate) {
+    return { code: 'scheduled', label: '예정' };
+  }
+  if (endDate && todayIso > endDate) {
+    return { code: 'ended', label: '종료' };
+  }
+  return { code: 'active', label: '진행중' };
+};
+
 const normalizeScorePolicies = (raw) => {
   const source = (raw && typeof raw === 'object') ? raw : {};
   return {
@@ -253,13 +271,14 @@ const renderSeasons = () => {
       els.seasonList.appendChild(empty);
     } else {
       state.seasons.forEach((season) => {
+        const lifecycle = getSeasonLifecycleStatus(season);
         const item = document.createElement('div');
         item.className = 'item';
         item.style.cursor = 'pointer';
         item.title = '클릭해서 시즌 편집 폼으로 불러오기';
         const name = document.createElement('div');
         name.className = 'name';
-        name.textContent = `${season.name || season.seasonId}${season.active === false ? ' (비활성)' : ''}`;
+        name.textContent = `[${lifecycle.label}] ${season.name || season.seasonId}`;
         const meta = document.createElement('div');
         meta.className = 'meta';
         meta.textContent = `ID: ${season.seasonId} · 기간: ${season.startDate || '-'} ~ ${season.endDate || '무기한'} · 프리셋: ${season.quizPresetId || '-'} · 부문: ${summarizeSeasonPolicies(season)}`;
@@ -281,15 +300,17 @@ const renderSeasons = () => {
     defaultOption.textContent = '시즌 선택';
     els.seasonSelect.appendChild(defaultOption);
     state.seasons.forEach((season) => {
+      const lifecycle = getSeasonLifecycleStatus(season);
       const option = document.createElement('option');
       option.value = season.seasonId || '';
-      option.textContent = `${season.name || season.seasonId}${season.active === false ? ' (비활성)' : ''}`;
+      option.textContent = `[${lifecycle.label}] ${season.name || season.seasonId}`;
       els.seasonSelect.appendChild(option);
     });
+    const runningSeason = state.seasons.find((season) => getSeasonLifecycleStatus(season).code === 'active')?.seasonId || '';
     const activeSeason = state.seasons.find((season) => season.active !== false)?.seasonId || '';
     state.selectedSeasonId = state.seasons.some((season) => season.seasonId === previous)
       ? previous
-      : activeSeason;
+      : (runningSeason || activeSeason);
     els.seasonSelect.value = state.selectedSeasonId || '';
   }
 };
@@ -392,6 +413,10 @@ const saveSeason = async () => {
   const scorePolicies = readScorePoliciesFromForm();
   if (!seasonId) {
     setStatus('시즌 ID를 입력하세요.', 'error');
+    return;
+  }
+  if (startDate && endDate && endDate < startDate) {
+    setStatus('시즌 종료일은 시작일보다 같거나 늦어야 합니다.', 'error');
     return;
   }
   setStatus('시즌 정보를 저장 중...');
