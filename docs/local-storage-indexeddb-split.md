@@ -25,6 +25,9 @@
   - `savedWrongs`
   - `studentNames`
   - `groupNames`
+- 게임 기록/학급관리 DB: `math-net-master-local-records`
+  - 기존 스토어: `sessions`, `players`, `wrongAnswers`
+  - 신규(학급관리): `classroomStudents`, `classroomAttendance`, `classroomSeasons`, `classroomSeasonResults`
 
 ## 마이그레이션 규칙
 - 기존 `localStorage`의 `savedCsvItems`가 있으면 초기 1회 `IndexedDB`로 이전한다.
@@ -32,6 +35,7 @@
 - `IndexedDB`를 사용할 수 없는 환경에서는 호환을 위해 `savedCsvItems`를 `localStorage` fallback으로 유지한다.
 - 퀴즈 앱도 기존 로컬 키(`quiz_custom_presets_v1`, `mathNetMasterWrongSets`, `mathNetMasterStudentNames`, `mathNetMasterGroupNames`)를 초기 1회 `IndexedDB`로 이전한다.
 - 이전 후에는 `IndexedDB`를 우선 사용하고, 실패 시에만 localStorage fallback을 사용한다.
+- 학급관리 데이터는 `localStorage`에 저장하지 않고 `IndexedDB` 전용으로 유지한다.
 
 ## 개발 규칙
 - 새 기능 추가 시:

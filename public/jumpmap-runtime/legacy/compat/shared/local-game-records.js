@@ -1,9 +1,13 @@
 const DB_NAME = 'math-net-master-local-records';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 const STORE_SESSIONS = 'sessions';
 const STORE_PLAYERS = 'players';
 const STORE_WRONGS = 'wrongAnswers';
+const STORE_CLASSROOM_STUDENTS = 'classroomStudents';
+const STORE_CLASSROOM_ATTENDANCE = 'classroomAttendance';
+const STORE_CLASSROOM_SEASONS = 'classroomSeasons';
+const STORE_CLASSROOM_SEASON_RESULTS = 'classroomSeasonResults';
 
 let openDbPromise = null;
 
@@ -59,6 +63,27 @@ const openDb = () => {
         wrongs.createIndex('byPlayerId', 'playerId');
         wrongs.createIndex('byQuestionId', 'questionId');
       }
+      if (!db.objectStoreNames.contains(STORE_CLASSROOM_STUDENTS)) {
+        const students = db.createObjectStore(STORE_CLASSROOM_STUDENTS, { keyPath: 'id' });
+        students.createIndex('byStudentNo', 'studentNo', { unique: true });
+        students.createIndex('byUpdatedAt', 'updatedAt');
+      }
+      if (!db.objectStoreNames.contains(STORE_CLASSROOM_ATTENDANCE)) {
+        const attendance = db.createObjectStore(STORE_CLASSROOM_ATTENDANCE, { keyPath: 'id' });
+        attendance.createIndex('byDate', 'date', { unique: true });
+        attendance.createIndex('byUpdatedAt', 'updatedAt');
+      }
+      if (!db.objectStoreNames.contains(STORE_CLASSROOM_SEASONS)) {
+        const seasons = db.createObjectStore(STORE_CLASSROOM_SEASONS, { keyPath: 'id' });
+        seasons.createIndex('byUpdatedAt', 'updatedAt');
+        seasons.createIndex('byActive', 'active');
+      }
+      if (!db.objectStoreNames.contains(STORE_CLASSROOM_SEASON_RESULTS)) {
+        const seasonResults = db.createObjectStore(STORE_CLASSROOM_SEASON_RESULTS, { keyPath: 'id' });
+        seasonResults.createIndex('bySeasonId', 'seasonId');
+        seasonResults.createIndex('byStudentNo', 'studentNo');
+        seasonResults.createIndex('byUpdatedAt', 'updatedAt');
+      }
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error || new Error('indexeddb open failed'));
@@ -77,6 +102,23 @@ const playerIdFromNameAndTag = (name, tag) => {
   const safeName = name || 'unknown';
   const safeTag = typeof tag === 'string' ? tag.trim() : '';
   return safeTag ? `player:${safeName}:${safeTag}` : `player:${safeName}`;
+};
+
+const normalizeStudentNo = (raw) => {
+  const num = Math.round(Number(raw));
+  if (!Number.isFinite(num) || num < 1 || num > 50) return null;
+  return num;
+};
+
+const toStudentId = (studentNo) => `student:${String(studentNo).padStart(2, '0')}`;
+
+const normalizeIsoDate = (input) => {
+  if (typeof input === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(input.trim())) {
+    return input.trim();
+  }
+  const date = input ? new Date(input) : new Date();
+  if (Number.isNaN(date.getTime())) return new Date().toISOString().slice(0, 10);
+  return date.toISOString().slice(0, 10);
 };
 
 const buildPlayerSummaryPatch = (existing, log, createdAt) => {
@@ -170,6 +212,14 @@ const getAllFromStore = async (db, storeName) => {
   const all = await requestToPromise(store.getAll());
   await txDone(tx);
   return Array.isArray(all) ? all : [];
+};
+
+const getRecordFromStore = async (db, storeName, id) => {
+  const tx = db.transaction([storeName], 'readonly');
+  const store = tx.objectStore(storeName);
+  const row = await requestToPromise(store.get(id));
+  await txDone(tx);
+  return row || null;
 };
 
 const insertWrongAnswers = async (db, sessionId, players, createdAt) => {
@@ -390,4 +440,236 @@ export const listWrongAnswers = async (limit = 100) => {
   return all
     .sort((a, b) => String(b?.createdAt || '').localeCompare(String(a?.createdAt || '')))
     .slice(0, Math.max(1, Math.min(1000, Number(limit) || 100)));
+};
+
+export const upsertClassroomStudent = async ({
+  studentNo,
+  name = '',
+  active = true,
+  meta = {}
+}) => {
+  const normalizedStudentNo = normalizeStudentNo(studentNo);
+  if (!normalizedStudentNo) {
+    throw new Error('invalid_student_no');
+  }
+  const db = await openDb();
+  const id = toStudentId(normalizedStudentNo);
+  const nowIso = new Date().toISOString();
+  const tx = db.transaction([STORE_CLASSROOM_STUDENTS], 'readwrite');
+  const store = tx.objectStore(STORE_CLASSROOM_STUDENTS);
+  const existing = await requestToPromise(store.get(id));
+  const next = {
+    ...(existing || {}),
+    id,
+    studentNo: normalizedStudentNo,
+    name: normalizeName(name, `${normalizedStudentNo}번`),
+    active: active !== false,
+    meta: (meta && typeof meta === 'object') ? { ...meta } : {},
+    updatedAt: nowIso
+  };
+  if (!next.createdAt) next.createdAt = nowIso;
+  store.put(next);
+  await txDone(tx);
+  return next;
+};
+
+export const listClassroomStudents = async ({ includeInactive = true } = {}) => {
+  const db = await openDb();
+  const all = await getAllFromStore(db, STORE_CLASSROOM_STUDENTS);
+  return all
+    .filter((item) => includeInactive || item?.active !== false)
+    .sort((a, b) => {
+      const byNo = (Number(a?.studentNo) || 0) - (Number(b?.studentNo) || 0);
+      if (byNo !== 0) return byNo;
+      return String(a?.name || '').localeCompare(String(b?.name || ''));
+    });
+};
+
+export const upsertClassroomAttendanceDay = async ({
+  date,
+  studentNos = [],
+  note = ''
+}) => {
+  const normalizedDate = normalizeIsoDate(date);
+  const normalizedStudentNos = Array.from(
+    new Set((Array.isArray(studentNos) ? studentNos : [])
+      .map((value) => normalizeStudentNo(value))
+      .filter(Boolean))
+  ).sort((a, b) => a - b);
+  const db = await openDb();
+  const id = `attendance:${normalizedDate}`;
+  const nowIso = new Date().toISOString();
+  const tx = db.transaction([STORE_CLASSROOM_ATTENDANCE], 'readwrite');
+  const store = tx.objectStore(STORE_CLASSROOM_ATTENDANCE);
+  const existing = await requestToPromise(store.get(id));
+  const next = {
+    ...(existing || {}),
+    id,
+    date: normalizedDate,
+    studentNos: normalizedStudentNos,
+    count: normalizedStudentNos.length,
+    note: typeof note === 'string' ? note.trim() : '',
+    updatedAt: nowIso
+  };
+  if (!next.createdAt) next.createdAt = nowIso;
+  store.put(next);
+  await txDone(tx);
+  return next;
+};
+
+export const listClassroomAttendanceDays = async (limit = 60) => {
+  const db = await openDb();
+  const all = await getAllFromStore(db, STORE_CLASSROOM_ATTENDANCE);
+  return all
+    .sort((a, b) => String(b?.date || '').localeCompare(String(a?.date || '')))
+    .slice(0, Math.max(1, Math.min(366, Number(limit) || 60)));
+};
+
+export const summarizeClassroomAttendance = async () => {
+  const [students, attendanceDays] = await Promise.all([
+    listClassroomStudents({ includeInactive: true }),
+    listClassroomAttendanceDays(366)
+  ]);
+  const attendanceCountByStudentId = new Map();
+  attendanceDays.forEach((day) => {
+    (day?.studentNos || []).forEach((studentNo) => {
+      const normalizedStudentNo = normalizeStudentNo(studentNo);
+      if (!normalizedStudentNo) return;
+      const id = toStudentId(normalizedStudentNo);
+      attendanceCountByStudentId.set(id, (attendanceCountByStudentId.get(id) || 0) + 1);
+    });
+  });
+  return {
+    attendanceDayCount: attendanceDays.length,
+    students: students.map((student) => ({
+      ...student,
+      attendanceDayCount: attendanceCountByStudentId.get(student.id) || 0
+    }))
+  };
+};
+
+export const upsertClassroomSeason = async ({
+  seasonId,
+  name = '',
+  active = true,
+  quizPresetId = '',
+  startDate = '',
+  endDate = '',
+  note = ''
+}) => {
+  const normalizedSeasonId = typeof seasonId === 'string' ? seasonId.trim() : '';
+  if (!normalizedSeasonId) {
+    throw new Error('invalid_season_id');
+  }
+  const db = await openDb();
+  const id = `season:${normalizedSeasonId}`;
+  const nowIso = new Date().toISOString();
+  const tx = db.transaction([STORE_CLASSROOM_SEASONS], 'readwrite');
+  const store = tx.objectStore(STORE_CLASSROOM_SEASONS);
+  const existing = await requestToPromise(store.get(id));
+  const next = {
+    ...(existing || {}),
+    id,
+    seasonId: normalizedSeasonId,
+    name: normalizeName(name, normalizedSeasonId),
+    active: active !== false,
+    quizPresetId: typeof quizPresetId === 'string' ? quizPresetId.trim() : '',
+    startDate: normalizeIsoDate(startDate || undefined),
+    endDate: endDate ? normalizeIsoDate(endDate) : '',
+    note: typeof note === 'string' ? note.trim() : '',
+    updatedAt: nowIso
+  };
+  if (!next.createdAt) next.createdAt = nowIso;
+  store.put(next);
+  await txDone(tx);
+  return next;
+};
+
+export const listClassroomSeasons = async ({ includeInactive = true } = {}) => {
+  const db = await openDb();
+  const all = await getAllFromStore(db, STORE_CLASSROOM_SEASONS);
+  return all
+    .filter((item) => includeInactive || item?.active !== false)
+    .sort((a, b) => String(b?.updatedAt || '').localeCompare(String(a?.updatedAt || '')));
+};
+
+export const recordClassroomSeasonScore = async ({
+  seasonId,
+  studentNo,
+  score = 0,
+  payload = {},
+  playedAt = ''
+}) => {
+  const normalizedSeasonId = typeof seasonId === 'string' ? seasonId.trim() : '';
+  const normalizedStudentNo = normalizeStudentNo(studentNo);
+  if (!normalizedSeasonId) throw new Error('invalid_season_id');
+  if (!normalizedStudentNo) throw new Error('invalid_student_no');
+  const db = await openDb();
+  const seasonKey = `season:${normalizedSeasonId}`;
+  const season = await getRecordFromStore(db, STORE_CLASSROOM_SEASONS, seasonKey);
+  if (!season) throw new Error('season_not_found');
+  const id = `seasonResult:${normalizedSeasonId}:${String(normalizedStudentNo).padStart(2, '0')}`;
+  const nowIso = new Date().toISOString();
+  const numericScore = Number(score) || 0;
+  const tx = db.transaction([STORE_CLASSROOM_SEASON_RESULTS], 'readwrite');
+  const store = tx.objectStore(STORE_CLASSROOM_SEASON_RESULTS);
+  const existing = await requestToPromise(store.get(id));
+  const attemptCount = (Number(existing?.attemptCount) || 0) + 1;
+  const totalScore = (Number(existing?.totalScore) || 0) + numericScore;
+  const bestScore = Math.max(Number(existing?.bestScore) || 0, numericScore);
+  const averageScore = attemptCount > 0
+    ? Math.round((totalScore / attemptCount) * 100) / 100
+    : 0;
+  const next = {
+    ...(existing || {}),
+    id,
+    seasonId: normalizedSeasonId,
+    studentNo: normalizedStudentNo,
+    attemptCount,
+    totalScore,
+    bestScore,
+    averageScore,
+    lastScore: numericScore,
+    lastPlayedAt: playedAt ? new Date(playedAt).toISOString() : nowIso,
+    lastPayload: (payload && typeof payload === 'object') ? { ...payload } : {},
+    updatedAt: nowIso
+  };
+  if (!next.createdAt) next.createdAt = nowIso;
+  store.put(next);
+  await txDone(tx);
+  return next;
+};
+
+export const listClassroomSeasonLeaderboard = async (seasonId, limit = 50) => {
+  const normalizedSeasonId = typeof seasonId === 'string' ? seasonId.trim() : '';
+  if (!normalizedSeasonId) return [];
+  const db = await openDb();
+  const all = await getAllFromStore(db, STORE_CLASSROOM_SEASON_RESULTS);
+  const students = await listClassroomStudents({ includeInactive: true });
+  const nameByStudentNo = new Map(
+    students.map((student) => [Number(student.studentNo) || 0, student.name || ''])
+  );
+  return all
+    .filter((item) => String(item?.seasonId || '') === normalizedSeasonId)
+    .sort((a, b) => {
+      const byBest = (Number(b?.bestScore) || 0) - (Number(a?.bestScore) || 0);
+      if (byBest !== 0) return byBest;
+      const byAverage = (Number(b?.averageScore) || 0) - (Number(a?.averageScore) || 0);
+      if (byAverage !== 0) return byAverage;
+      const byAttempts = (Number(b?.attemptCount) || 0) - (Number(a?.attemptCount) || 0);
+      if (byAttempts !== 0) return byAttempts;
+      return (Number(a?.studentNo) || 0) - (Number(b?.studentNo) || 0);
+    })
+    .slice(0, Math.max(1, Math.min(100, Number(limit) || 50)))
+    .map((entry, index) => ({
+      rank: index + 1,
+      seasonId: normalizedSeasonId,
+      studentNo: Number(entry.studentNo) || 0,
+      studentName: nameByStudentNo.get(Number(entry.studentNo) || 0) || `${entry.studentNo || '?'}번`,
+      bestScore: Number(entry.bestScore) || 0,
+      averageScore: Number(entry.averageScore) || 0,
+      attemptCount: Number(entry.attemptCount) || 0,
+      totalScore: Number(entry.totalScore) || 0,
+      lastPlayedAt: entry.lastPlayedAt || ''
+    }));
 };
