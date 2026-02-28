@@ -5,9 +5,22 @@ import { saveBattleshipSessionRecord } from '../shared/local-game-records.js';
 
 const STORAGE_KEY = 'jumpmap.launcher.setup.v1';
 const SHIP_IMAGE_SRC = '../quiz_battleship/battleship-ship.png';
-const ELITE_UNLOCK_TIME_SEC = 220;
-const ENEMY_TIER_UNLOCK_STEP_SEC = 22;
-const ELITE_TIER_UNLOCK_STEP_SEC = 26;
+const ELITE_UNLOCK_TIME_SEC = 240;
+const ENEMY_TIER_UNLOCK_STEP_SEC = 24;
+const ELITE_TIER_UNLOCK_STEP_SEC = 30;
+const SPAWN_START_COOLDOWN_MS = 1260;
+const SPAWN_MIN_COOLDOWN_MS = 430;
+const SPAWN_DECAY_PER_SEC = 4.7;
+const HP_GROWTH_STEP_SEC = 30;
+const HP_GROWTH_PER_STEP = 0.14;
+const SPEED_GROWTH_STEP_SEC = 45;
+const SPEED_GROWTH_PER_STEP = 0.06;
+const TOUCH_GROWTH_STEP_SEC = 55;
+const TOUCH_GROWTH_PER_STEP = 0.06;
+const SIZE_GROWTH_STEP_SEC = 75;
+const ELITE_CHANCE_BASE = 0.08;
+const ELITE_CHANCE_MAX = 0.55;
+const ELITE_CHANCE_GROWTH_WINDOW_SEC = 280;
 const ENEMY_DEFINITIONS = Object.freeze([
   { tier: 1, code: '01', name: '도깨비불', file: 'battleship-01ddokaebibul.png', baseHp: 34, baseSpeed: 58, baseTouchDamage: 8, baseSize: 56 },
   { tier: 2, code: '02', name: '물귀신', file: 'battleship-02mulguisin.png', baseHp: 46, baseSpeed: 62, baseTouchDamage: 9, baseSize: 58 },
@@ -102,7 +115,7 @@ const state = {
   gameover: false,
   startAtMs: performance.now(),
   lastFrameMs: performance.now(),
-  spawnCooldownMs: 1150,
+  spawnCooldownMs: SPAWN_START_COOLDOWN_MS,
   nextSpawnMs: 650,
   nextShotMs: 0,
   ship: {
@@ -309,18 +322,22 @@ const getEliteUnlockedTier = (elapsedSec) => {
 
 const shouldSpawnEliteEnemy = (elapsedSec, eliteTier) => {
   if (eliteTier <= 0) return false;
-  const chance = clamp(0.12 + ((elapsedSec - ELITE_UNLOCK_TIME_SEC) / 260) * 0.5, 0.12, 0.62);
+  const chance = clamp(
+    ELITE_CHANCE_BASE + ((elapsedSec - ELITE_UNLOCK_TIME_SEC) / ELITE_CHANCE_GROWTH_WINDOW_SEC) * 0.5,
+    ELITE_CHANCE_BASE,
+    ELITE_CHANCE_MAX
+  );
   return Math.random() < chance;
 };
 
 const createEnemyFromDefinition = (def, elapsedSec, elite = false) => {
-  const hpScale = 1 + Math.floor(elapsedSec / 25) * 0.18;
-  const speedScale = 1 + Math.floor(elapsedSec / 35) * 0.08;
-  const touchScale = 1 + Math.floor(elapsedSec / 45) * 0.08;
+  const hpScale = 1 + Math.floor(elapsedSec / HP_GROWTH_STEP_SEC) * HP_GROWTH_PER_STEP;
+  const speedScale = 1 + Math.floor(elapsedSec / SPEED_GROWTH_STEP_SEC) * SPEED_GROWTH_PER_STEP;
+  const touchScale = 1 + Math.floor(elapsedSec / TOUCH_GROWTH_STEP_SEC) * TOUCH_GROWTH_PER_STEP;
   const normalHp = Math.round((def.baseHp + Math.random() * 8) * hpScale);
   const normalSpeed = (def.baseSpeed + Math.random() * 14) * speedScale;
   const normalTouchDamage = Math.round(def.baseTouchDamage * touchScale);
-  const normalSize = def.baseSize + Math.floor(elapsedSec / 60);
+  const normalSize = def.baseSize + Math.floor(elapsedSec / SIZE_GROWTH_STEP_SEC);
 
   const def10 = ENEMY_DEFINITIONS[9];
   const normalTier10Hp = def10.baseHp * hpScale;
@@ -546,7 +563,10 @@ const updateGame = (dtSec, nowMs) => {
     setStatus(`붉은 특수효과 ${code} ${enemyName} 해금! 일반 10단계보다 강합니다.`);
   }
 
-  state.spawnCooldownMs = Math.max(360, 1150 - state.waves.elapsedSec * 6.2);
+  state.spawnCooldownMs = Math.max(
+    SPAWN_MIN_COOLDOWN_MS,
+    SPAWN_START_COOLDOWN_MS - state.waves.elapsedSec * SPAWN_DECAY_PER_SEC
+  );
   state.nextSpawnMs -= dtSec * 1000;
   while (state.nextSpawnMs <= 0) {
     spawnEnemy();
