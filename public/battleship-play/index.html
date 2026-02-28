@@ -87,6 +87,7 @@
         background: linear-gradient(180deg, #fae296 0%, var(--accent) 100%);
       }
       .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+      .hidden { display: none !important; }
       .hint { font-size: 12px; color: #5d4d40; line-height: 1.4; }
       .status { font-size: 13px; font-weight: 700; color: #2b426f; min-height: 18px; }
       .meta-grid {
@@ -191,6 +192,70 @@
       }
       .quiz-result.ok { color: #166534; }
       .quiz-result.no { color: #b91c1c; }
+      .quiz-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+      .quiz-actions .btn {
+        min-height: 40px;
+        min-width: 140px;
+      }
+      .loading-layer {
+        position: fixed;
+        inset: 0;
+        display: none;
+        place-items: center;
+        background: linear-gradient(180deg, rgba(5, 10, 28, 0.93) 0%, rgba(8, 15, 36, 0.96) 100%);
+        z-index: 50;
+        padding: 16px;
+      }
+      .loading-layer.show { display: grid; }
+      .loading-panel {
+        width: min(760px, 100%);
+        border: 2px solid rgba(155, 192, 255, 0.52);
+        border-radius: 16px;
+        padding: 18px;
+        background: rgba(8, 18, 43, 0.8);
+        box-shadow: 0 14px 30px rgba(2, 7, 20, 0.55);
+        color: #e9f2ff;
+        display: grid;
+        gap: 12px;
+      }
+      .loading-title {
+        margin: 0;
+        font-size: 26px;
+        font-weight: 900;
+        color: #ffdb75;
+      }
+      .loading-countdown {
+        font-size: 22px;
+        font-weight: 900;
+        color: #fef3c7;
+      }
+      .loading-guide {
+        border: 1px solid rgba(155, 192, 255, 0.42);
+        border-radius: 12px;
+        background: rgba(18, 34, 72, 0.74);
+        padding: 10px 12px;
+        line-height: 1.5;
+      }
+      .loading-guide strong {
+        display: block;
+        margin-bottom: 4px;
+        color: #bcd9ff;
+        font-size: 14px;
+      }
+      .loading-guide p {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .loading-source {
+        margin: 0;
+        font-size: 12px;
+        color: #c6d7f6;
+      }
       .gameover {
         position: fixed;
         inset: 0;
@@ -260,12 +325,31 @@
         </section>
 
         <section class="card">
-          <h2>아이템 구매</h2>
+          <h2>레벨 업</h2>
           <div class="row">
-            <button class="btn" id="buy-heal-btn" type="button">체력 회복</button>
-            <button class="btn" id="open-quiz-btn" type="button">퀴즈 열기</button>
+            <button class="btn" id="upgrade-speed-btn" type="button">공격속도 업</button>
+            <button class="btn" id="upgrade-power-btn" type="button">공격력 업</button>
           </div>
-          <p class="hint">체력 회복은 골드를 사용합니다. 퀴즈 정답 시 자동으로 EXP/골드가 반영됩니다.</p>
+          <div class="row">
+            <button class="btn" id="upgrade-bullet-btn" type="button">총알 개수 업</button>
+            <a class="btn" href="../" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;color:inherit;">메인화면</a>
+          </div>
+          <p class="hint">시간이 지날수록 01→10 단계 적이 열리고, 이후 붉은 특수효과 적이 01부터 순차 해금됩니다.</p>
+        </section>
+
+        <section class="card">
+          <h2>보급</h2>
+          <button class="btn" id="buy-heal-btn" type="button" style="width:100%;">체력 회복</button>
+          <p class="hint">체력 회복은 골드를 사용합니다.</p>
+        </section>
+
+        <section class="card">
+          <h2>퀴즈 도전</h2>
+          <div class="row">
+            <button class="btn primary" id="open-quiz-btn" type="button">퀴즈 열기</button>
+            <span class="btn" style="display:inline-flex;align-items:center;justify-content:center;cursor:default;">연속 풀이 가능</span>
+          </div>
+          <p class="hint">연속으로 여러 문제를 풀거나, 언제든 전투로 복귀할 수 있습니다. 정답 시 EXP/골드가 즉시 반영됩니다.</p>
         </section>
 
         <section class="card">
@@ -283,21 +367,24 @@
           </div>
           <p class="hint">해금/스폰 정보를 보며 업그레이드 타이밍을 잡아보세요.</p>
         </section>
-
-        <section class="card">
-          <h2>레벨 업</h2>
-          <div class="row">
-            <button class="btn" id="upgrade-speed-btn" type="button">공격속도 업</button>
-            <button class="btn" id="upgrade-power-btn" type="button">공격력 업</button>
-          </div>
-          <div class="row">
-            <button class="btn" id="upgrade-bullet-btn" type="button">총알 개수 업</button>
-            <a class="btn" href="../" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;color:inherit;">메인화면</a>
-          </div>
-          <p class="hint">시간이 지날수록 01→10 단계 적이 열리고, 이후 붉은 특수효과 적이 01부터 순차 해금됩니다.</p>
-        </section>
       </aside>
     </main>
+
+    <div class="loading-layer show" id="loading-layer">
+      <div class="loading-panel">
+        <h2 class="loading-title">거북선 디펜스 로딩 중</h2>
+        <div class="loading-countdown" id="loading-countdown">전투 준비 중... (최소 5초)</div>
+        <div class="loading-guide">
+          <strong>게임 안내</strong>
+          <p id="loading-game-tip">가장 가까운 적을 자동 공격합니다. 퀴즈로 EXP/골드를 모아 업그레이드하세요.</p>
+        </div>
+        <div class="loading-guide">
+          <strong>역사 이야기</strong>
+          <p id="loading-history-tip">거북선은 임진왜란 시기 조선 수군의 핵심 전력으로 기록됩니다.</p>
+          <p class="loading-source" id="loading-history-source">출처: 난중일기, 조선왕조실록 관련 기록</p>
+        </div>
+      </div>
+    </div>
 
     <div class="quiz-layer" id="quiz-layer">
       <div class="quiz-panel">
@@ -310,6 +397,10 @@
           <img class="quiz-asset" id="quiz-question-asset" alt="문제 이미지" style="display:none;" />
           <div class="quiz-choices" id="quiz-choices"></div>
           <div class="quiz-result" id="quiz-result"></div>
+          <div class="quiz-actions">
+            <button class="btn hidden" id="quiz-next-btn" type="button">다음 문제</button>
+            <button class="btn hidden" id="quiz-return-btn" type="button">전투 복귀</button>
+          </div>
         </div>
       </div>
     </div>

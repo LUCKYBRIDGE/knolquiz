@@ -52,6 +52,27 @@ const PRESET_TYPE_COUNTS = Object.freeze({
   'cube-only-24': { cube: 8 },
   'cuboid-only-24': { cuboid: 8 }
 });
+const MIN_LOADING_MS = 5000;
+const LOADING_ROTATE_MS = 1400;
+const LOADING_GAME_TIPS = Object.freeze([
+  '가장 가까운 적을 자동 공격합니다. EXP로 공격속도/공격력/총알 개수를 올리세요.',
+  '퀴즈를 열어 정답을 맞히면 EXP와 골드를 얻습니다. 필요할 때 체력도 회복하세요.',
+  '시간이 지날수록 적 단계와 전장 압박이 올라갑니다. 전장 정보를 보고 업그레이드 타이밍을 잡으세요.'
+]);
+const LOADING_HISTORY_FACTS = Object.freeze([
+  {
+    text: '거북선은 판옥선을 바탕으로 상부를 덮어 근접전에 대비한 조선 수군 전선으로 기록됩니다.',
+    source: '출처: 「난중일기」, 「선조실록」 관련 기사'
+  },
+  {
+    text: '임진왜란 초기 사천해전 등에서 거북선이 투입되었다는 기록이 전합니다.',
+    source: '출처: 「난중일기」, 「선조실록」'
+  },
+  {
+    text: '이순신은 해전 전 조류·지형·병력 상태를 상세히 기록하며 전술에 반영했습니다.',
+    source: '출처: 「난중일기」'
+  }
+]);
 
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
@@ -89,6 +110,13 @@ const els = {
   quizQuestionAsset: document.getElementById('quiz-question-asset'),
   quizChoices: document.getElementById('quiz-choices'),
   quizResult: document.getElementById('quiz-result'),
+  quizNextBtn: document.getElementById('quiz-next-btn'),
+  quizReturnBtn: document.getElementById('quiz-return-btn'),
+  loadingLayer: document.getElementById('loading-layer'),
+  loadingCountdown: document.getElementById('loading-countdown'),
+  loadingGameTip: document.getElementById('loading-game-tip'),
+  loadingHistoryTip: document.getElementById('loading-history-tip'),
+  loadingHistorySource: document.getElementById('loading-history-source'),
   gameoverLayer: document.getElementById('gameover-layer'),
   gameoverScore: document.getElementById('gameover-score'),
   gameoverTime: document.getElementById('gameover-time'),
@@ -96,6 +124,7 @@ const els = {
 };
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+const waitMs = (ms) => new Promise((resolve) => window.setTimeout(resolve, Math.max(0, ms)));
 const shuffleArray = (items) => {
   const next = items.slice();
   for (let i = next.length - 1; i > 0; i -= 1) {
@@ -145,7 +174,7 @@ const isBattleUsableQuestion = (question) => (
 );
 
 const state = {
-  running: true,
+  running: false,
   paused: false,
   gameover: false,
   startAtMs: performance.now(),
@@ -196,7 +225,8 @@ const state = {
     sourceQuestions: [],
     pendingQuestions: [],
     cycleCount: 0,
-    currentQuestion: null
+    currentQuestion: null,
+    answerLocked: false
   },
   enemies: [],
   projectiles: [],
@@ -442,19 +472,73 @@ const loadQuizBank = async () => {
   }
 };
 
-const preloadEnemyImages = () => {
-  ENEMY_DEFINITIONS.forEach((def) => {
+const preloadShipImage = () => new Promise((resolve) => {
+  if (shipImage.complete) {
+    resolve(shipImage.naturalWidth > 0 && shipImage.naturalHeight > 0);
+    return;
+  }
+  const handleLoad = () => resolve(shipImage.naturalWidth > 0 && shipImage.naturalHeight > 0);
+  const handleError = () => resolve(false);
+  shipImage.addEventListener('load', handleLoad, { once: true });
+  shipImage.addEventListener('error', handleError, { once: true });
+});
+
+const preloadEnemyImages = async () => {
+  const tasks = ENEMY_DEFINITIONS.map((def) => new Promise((resolve) => {
     const image = new Image();
+    let settled = false;
+    const settle = (ready) => {
+      if (settled) return;
+      settled = true;
+      state.enemyImageReady.set(def.tier, ready);
+      resolve();
+    };
     state.enemyImageReady.set(def.tier, false);
     image.addEventListener('load', () => {
-      state.enemyImageReady.set(def.tier, image.naturalWidth > 0 && image.naturalHeight > 0);
-    });
+      settle(image.naturalWidth > 0 && image.naturalHeight > 0);
+    }, { once: true });
     image.addEventListener('error', () => {
-      state.enemyImageReady.set(def.tier, false);
-    });
+      settle(false);
+    }, { once: true });
     image.src = `../quiz_battleship/${def.file}`;
     state.enemyImages.set(def.tier, image);
-  });
+    if (image.complete) {
+      settle(image.naturalWidth > 0 && image.naturalHeight > 0);
+    }
+  }));
+  await Promise.all(tasks);
+};
+
+const beginLoadingPresentation = (startAtMs) => {
+  if (!els.loadingLayer) return () => {};
+  let gameTipIndex = 0;
+  let historyIndex = Math.floor(Math.random() * LOADING_HISTORY_FACTS.length);
+  const renderLoadingText = () => {
+    const elapsedMs = performance.now() - startAtMs;
+    const remainSec = Math.max(0, Math.ceil((MIN_LOADING_MS - elapsedMs) / 1000));
+    if (els.loadingCountdown) {
+      els.loadingCountdown.textContent = remainSec > 0
+        ? `전투 시작까지 ${remainSec}초`
+        : '전투 준비를 마무리하는 중...';
+    }
+    if (els.loadingGameTip) {
+      els.loadingGameTip.textContent = LOADING_GAME_TIPS[gameTipIndex % LOADING_GAME_TIPS.length];
+    }
+    const fact = LOADING_HISTORY_FACTS[historyIndex % LOADING_HISTORY_FACTS.length];
+    if (els.loadingHistoryTip) els.loadingHistoryTip.textContent = fact.text;
+    if (els.loadingHistorySource) els.loadingHistorySource.textContent = fact.source;
+  };
+  renderLoadingText();
+  els.loadingLayer.classList.add('show');
+  const timer = window.setInterval(() => {
+    gameTipIndex += 1;
+    historyIndex += 1;
+    renderLoadingText();
+  }, LOADING_ROTATE_MS);
+  return () => {
+    window.clearInterval(timer);
+    els.loadingLayer.classList.remove('show');
+  };
 };
 
 const getUnlockedEnemyTier = (elapsedSec) => {
@@ -706,18 +790,42 @@ const applyQuizRewards = (question, correct) => {
   setStatus(`정답! EXP +${gainedExp}, GOLD +${gainedGold}`);
 };
 
-const closeQuizLayer = () => {
+const setQuizActionButtonsVisible = (visible) => {
+  if (els.quizNextBtn) els.quizNextBtn.classList.toggle('hidden', !visible);
+  if (els.quizReturnBtn) els.quizReturnBtn.classList.toggle('hidden', !visible);
+};
+
+const closeQuizLayer = ({ keepStatus = false } = {}) => {
   state.paused = false;
   state.quiz.currentQuestion = null;
+  state.quiz.answerLocked = false;
   els.quizLayer.classList.remove('show');
   els.quizResult.textContent = '';
   els.quizResult.className = 'quiz-result';
+  setQuizActionButtonsVisible(false);
+  if (!keepStatus) {
+    setStatus('퀴즈를 종료하고 전투를 재개했습니다.');
+  }
+};
+
+const resolveNextQuizQuestion = () => {
+  let next = state.quiz.pendingQuestions.pop();
+  if (!next) {
+    if (!refillQuizPendingQuestions()) return null;
+    next = state.quiz.pendingQuestions.pop();
+  }
+  if (!next) return null;
+  return Array.isArray(next?.choices)
+    ? cloneWithShuffledChoices(next)
+    : { ...next, choices: [] };
 };
 
 const renderQuizQuestion = (question) => {
   els.quizChoices.innerHTML = '';
   els.quizResult.textContent = '';
   els.quizResult.className = 'quiz-result';
+  state.quiz.answerLocked = false;
+  setQuizActionButtonsVisible(false);
   const prompt = String(question?.prompt || '알맞은 답을 고르세요.').trim();
   els.quizPrompt.textContent = prompt || '알맞은 답을 고르세요.';
 
@@ -752,52 +860,45 @@ const renderQuizQuestion = (question) => {
       }
     }
     btn.addEventListener('click', () => {
-      if (!state.quiz.currentQuestion) return;
+      if (!state.quiz.currentQuestion || state.quiz.answerLocked) return;
+      state.quiz.answerLocked = true;
       const correct = String(choice) === String(state.quiz.currentQuestion.answer);
       applyQuizRewards(state.quiz.currentQuestion, correct);
       els.quizResult.textContent = correct ? '정답! 보상을 반영했습니다.' : '오답입니다.';
       els.quizResult.className = `quiz-result ${correct ? 'ok' : 'no'}`;
-      state.quiz.currentQuestion = null;
-      window.setTimeout(() => {
-        closeQuizLayer();
-      }, 500);
+      const choiceButtons = els.quizChoices.querySelectorAll('button.quiz-choice');
+      choiceButtons.forEach((choiceBtn) => {
+        choiceBtn.disabled = true;
+      });
+      setQuizActionButtonsVisible(true);
     });
     els.quizChoices.appendChild(btn);
   });
 };
 
+const showNextQuizQuestion = () => {
+  const nextQuestion = resolveNextQuizQuestion();
+  if (!nextQuestion) {
+    closeQuizLayer({ keepStatus: true });
+    setStatus('퀴즈 문제를 모두 확인했습니다. 전투를 재개합니다.');
+    return;
+  }
+  state.quiz.currentQuestion = nextQuestion;
+  renderQuizQuestion(nextQuestion);
+};
+
 const openQuizLayer = async () => {
   if (state.gameover) return;
+  if (state.paused && els.quizLayer.classList.contains('show')) return;
   setStatus('퀴즈를 준비하는 중...');
   await loadQuizBank();
   if (state.quiz.error) {
     setStatus(state.quiz.error);
     return;
   }
-  if (!state.quiz.pendingQuestions.length && !refillQuizPendingQuestions()) {
-    setStatus('퀴즈 문제풀이용 문제가 없습니다.');
-    return;
-  }
   state.paused = true;
-  let next = state.quiz.pendingQuestions.pop();
-  if (!next) {
-    if (!refillQuizPendingQuestions()) {
-      state.paused = false;
-      setStatus('퀴즈 문제를 다시 구성하지 못했습니다.');
-      return;
-    }
-    next = state.quiz.pendingQuestions.pop();
-  }
-  if (!next) {
-    state.paused = false;
-    setStatus('퀴즈 문제를 다시 구성하지 못했습니다.');
-    return;
-  }
-  state.quiz.currentQuestion = Array.isArray(next?.choices)
-    ? cloneWithShuffledChoices(next)
-    : { ...next, choices: [] };
-  renderQuizQuestion(state.quiz.currentQuestion);
   els.quizLayer.classList.add('show');
+  showNextQuizQuestion();
 };
 
 const updateGame = (dtSec, nowMs) => {
@@ -1094,6 +1195,8 @@ const refreshHud = () => {
 
   if (state.quiz.loading) {
     els.openQuizBtn.textContent = '퀴즈 준비 중...';
+  } else if (state.quiz.error) {
+    els.openQuizBtn.textContent = '퀴즈 재시도';
   } else {
     els.openQuizBtn.textContent = '퀴즈 열기';
   }
@@ -1207,24 +1310,53 @@ els.openQuizBtn.addEventListener('click', () => {
 });
 
 els.quizCloseBtn.addEventListener('click', () => {
-  closeQuizLayer();
-  setStatus('퀴즈를 종료하고 전투를 재개했습니다.');
+  closeQuizLayer({ keepStatus: false });
+});
+
+els.quizNextBtn?.addEventListener('click', () => {
+  if (!state.paused || state.gameover) return;
+  showNextQuizQuestion();
+});
+
+els.quizReturnBtn?.addEventListener('click', () => {
+  closeQuizLayer({ keepStatus: false });
 });
 
 els.quizLayer.addEventListener('click', (event) => {
   if (event.target !== els.quizLayer) return;
-  closeQuizLayer();
-  setStatus('퀴즈를 종료하고 전투를 재개했습니다.');
+  closeQuizLayer({ keepStatus: false });
 });
 
 els.restartBtn.addEventListener('click', restart);
 
-setStatus(`적이 거북선에 닿기 전에 최대한 많이 격파하세요. 종료 기준: ${getEndCriteriaLabel()}`);
+const initializeGame = async () => {
+  const loadingStartAt = performance.now();
+  const stopLoadingPresentation = beginLoadingPresentation(loadingStartAt);
+  const [shipReady] = await Promise.all([
+    preloadShipImage(),
+    preloadEnemyImages(),
+    loadQuizBank()
+  ]);
+  const elapsedMs = performance.now() - loadingStartAt;
+  if (elapsedMs < MIN_LOADING_MS) {
+    await waitMs(MIN_LOADING_MS - elapsedMs);
+  }
+  stopLoadingPresentation();
+  if (!shipReady) {
+    setStatus('거북선 이미지를 불러오지 못해 기본 도형으로 표시합니다.');
+  } else if (state.quiz.error) {
+    setStatus(state.quiz.error);
+  } else {
+    setStatus(`적이 거북선에 닿기 전에 최대한 많이 격파하세요. 종료 기준: ${getEndCriteriaLabel()}`);
+  }
+  state.running = true;
+  refreshHud();
+  requestAnimationFrame((ts) => {
+    state.startAtMs = ts;
+    state.lastFrameMs = ts;
+    requestAnimationFrame(frame);
+  });
+};
+
 refreshHud();
-preloadEnemyImages();
-loadQuizBank();
-requestAnimationFrame((ts) => {
-  state.startAtMs = ts;
-  state.lastFrameMs = ts;
-  requestAnimationFrame(frame);
-});
+initializeGame();
