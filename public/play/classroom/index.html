@@ -236,6 +236,312 @@
       }
       .detail-link:hover { text-decoration: underline; }
       .item .meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+      .hall-body {
+        display: grid;
+        gap: 10px;
+      }
+      .hall-top-panel {
+        border: 1px solid rgba(24,41,75,0.16);
+        border-radius: 12px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.94), rgba(248,243,230,0.94));
+        padding: 10px;
+      }
+      .hall-top-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .leaderboard-showcase {
+        border: 1px solid rgba(24,41,75,0.22);
+        border-radius: 14px;
+        background:
+          radial-gradient(circle at 20% 0%, rgba(255,255,255,0.65), transparent 44%),
+          radial-gradient(circle at 80% 0%, rgba(255,240,196,0.55), transparent 45%),
+          linear-gradient(180deg, rgba(35,57,99,0.08), rgba(17,27,50,0.04)),
+          rgba(255,255,255,0.82);
+      }
+      .hall-hero {
+        margin: 10px;
+        padding: 14px;
+        border-radius: 14px;
+        border: 1px solid rgba(119,86,15,0.42);
+        background:
+          radial-gradient(circle at 10% 16%, rgba(255,255,255,0.52), transparent 40%),
+          linear-gradient(140deg, rgba(254,243,199,0.98), rgba(252,211,77,0.58));
+        box-shadow: 0 10px 20px rgba(24,41,75,0.16);
+        display: grid;
+        gap: 8px;
+      }
+      .hall-hero-title {
+        font-size: 17px;
+        font-weight: 900;
+        color: #3e2f16;
+      }
+      .hall-hero-champion {
+        font-size: 19px;
+        font-weight: 900;
+        color: #2f1f07;
+      }
+      .hall-hero-score {
+        font-size: 16px;
+        font-weight: 800;
+        color: #4a3b1d;
+      }
+      .hall-hero-challenge {
+        font-size: 13px;
+        font-weight: 800;
+        color: #5f4714;
+      }
+      .hall-hero-goal {
+        font-size: 13px;
+        font-weight: 900;
+        color: #1f355d;
+        padding: 7px 10px;
+        border-radius: 10px;
+        border: 1px solid rgba(24,41,75,0.18);
+        background: rgba(255,255,255,0.8);
+      }
+      .hall-hero-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .hall-hero-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(62,47,22,0.2);
+        background: rgba(255,255,255,0.72);
+        color: #4a3b1d;
+        font-size: 12px;
+        font-weight: 800;
+      }
+      .hall-section {
+        border-bottom: 1px solid rgba(24,41,75,0.08);
+        padding: 10px;
+        display: grid;
+        gap: 8px;
+      }
+      .hall-section:last-child { border-bottom: 0; }
+      .hall-section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 10px;
+        border: 1px solid rgba(24,41,75,0.12);
+        background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(245,238,221,0.96));
+      }
+      .hall-section-title {
+        font-weight: 900;
+        font-size: 15px;
+      }
+      .hall-section-count {
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 700;
+      }
+      .hall-podium {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        align-items: end;
+        margin-top: 2px;
+      }
+      .hall-podium-card {
+        border: 1px solid rgba(24,41,75,0.16);
+        border-radius: 12px;
+        background: rgba(255,255,255,0.92);
+        box-shadow: 0 10px 18px rgba(24,41,75,0.12);
+        padding: 9px 8px;
+        display: grid;
+        gap: 4px;
+        text-align: center;
+      }
+      .hall-podium-card.rank-1 {
+        background: linear-gradient(180deg, #fff7cf, #f1cc59);
+        border-color: #b68a1f;
+        min-height: 140px;
+        transform: translateY(-8px);
+      }
+      .hall-podium-card.rank-2 {
+        background: linear-gradient(180deg, #f5f8ff, #d6dfef);
+        border-color: #98a7c7;
+        min-height: 116px;
+      }
+      .hall-podium-card.rank-3 {
+        background: linear-gradient(180deg, #fff4eb, #e9c4a6);
+        border-color: #b88963;
+        min-height: 104px;
+      }
+      .hall-podium-rank {
+        font-size: 22px;
+        line-height: 1;
+      }
+      .hall-podium-name {
+        font-size: 13px;
+        font-weight: 900;
+        word-break: keep-all;
+      }
+      .hall-podium-score {
+        font-size: 12px;
+        color: #334155;
+        font-weight: 800;
+      }
+      .hall-list {
+        display: grid;
+        gap: 5px;
+      }
+      .hall-row {
+        border: 1px solid rgba(24,41,75,0.12);
+        border-radius: 10px;
+        background: rgba(255,255,255,0.9);
+        padding: 8px 10px;
+        display: grid;
+        gap: 3px;
+      }
+      .hall-row.rank-1 {
+        border-color: #c8a64e;
+        box-shadow: inset 0 0 0 1px rgba(200,166,78,0.28);
+      }
+      .hall-row.rank-2 {
+        border-color: #9eaecf;
+        box-shadow: inset 0 0 0 1px rgba(158,174,207,0.22);
+      }
+      .hall-row.rank-3 {
+        border-color: #be9072;
+        box-shadow: inset 0 0 0 1px rgba(190,144,114,0.22);
+      }
+      .hall-row-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .hall-rank-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 60px;
+        height: 24px;
+        border-radius: 999px;
+        border: 1px solid rgba(24,41,75,0.2);
+        background: rgba(255,255,255,0.86);
+        font-size: 12px;
+        font-weight: 900;
+      }
+      .hall-row-title {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+        font-size: 13px;
+        font-weight: 800;
+        color: #1f355d;
+      }
+      .hall-row-title-text {
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .hall-score-chip {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 72px;
+        height: 28px;
+        padding: 0 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(24,41,75,0.2);
+        background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(233,239,251,0.94));
+        color: #18305a;
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0.01em;
+      }
+      .hall-row-meta {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .hall-more-note {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--muted);
+        padding: 0 2px 4px;
+      }
+      .hall-other-sections {
+        margin: 0 10px 10px;
+        border: 1px solid rgba(24,41,75,0.15);
+        border-radius: 12px;
+        background: rgba(255,255,255,0.84);
+        overflow: hidden;
+      }
+      .hall-other-sections > summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 10px 12px;
+        font-size: 13px;
+        font-weight: 800;
+        color: #24406f;
+        background: linear-gradient(180deg, rgba(255,255,255,0.94), rgba(236,242,255,0.86));
+        border-bottom: 1px solid transparent;
+      }
+      .hall-other-sections[open] > summary {
+        border-bottom-color: rgba(24,41,75,0.14);
+      }
+      .hall-other-sections > summary::-webkit-details-marker { display: none; }
+      .hall-other-list {
+        display: grid;
+        gap: 6px;
+        padding: 8px;
+      }
+      .hall-other-item {
+        border: 1px solid rgba(24,41,75,0.12);
+        border-radius: 10px;
+        background: rgba(255,255,255,0.88);
+        padding: 8px 10px;
+        display: grid;
+        gap: 2px;
+      }
+      .hall-other-title {
+        font-size: 13px;
+        font-weight: 800;
+        color: #17305a;
+      }
+      .hall-other-meta {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--muted);
+      }
+      .teacher-tools {
+        border: 1px solid rgba(24,41,75,0.16);
+        border-radius: 12px;
+        background: rgba(255,255,255,0.7);
+        overflow: hidden;
+      }
+      .teacher-tools > summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 11px 12px;
+        font-size: 14px;
+        font-weight: 900;
+        color: #1f355d;
+        border-bottom: 1px solid transparent;
+        background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(239,235,222,0.94));
+      }
+      .teacher-tools[open] > summary {
+        border-bottom-color: rgba(24,41,75,0.14);
+      }
+      .teacher-tools > summary::-webkit-details-marker { display: none; }
+      .teacher-tools-body {
+        display: grid;
+        gap: 10px;
+        padding: 10px;
+      }
       .season-badge {
         display: inline-flex;
         align-items: center;
@@ -292,6 +598,8 @@
         .student-link-btn { justify-self: flex-start; }
         .row2 { grid-template-columns: 1fr; }
         .policy-grid { grid-template-columns: 1fr; }
+        .hall-podium { grid-template-columns: 1fr; }
+        .hall-top-actions .btn { width: 100%; }
       }
     </style>
   </head>
@@ -302,8 +610,8 @@
         <div class="top-actions">
           <button class="btn primary" id="refresh-btn" type="button">새로고침</button>
           <a class="btn" id="student-page-link" href="../student/">학생 상세 기록</a>
-          <a class="btn" id="records-page-link" href="../records/">로컬 기록 보기</a>
-          <a class="btn" href="../../">런처로</a>
+          <a class="btn" id="records-page-link" href="../records/">전체 기록 보기(로컬)</a>
+          <a class="btn" href="../../">메인화면으로</a>
         </div>
       </div>
       <div class="status" id="status-box">학급 데이터를 불러오는 중...</div>
@@ -319,76 +627,12 @@
             <div class="note">학번은 고정(1~50)이며, 이름/활성상태를 수정 후 저장하면 플레이어 선택과 기록 집계에 반영됩니다.</div>
           </div>
         </section>
-        <section class="card">
-          <h2>시즌 / 명예의 전당</h2>
-          <div class="body">
-            <div class="panel">
+        <section class="card" id="hall-of-fame" style="scroll-margin-top: 14px;">
+          <h2>명예의 전당</h2>
+          <div class="body hall-body">
+            <div class="panel hall-top-panel">
               <div class="field">
-                <label for="season-id-input">시즌 ID</label>
-                <input id="season-id-input" type="text" placeholder="예: 2026-spring-1" />
-              </div>
-              <div class="field">
-                <label for="season-name-input">시즌 이름</label>
-                <input id="season-name-input" type="text" placeholder="예: 2026 봄 1차" />
-              </div>
-              <div class="row2">
-                <div class="field">
-                  <label for="season-start-date-input">시즌 시작일</label>
-                  <input id="season-start-date-input" type="date" />
-                </div>
-                <div class="field">
-                  <label for="season-end-date-input">시즌 종료일(선택)</label>
-                  <input id="season-end-date-input" type="date" />
-                </div>
-              </div>
-              <div class="row2">
-                <div class="field">
-                  <label for="season-preset-select">연결 프리셋(선택)</label>
-                  <select id="season-preset-select">
-                    <option value="">공통(모든 프리셋)</option>
-                    <option value="jumpmap-net-30">전개도 학습 30문제</option>
-                    <option value="jumpmap-net-12">전개도 학습 12문제</option>
-                    <option value="cube-only-24">정육면체 중심 24문제</option>
-                    <option value="cuboid-only-24">직육면체 중심 24문제</option>
-                    <option value="csv-upload">업로드 CSV 문제</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label for="season-active-input">시즌 상태</label>
-                  <select id="season-active-input">
-                    <option value="true">활성</option>
-                    <option value="false">비활성</option>
-                  </select>
-                </div>
-              </div>
-              <div class="field">
-                <label>시즌 점수 부문(복수 선택)</label>
-                <div class="policy-grid">
-                  <label class="policy-check" for="policy-quiz-total-score">
-                    <input id="policy-quiz-total-score" type="checkbox" checked />
-                    <span>기본퀴즈 총점</span>
-                  </label>
-                  <label class="policy-check" for="policy-quiz-correct-count">
-                    <input id="policy-quiz-correct-count" type="checkbox" />
-                    <span>기본퀴즈 정답 수</span>
-                  </label>
-                  <label class="policy-check" for="policy-jumpmap-best-height">
-                    <input id="policy-jumpmap-best-height" type="checkbox" checked />
-                    <span>점프맵 최고 높이</span>
-                  </label>
-                  <label class="policy-check" for="policy-jumpmap-quiz-correct">
-                    <input id="policy-jumpmap-quiz-correct" type="checkbox" />
-                    <span>점프맵 퀴즈 정답 수</span>
-                  </label>
-                </div>
-              </div>
-              <button class="btn primary" id="save-season-btn" type="button">시즌 저장/갱신</button>
-              <button class="btn" id="archive-ended-seasons-btn" type="button">종료 시즌 일괄 비활성화</button>
-            </div>
-            <div class="season-list" id="season-list"></div>
-            <div class="panel">
-              <div class="field">
-                <label for="season-select">리더보드 시즌</label>
+                <label for="season-select">명예의 전당 시즌</label>
                 <select id="season-select"></select>
               </div>
               <div class="row2">
@@ -405,22 +649,97 @@
                   <div class="note" id="leaderboard-period-note">명예의 전당 / 상세링크 / CSV 모두 같은 기간 기준을 사용합니다.</div>
                 </div>
               </div>
-              <button class="btn" id="load-leaderboard-btn" type="button">명예의 전당 불러오기</button>
-              <button class="btn" id="export-leaderboard-csv-btn" type="button">리더보드 CSV 내보내기</button>
-              <div class="row2">
-                <div class="field">
-                  <label for="manual-student-no">수동점수 학번</label>
-                  <input id="manual-student-no" type="number" min="1" max="50" value="1" />
+              <div class="hall-top-actions">
+                <button class="btn primary" id="load-leaderboard-btn" type="button">명예의 전당 새로고침</button>
+                <button class="btn" id="export-leaderboard-csv-btn" type="button">리더보드 CSV 내보내기</button>
+              </div>
+            </div>
+            <div class="leaderboard-list leaderboard-showcase" id="leaderboard-list"></div>
+            <div class="note">가장 최근 시즌의 순위를 먼저 보여줍니다. 학생 상세로 이동해 개인 기록을 함께 확인할 수 있습니다.</div>
+
+            <details class="teacher-tools" id="teacher-tools-panel">
+              <summary>교사용 시즌/점수 설정</summary>
+              <div class="teacher-tools-body">
+                <div class="panel">
+                  <div class="field">
+                    <label for="season-id-input">시즌 ID</label>
+                    <input id="season-id-input" type="text" placeholder="예: 2026-spring-1" />
+                  </div>
+                  <div class="field">
+                    <label for="season-name-input">시즌 이름</label>
+                    <input id="season-name-input" type="text" placeholder="예: 2026 봄 1차" />
+                  </div>
+                  <div class="row2">
+                    <div class="field">
+                      <label for="season-start-date-input">시즌 시작일</label>
+                      <input id="season-start-date-input" type="date" />
+                    </div>
+                    <div class="field">
+                      <label for="season-end-date-input">시즌 종료일(선택)</label>
+                      <input id="season-end-date-input" type="date" />
+                    </div>
+                  </div>
+                  <div class="row2">
+                    <div class="field">
+                      <label for="season-preset-select">연결 프리셋(선택)</label>
+                      <select id="season-preset-select">
+                        <option value="">공통(모든 프리셋)</option>
+                        <option value="jumpmap-net-30">전개도 학습 30문제</option>
+                        <option value="jumpmap-net-12">전개도 학습 12문제</option>
+                        <option value="cube-only-24">정육면체 중심 24문제</option>
+                        <option value="cuboid-only-24">직육면체 중심 24문제</option>
+                        <option value="csv-upload">업로드 문제</option>
+                      </select>
+                    </div>
+                    <div class="field">
+                      <label for="season-active-input">시즌 상태</label>
+                      <select id="season-active-input">
+                        <option value="true">활성</option>
+                        <option value="false">비활성</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label>시즌 점수 부문(복수 선택)</label>
+                    <div class="policy-grid">
+                      <label class="policy-check" for="policy-quiz-total-score">
+                        <input id="policy-quiz-total-score" type="checkbox" checked />
+                        <span>기본퀴즈 총점</span>
+                      </label>
+                      <label class="policy-check" for="policy-quiz-correct-count">
+                        <input id="policy-quiz-correct-count" type="checkbox" />
+                        <span>기본퀴즈 정답 수</span>
+                      </label>
+                      <label class="policy-check" for="policy-jumpmap-best-height">
+                        <input id="policy-jumpmap-best-height" type="checkbox" checked />
+                        <span>점프맵 최고 높이</span>
+                      </label>
+                      <label class="policy-check" for="policy-jumpmap-quiz-correct">
+                        <input id="policy-jumpmap-quiz-correct" type="checkbox" />
+                        <span>점프맵 퀴즈 정답 수</span>
+                      </label>
+                    </div>
+                  </div>
+                  <button class="btn primary" id="save-season-btn" type="button">시즌 저장/갱신</button>
+                  <button class="btn" id="archive-ended-seasons-btn" type="button">종료 시즌 일괄 비활성화</button>
                 </div>
-                <div class="field">
-                  <label for="manual-score">수동점수</label>
-                  <input id="manual-score" type="number" step="1" value="100" />
+                <div class="season-list" id="season-list"></div>
+                <div class="panel">
+                  <div class="row2">
+                    <div class="field">
+                      <label for="manual-student-no">수동점수 학번</label>
+                      <input id="manual-student-no" type="number" min="1" max="50" value="1" />
+                    </div>
+                    <div class="field">
+                      <label for="manual-score">수동점수</label>
+                      <input id="manual-score" type="number" step="1" value="100" />
+                    </div>
+                  </div>
+                  <button class="btn" id="add-manual-score-btn" type="button">수동점수 기록(테스트용)</button>
+                  <div class="note">수동점수는 테스트용이며, 실제 플레이(점프맵/기본퀴즈) 결과도 활성 시즌에 자동 누적됩니다.</div>
                 </div>
               </div>
-              <button class="btn" id="add-manual-score-btn" type="button">수동점수 기록(테스트용)</button>
-            </div>
-            <div class="leaderboard-list" id="leaderboard-list"></div>
-            <div class="note">수동점수는 테스트용이며, 실제 플레이(점프맵/기본퀴즈) 결과도 활성 시즌에 자동 누적됩니다.</div>
+            </details>
           </div>
         </section>
       </div>

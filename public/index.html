@@ -287,6 +287,11 @@
         font-weight: 900;
         cursor: pointer;
         font: inherit;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        color: inherit;
       }
       .csv-tool-btn:hover { transform: translateY(-1px); }
       .csv-file-input {
@@ -622,7 +627,7 @@
           </div>
 
           <div class="section">
-            <div class="section-title">2-1. 문제 양식/업로드</div>
+            <div class="section-title">2-1. 문제 생성/업로드</div>
             <div class="csv-tools">
               <div class="csv-tools-row">
                 <button type="button" class="csv-tool-btn" id="csv-template-btn">문제양식 다운받기</button>
@@ -630,6 +635,10 @@
               </div>
               <div class="csv-tools-row">
                 <button type="button" class="csv-tool-btn" id="csv-clear-btn">업로드 해제</button>
+                <a class="csv-tool-btn" href="https://luckybridge.github.io/math-net-master-quiz/quiz/">기존 문제은행 퀴즈 앱</a>
+              </div>
+              <div class="csv-tools-row">
+                <a class="csv-tool-btn" href="./quiz/?mode=csv">업로드 문제 생성 퀴즈</a>
                 <div class="note" style="display:flex;align-items:center;justify-content:center;">CSV/JSON 업로드 파일을 로컬 저장목록(최대 20개)에 보관</div>
               </div>
               <input type="file" id="csv-file-input" class="csv-file-input hidden-input" accept=".csv,.json,text/csv,application/json,text/plain" />
@@ -704,8 +713,6 @@
             <button class="start-btn" id="start-btn" type="button">바로 시작</button>
             <div class="tool-links">
               <a class="tool-link" href="https://luckybridge.github.io/knolquiz-editor/jumpmap-editor/">맵 에디터 (개발도구)</a>
-              <a class="tool-link" href="https://luckybridge.github.io/math-net-master-quiz/quiz/">기존 문제은행 퀴즈 앱 (개발도구)</a>
-              <a class="tool-link" href="./quiz/?mode=csv">업로드 문제 생성 퀴즈 (신규)</a>
               <a class="tool-link" href="./play/classroom/">학급관리 (로컬)</a>
               <a class="tool-link" href="./play/classroom/#hall-of-fame">명예의 전당</a>
             </div>

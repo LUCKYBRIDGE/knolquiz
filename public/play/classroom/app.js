@@ -59,6 +59,20 @@ const CATEGORY_LABELS = {
   jumpmapQuizCorrect: '점프맵 퀴즈 정답 수',
   overall: '통합'
 };
+const CATEGORY_UNITS = Object.freeze({
+  basicQuizTotalScore: '점',
+  basicQuizCorrectCount: '개',
+  jumpmapBestHeight: 'px',
+  jumpmapQuizCorrect: '개',
+  overall: '점'
+});
+const HALL_SHOWCASE_PRIORITY = Object.freeze([
+  'basicQuizTotalScore',
+  'jumpmapBestHeight',
+  'basicQuizCorrectCount',
+  'jumpmapQuizCorrect',
+  'overall'
+]);
 
 const setStatus = (message, type = 'normal') => {
   if (!els.status) return;
@@ -182,6 +196,23 @@ const getSortedSeasonsForDisplay = (seasons) => {
     if (byUpdatedAt !== 0) return byUpdatedAt;
     return String(a?.seasonId || '').localeCompare(String(b?.seasonId || ''));
   });
+};
+
+const getLatestSeasonId = (seasons) => {
+  const list = Array.isArray(seasons) ? seasons.slice() : [];
+  if (!list.length) return '';
+  const toTime = (season) => {
+    const startDate = normalizeIsoDateInput(season?.startDate || '');
+    const endDate = normalizeIsoDateInput(season?.endDate || '');
+    const updatedAt = typeof season?.updatedAt === 'string' ? season.updatedAt : '';
+    if (endDate) return new Date(`${endDate}T23:59:59`).getTime();
+    if (startDate) return new Date(`${startDate}T00:00:00`).getTime();
+    const parsedUpdatedAt = updatedAt ? new Date(updatedAt).getTime() : Number.NaN;
+    if (Number.isFinite(parsedUpdatedAt)) return parsedUpdatedAt;
+    return 0;
+  };
+  list.sort((a, b) => toTime(b) - toTime(a));
+  return String(list[0]?.seasonId || '');
 };
 
 const normalizeScorePolicies = (raw) => {
@@ -460,63 +491,266 @@ const renderSeasons = () => {
       els.seasonSelect.appendChild(option);
     });
     const runningSeason = displaySeasons.find((season) => getSeasonLifecycleStatus(season).code === 'active')?.seasonId || '';
+    const latestSeason = getLatestSeasonId(displaySeasons);
     const firstVisibleSeason = displaySeasons[0]?.seasonId || '';
     state.selectedSeasonId = displaySeasons.some((season) => season.seasonId === previous)
       ? previous
-      : (runningSeason || firstVisibleSeason);
+      : (latestSeason || runningSeason || firstVisibleSeason);
     els.seasonSelect.value = state.selectedSeasonId || '';
   }
+};
+
+const getHallRankBadgeText = (rank) => {
+  if (rank === 1) return '🥇 1위';
+  if (rank === 2) return '🥈 2위';
+  if (rank === 3) return '🥉 3위';
+  return `${rank}위`;
+};
+
+const getHallRankClass = (rank) => {
+  if (rank === 1) return 'rank-1';
+  if (rank === 2) return 'rank-2';
+  if (rank === 3) return 'rank-3';
+  return 'rank-other';
+};
+
+const getHallSectionUnit = (section) => CATEGORY_UNITS[section?.category] || '점';
+
+const formatHallMetric = (value, unit = '점') => {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return `0${unit}`;
+  const normalized = Number.isInteger(parsed) ? String(parsed) : parsed.toFixed(1);
+  return `${normalized}${unit}`;
+};
+
+const pickShowcaseSection = (sections) => {
+  const list = Array.isArray(sections) ? sections.filter((section) => Array.isArray(section?.rows) && section.rows.length) : [];
+  if (!list.length) return null;
+  for (let i = 0; i < HALL_SHOWCASE_PRIORITY.length; i += 1) {
+    const category = HALL_SHOWCASE_PRIORITY[i];
+    const matched = list.find((section) => section.category === category);
+    if (matched) return matched;
+  }
+  return list[0];
+};
+
+const toNumberOrZero = (value) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const getShowcasePersonalGoalText = (section) => {
+  const studentNo = normalizeStudentNo(state.navStudentNo);
+  if (!studentNo) return '';
+  const rows = Array.isArray(section?.rows) ? section.rows : [];
+  if (!rows.length) {
+    return `${studentNo}번은 아직 시즌 기록이 없습니다. 한 판만 해도 랭킹에 올라갈 수 있어요.`;
+  }
+  const mine = rows.find((row) => normalizeStudentNo(row?.studentNo) === studentNo);
+  if (!mine) {
+    return `${studentNo}번은 아직 시즌 기록이 없습니다. 한 판만 해도 랭킹에 올라갈 수 있어요.`;
+  }
+  if (mine.rank <= 3) {
+    return `${studentNo}번은 현재 TOP3입니다. 1위를 노려보세요.`;
+  }
+  if (mine.rank <= 10) {
+    return `${studentNo}번은 현재 TOP10입니다. TOP3에 도전해보세요.`;
+  }
+  const unit = getHallSectionUnit(section);
+  const top10Cut = rows[Math.min(9, rows.length - 1)];
+  const gap = Math.max(0, toNumberOrZero(top10Cut?.bestScore) - toNumberOrZero(mine.bestScore));
+  return `${studentNo}번은 TOP10까지 ${formatHallMetric(gap, unit)} 남았습니다.`;
+};
+
+const buildHallSectionBoard = (section, { title = '' } = {}) => {
+  const sectionWrap = document.createElement('section');
+  sectionWrap.className = 'hall-section';
+
+  const header = document.createElement('div');
+  header.className = 'hall-section-header';
+  const headerTitle = document.createElement('div');
+  headerTitle.className = 'hall-section-title';
+  headerTitle.textContent = title || `🏆 ${section.label}`;
+  const headerCount = document.createElement('div');
+  headerCount.className = 'hall-section-count';
+  headerCount.textContent = `TOP ${Math.min(section.rows.length, 10)} / ${section.rows.length}명`;
+  header.append(headerTitle, headerCount);
+  sectionWrap.appendChild(header);
+
+  if (!section.rows.length) {
+    const empty = document.createElement('div');
+    empty.className = 'empty';
+    empty.textContent = `${section.label} 데이터가 없습니다.`;
+    sectionWrap.appendChild(empty);
+    return sectionWrap;
+  }
+
+  const unit = getHallSectionUnit(section);
+  const podiumRows = section.rows.slice(0, 3);
+  if (podiumRows.length) {
+    const podium = document.createElement('div');
+    podium.className = 'hall-podium';
+    const podiumOrder = [1, 0, 2];
+    podiumOrder.forEach((idx) => {
+      const row = podiumRows[idx];
+      if (!row) return;
+      const card = document.createElement('article');
+      card.className = `hall-podium-card ${getHallRankClass(row.rank)}`;
+      const rankEl = document.createElement('div');
+      rankEl.className = 'hall-podium-rank';
+      rankEl.textContent = getHallRankBadgeText(row.rank);
+      const nameEl = document.createElement('div');
+      nameEl.className = 'hall-podium-name';
+      nameEl.textContent = `${row.studentName} (${row.studentNo}번)`;
+      const scoreEl = document.createElement('div');
+      scoreEl.className = 'hall-podium-score';
+      scoreEl.textContent = `최고 ${formatHallMetric(row.bestScore, unit)} · 평균 ${formatHallMetric(row.averageScore, unit)}`;
+      card.append(rankEl, nameEl, scoreEl);
+      podium.appendChild(card);
+    });
+    sectionWrap.appendChild(podium);
+  }
+
+  const list = document.createElement('div');
+  list.className = 'hall-list';
+  const topRows = section.rows.slice(0, 10);
+  topRows.forEach((row) => {
+    const item = document.createElement('article');
+    item.className = `hall-row ${getHallRankClass(row.rank)}`;
+    const top = document.createElement('div');
+    top.className = 'hall-row-top';
+    const titleWrap = document.createElement('div');
+    titleWrap.className = 'hall-row-title';
+    const rankBadge = document.createElement('span');
+    rankBadge.className = 'hall-rank-badge';
+    rankBadge.textContent = getHallRankBadgeText(row.rank);
+    const titleText = document.createElement('span');
+    titleText.className = 'hall-row-title-text';
+    titleText.textContent = `${row.studentName} (${row.studentNo}번)`;
+    const detail = document.createElement('a');
+    detail.className = 'detail-link';
+    detail.href = buildStudentDetailHref(row.studentNo);
+    detail.textContent = '상세';
+    detail.title = `${row.studentNo}번 상세 기록 보기`;
+    titleWrap.append(rankBadge, titleText, detail);
+    const scoreChip = document.createElement('span');
+    scoreChip.className = 'hall-score-chip';
+    scoreChip.textContent = formatHallMetric(row.bestScore, unit);
+    top.append(titleWrap, scoreChip);
+    const meta = document.createElement('div');
+    meta.className = 'hall-row-meta';
+    meta.textContent = `평균 ${formatHallMetric(row.averageScore, unit)} · 도전 ${row.attemptCount}회`;
+    item.append(top, meta);
+    list.appendChild(item);
+  });
+  sectionWrap.appendChild(list);
+  if (section.rows.length > topRows.length) {
+    const moreNote = document.createElement('div');
+    moreNote.className = 'hall-more-note';
+    moreNote.textContent = `+ ${section.rows.length - topRows.length}명은 상세 기록에서 확인할 수 있습니다.`;
+    sectionWrap.appendChild(moreNote);
+  }
+  return sectionWrap;
 };
 
 const renderLeaderboard = () => {
   if (!els.leaderboardList) return;
   els.leaderboardList.innerHTML = '';
-  if (!state.leaderboardSections.length) {
+  const showcaseSection = pickShowcaseSection(state.leaderboardSections);
+  const currentSeason = getSeasonById(state.selectedSeasonId || state.loadedLeaderboardSeasonId);
+  if (currentSeason) {
+    const lifecycle = getSeasonLifecycleStatus(currentSeason);
+    const hero = document.createElement('section');
+    hero.className = 'hall-hero';
+    const heroTitle = document.createElement('div');
+    heroTitle.className = 'hall-hero-title';
+    heroTitle.textContent = `🏆 ${currentSeason.name || currentSeason.seasonId} 시즌 명예의 전당`;
+
+    if (showcaseSection?.rows?.length) {
+      const unit = getHallSectionUnit(showcaseSection);
+      const champion = showcaseSection.rows[0];
+      const top10Index = Math.min(9, showcaseSection.rows.length - 1);
+      const top10Cut = showcaseSection.rows[top10Index];
+      const championBlock = document.createElement('div');
+      championBlock.className = 'hall-hero-champion';
+      championBlock.textContent = `챔피언: ${champion.studentName} (${champion.studentNo}번)`;
+
+      const championScore = document.createElement('div');
+      championScore.className = 'hall-hero-score';
+      championScore.textContent = `${showcaseSection.label} · ${formatHallMetric(champion.bestScore, unit)}`;
+
+      const challenge = document.createElement('div');
+      challenge.className = 'hall-hero-challenge';
+      challenge.textContent = showcaseSection.rows.length >= 10
+        ? `다음 도전 목표: TOP10 진입선 ${formatHallMetric(top10Cut?.bestScore, unit)}`
+        : `다음 도전 목표: 기록 갱신으로 TOP3 진입`;
+      const personalGoal = getShowcasePersonalGoalText(showcaseSection);
+      const goal = document.createElement('div');
+      goal.className = 'hall-hero-goal';
+      goal.textContent = personalGoal || '기록이 올라갈수록 명예의 전당 상단으로 올라갑니다.';
+
+      hero.append(heroTitle, championBlock, championScore, challenge, goal);
+    } else {
+      const pending = document.createElement('div');
+      pending.className = 'hall-hero-challenge';
+      pending.textContent = '시즌 기록이 쌓이면 자동으로 랭킹 시상대가 표시됩니다.';
+      hero.append(heroTitle, pending);
+    }
+
+    const heroMeta = document.createElement('div');
+    heroMeta.className = 'hall-hero-meta';
+    const periodPill = document.createElement('span');
+    periodPill.className = 'hall-hero-pill';
+    periodPill.textContent = `조회 기간: ${getPeriodLabel(state.selectedLeaderboardPeriodDays)}`;
+    const statusPill = document.createElement('span');
+    statusPill.className = 'hall-hero-pill';
+    statusPill.textContent = `시즌 상태: ${lifecycle.label}`;
+    const categoryPill = document.createElement('span');
+    categoryPill.className = 'hall-hero-pill';
+    categoryPill.textContent = `부문 ${state.leaderboardSections.length}개`;
+    heroMeta.append(periodPill, statusPill, categoryPill);
+    hero.append(heroMeta);
+    els.leaderboardList.appendChild(hero);
+  }
+  if (!showcaseSection) {
     const empty = document.createElement('div');
     empty.className = 'empty';
     empty.textContent = `명예의 전당 데이터가 없습니다. (${getPeriodLabel(state.selectedLeaderboardPeriodDays)} 기준)`;
     els.leaderboardList.appendChild(empty);
     return;
   }
-  state.leaderboardSections.forEach((section) => {
-    const header = document.createElement('div');
-    header.className = 'item';
-    const headerName = document.createElement('div');
-    headerName.className = 'name';
-    headerName.textContent = `[부문] ${section.label}`;
-    const headerMeta = document.createElement('div');
-    headerMeta.className = 'meta';
-    headerMeta.textContent = `${section.rows.length}명`;
-    header.append(headerName, headerMeta);
-    els.leaderboardList.appendChild(header);
-
-    if (!section.rows.length) {
-      const empty = document.createElement('div');
-      empty.className = 'empty';
-      empty.textContent = `${section.label} 데이터가 없습니다.`;
-      els.leaderboardList.appendChild(empty);
-      return;
-    }
-
-    section.rows.forEach((row) => {
-      const item = document.createElement('div');
-      item.className = 'item';
-      const name = document.createElement('div');
-      name.className = 'name';
-      name.textContent = `${row.rank}위 · ${row.studentName}(${row.studentNo}번)`;
-      const detail = document.createElement('a');
-      detail.className = 'detail-link';
-      detail.href = buildStudentDetailHref(row.studentNo);
-      detail.textContent = '상세';
-      detail.title = `${row.studentNo}번 상세 기록 보기`;
-      name.appendChild(detail);
-      const meta = document.createElement('div');
-      meta.className = 'meta';
-      meta.textContent = `최고 ${row.bestScore}점 · 평균 ${row.averageScore}점 · 시도 ${row.attemptCount}회 · 최근 ${row.lastScore}점 (${formatModeLabel(row.lastMode, row.lastSource)}, ${formatDateTime(row.lastPlayedAt)})`;
-      item.append(name, meta);
-      els.leaderboardList.appendChild(item);
-    });
+  const mainBoard = buildHallSectionBoard(showcaseSection, {
+    title: `🏆 대표 부문 · ${showcaseSection.label}`
   });
+  els.leaderboardList.appendChild(mainBoard);
+
+  const otherSections = state.leaderboardSections.filter(
+    (section) => section !== showcaseSection && Array.isArray(section?.rows) && section.rows.length
+  );
+  if (otherSections.length) {
+    const details = document.createElement('details');
+    details.className = 'hall-other-sections';
+    const summary = document.createElement('summary');
+    summary.textContent = `다른 부문 ${otherSections.length}개 보기`;
+    const list = document.createElement('div');
+    list.className = 'hall-other-list';
+    otherSections.forEach((section) => {
+      const leader = section.rows[0];
+      const item = document.createElement('article');
+      item.className = 'hall-other-item';
+      const title = document.createElement('div');
+      title.className = 'hall-other-title';
+      title.textContent = section.label;
+      const unit = getHallSectionUnit(section);
+      const meta = document.createElement('div');
+      meta.className = 'hall-other-meta';
+      meta.textContent = `챔피언 ${leader.studentName} (${leader.studentNo}번) · ${formatHallMetric(leader.bestScore, unit)}`;
+      item.append(title, meta);
+      list.appendChild(item);
+    });
+    details.append(summary, list);
+    els.leaderboardList.appendChild(details);
+  }
 };
 
 const fetchLeaderboardSections = async (seasonId) => {
@@ -653,7 +887,11 @@ const reloadData = async () => {
     renderStudents();
     renderSeasons();
     syncLeaderboardPeriodUi();
-    renderLeaderboard();
+    if (state.selectedSeasonId) {
+      await loadLeaderboard({ silent: true });
+    } else {
+      renderLeaderboard();
+    }
     setStatus(`불러오기 완료 · 학생 ${state.draftStudents.length}명 · 출석일 ${attendanceSummary.attendanceDayCount || 0}일 · 시즌 ${state.seasons.length}개 (진행중 ${lifecycleCounts.active}, 예정 ${lifecycleCounts.scheduled}, 종료 ${lifecycleCounts.ended}, 비활성 ${lifecycleCounts.inactive})`);
   } catch (error) {
     console.error('[ClassroomPage] load failed', error);
@@ -751,7 +989,7 @@ const archiveEndedSeasons = async () => {
   }
 };
 
-const loadLeaderboard = async () => {
+const loadLeaderboard = async ({ silent = false } = {}) => {
   const seasonId = String(els.seasonSelect?.value || state.selectedSeasonId || '').trim();
   state.selectedSeasonId = seasonId;
   if (!seasonId) {
@@ -759,22 +997,30 @@ const loadLeaderboard = async () => {
     state.leaderboardSections = [];
     state.loadedLeaderboardSeasonId = '';
     renderLeaderboard();
-    setStatus('명예의 전당 시즌을 선택하세요.', 'error');
+    if (!silent) {
+      setStatus('명예의 전당 시즌을 선택하세요.', 'error');
+    }
     return;
   }
-  setStatus('명예의 전당을 불러오는 중...');
+  if (!silent) {
+    setStatus('명예의 전당을 불러오는 중...');
+  }
   try {
     const sectionRows = await fetchLeaderboardSections(seasonId);
     state.loadedLeaderboardSeasonId = seasonId;
     applyLeaderboardSections(sectionRows);
     renderLeaderboard();
     const totalRows = state.leaderboardSections.reduce((sum, section) => sum + section.rows.length, 0);
-    setStatus(
-      `명예의 전당 갱신 완료 · 시즌 ${seasonId} · 기간 ${getPeriodLabel(state.selectedLeaderboardPeriodDays)} · 부문 ${state.leaderboardSections.length}개 · 항목 ${totalRows}개`
-    );
+    if (!silent) {
+      setStatus(
+        `명예의 전당 갱신 완료 · 시즌 ${seasonId} · 기간 ${getPeriodLabel(state.selectedLeaderboardPeriodDays)} · 부문 ${state.leaderboardSections.length}개 · 항목 ${totalRows}개`
+      );
+    }
   } catch (error) {
     console.error('[ClassroomPage] load leaderboard failed', error);
-    setStatus('명예의 전당을 불러오지 못했습니다.', 'error');
+    if (!silent) {
+      setStatus('명예의 전당을 불러오지 못했습니다.', 'error');
+    }
   }
 };
 
