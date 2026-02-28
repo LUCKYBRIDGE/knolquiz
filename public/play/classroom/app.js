@@ -101,6 +101,28 @@ const getSeasonLifecycleStatus = (season, todayIso = getTodayLocalIsoDate()) => 
   return { code: 'active', label: '진행중' };
 };
 
+const SEASON_LIFECYCLE_PRIORITY = Object.freeze({
+  active: 0,
+  scheduled: 1,
+  ended: 2,
+  inactive: 3,
+  invalid: 4
+});
+
+const getSortedSeasonsForDisplay = (seasons) => {
+  const list = Array.isArray(seasons) ? seasons.slice() : [];
+  return list.sort((a, b) => {
+    const aLifecycle = getSeasonLifecycleStatus(a);
+    const bLifecycle = getSeasonLifecycleStatus(b);
+    const aPriority = Number(SEASON_LIFECYCLE_PRIORITY[aLifecycle.code]);
+    const bPriority = Number(SEASON_LIFECYCLE_PRIORITY[bLifecycle.code]);
+    if (aPriority !== bPriority) return aPriority - bPriority;
+    const byUpdatedAt = String(b?.updatedAt || '').localeCompare(String(a?.updatedAt || ''));
+    if (byUpdatedAt !== 0) return byUpdatedAt;
+    return String(a?.seasonId || '').localeCompare(String(b?.seasonId || ''));
+  });
+};
+
 const normalizeScorePolicies = (raw) => {
   const source = (raw && typeof raw === 'object') ? raw : {};
   return {
@@ -267,15 +289,16 @@ const renderStudents = () => {
 };
 
 const renderSeasons = () => {
+  const displaySeasons = getSortedSeasonsForDisplay(state.seasons);
   if (els.seasonList) {
     els.seasonList.innerHTML = '';
-    if (!state.seasons.length) {
+    if (!displaySeasons.length) {
       const empty = document.createElement('div');
       empty.className = 'empty';
       empty.textContent = '저장된 시즌이 없습니다.';
       els.seasonList.appendChild(empty);
     } else {
-      state.seasons.forEach((season) => {
+      displaySeasons.forEach((season) => {
         const lifecycle = getSeasonLifecycleStatus(season);
         const item = document.createElement('div');
         item.className = 'item';
@@ -309,18 +332,18 @@ const renderSeasons = () => {
     defaultOption.value = '';
     defaultOption.textContent = '시즌 선택';
     els.seasonSelect.appendChild(defaultOption);
-    state.seasons.forEach((season) => {
+    displaySeasons.forEach((season) => {
       const lifecycle = getSeasonLifecycleStatus(season);
       const option = document.createElement('option');
       option.value = season.seasonId || '';
       option.textContent = `${season.name || season.seasonId} (${lifecycle.label})`;
       els.seasonSelect.appendChild(option);
     });
-    const runningSeason = state.seasons.find((season) => getSeasonLifecycleStatus(season).code === 'active')?.seasonId || '';
-    const activeSeason = state.seasons.find((season) => season.active !== false)?.seasonId || '';
-    state.selectedSeasonId = state.seasons.some((season) => season.seasonId === previous)
+    const runningSeason = displaySeasons.find((season) => getSeasonLifecycleStatus(season).code === 'active')?.seasonId || '';
+    const firstVisibleSeason = displaySeasons[0]?.seasonId || '';
+    state.selectedSeasonId = displaySeasons.some((season) => season.seasonId === previous)
       ? previous
-      : (runningSeason || activeSeason);
+      : (runningSeason || firstVisibleSeason);
     els.seasonSelect.value = state.selectedSeasonId || '';
   }
 };
