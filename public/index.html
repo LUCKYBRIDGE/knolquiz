@@ -591,7 +591,7 @@
     <main>
       <section class="hero">
         <h1>퀴즈 게임 시작</h1>
-        <p>인원, 퀴즈, 게임을 먼저 고르고 바로 시작합니다. 점프맵 선택 시 캐릭터도 고를 수 있습니다(현재 2종).</p>
+        <p>게임, 인원, 퀴즈를 먼저 고르고 바로 시작합니다. 점프맵 선택 시 캐릭터도 고를 수 있습니다(현재 2종).</p>
       </section>
 
       <section class="grid">
@@ -599,12 +599,17 @@
           <h2>게임 시작 설정</h2>
 
           <div class="section">
-            <div class="section-title">1. 플레이 인원</div>
+            <div class="section-title">1. 게임 선택</div>
+            <div class="game-buttons" id="game-buttons"></div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">2. 플레이 인원</div>
             <div class="player-buttons" id="player-buttons"></div>
           </div>
 
           <div class="section">
-            <div class="section-title">2. 퀴즈 선택</div>
+            <div class="section-title">3. 퀴즈 선택</div>
             <div class="quiz-search-controls">
               <div class="quiz-search-row">
                 <input
@@ -627,7 +632,7 @@
           </div>
 
           <div class="section">
-            <div class="section-title">2-1. 문제 생성/업로드</div>
+            <div class="section-title">3-1. 문제 생성/업로드</div>
             <div class="csv-tools">
               <div class="csv-tools-row">
                 <button type="button" class="csv-tool-btn" id="csv-template-btn">문제양식 다운받기</button>
@@ -655,7 +660,7 @@
           </div>
 
           <div class="section">
-            <div class="section-title">2-2. 종료/진행 설정 (퀴즈+점프맵)</div>
+            <div class="section-title">3-2. 종료/진행 설정 (퀴즈+점프맵)</div>
             <div class="mode-settings-stack">
               <div class="mode-settings-block">
                 <div class="mode-settings-title">종료 기준</div>
@@ -672,11 +677,6 @@
               </div>
               <div class="note" id="mode-settings-note">현재 선택한 게임 모드 기준으로 위 설정이 적용됩니다.</div>
             </div>
-          </div>
-
-          <div class="section">
-            <div class="section-title">3. 게임 선택</div>
-            <div class="game-buttons" id="game-buttons"></div>
           </div>
 
           <div class="section" id="character-section">
@@ -701,7 +701,7 @@
           </div>
 
           <div class="section">
-            <div class="section-title">플레이어 이름 (로컬 저장)</div>
+            <div class="section-title">5. 플레이어 이름 (로컬 저장)</div>
             <div class="names-list" id="names-list"></div>
           </div>
         </section>
