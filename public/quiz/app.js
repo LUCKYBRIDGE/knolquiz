@@ -159,6 +159,18 @@ let typeOpen = false;
 let uploadedCsvQuestionBank = null;
 const CUSTOM_PRESET_KEY = 'quiz_custom_presets_v1';
 let customPresets = [];
+const QUIZ_STORAGE_DB_NAME = 'knolquiz-quiz-storage';
+const QUIZ_STORAGE_DB_VERSION = 1;
+const QUIZ_STORAGE_STORE = 'kv';
+const QUIZ_STORE_KEY_CUSTOM_PRESETS = 'customPresets';
+const QUIZ_STORE_KEY_WRONGS = 'savedWrongs';
+const QUIZ_STORE_KEY_STUDENT_NAMES = 'studentNames';
+const QUIZ_STORE_KEY_GROUP_NAMES = 'groupNames';
+let quizStorageDbPromise = null;
+let cachedCustomPresets = [];
+let cachedSavedWrongs = [];
+let cachedStudentNames = [];
+let cachedGroupNames = [];
 const syncRepeatSetting = () => {
   if (!settingsInputs.mode || !settingsInputs.repeat) return;
   if (settingsInputs.mode.value === 'sequential') {
@@ -179,6 +191,169 @@ const CACHE_BUST = Date.now();
 const WRONG_STORAGE_KEY = 'mathNetMasterWrongSets';
 const GROUP_NAMES_KEY = 'mathNetMasterGroupNames';
 const STUDENT_NAMES_KEY = 'mathNetMasterStudentNames';
+
+const supportsQuizIndexedDb = () => typeof indexedDB !== 'undefined';
+
+const clonePersisted = (value) => {
+  if (typeof structuredClone === 'function') return structuredClone(value);
+  return JSON.parse(JSON.stringify(value));
+};
+
+const parseLegacyArray = (key) => {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.warn(`failed to parse legacy storage: ${key}`, error);
+    return [];
+  }
+};
+
+const idbRequestToPromise = (request) =>
+  new Promise((resolve, reject) => {
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error('indexeddb request failed'));
+  });
+
+const idbTxDone = (tx) =>
+  new Promise((resolve, reject) => {
+    tx.oncomplete = () => resolve();
+    tx.onabort = () => reject(tx.error || new Error('indexeddb transaction aborted'));
+    tx.onerror = () => reject(tx.error || new Error('indexeddb transaction failed'));
+  });
+
+const openQuizStorageDb = () => {
+  if (quizStorageDbPromise) return quizStorageDbPromise;
+  quizStorageDbPromise = new Promise((resolve, reject) => {
+    if (!supportsQuizIndexedDb()) {
+      reject(new Error('indexeddb_unavailable'));
+      return;
+    }
+    const request = indexedDB.open(QUIZ_STORAGE_DB_NAME, QUIZ_STORAGE_DB_VERSION);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(QUIZ_STORAGE_STORE)) {
+        db.createObjectStore(QUIZ_STORAGE_STORE, { keyPath: 'key' });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error('indexeddb open failed'));
+  });
+  return quizStorageDbPromise;
+};
+
+const readQuizStoreValue = async (key) => {
+  const db = await openQuizStorageDb();
+  const tx = db.transaction([QUIZ_STORAGE_STORE], 'readonly');
+  const store = tx.objectStore(QUIZ_STORAGE_STORE);
+  const row = await idbRequestToPromise(store.get(key));
+  await idbTxDone(tx);
+  const value = row?.value;
+  return Array.isArray(value) ? value : [];
+};
+
+const writeQuizStoreValue = async (key, value) => {
+  const normalized = Array.isArray(value) ? value : [];
+  const db = await openQuizStorageDb();
+  const tx = db.transaction([QUIZ_STORAGE_STORE], 'readwrite');
+  const store = tx.objectStore(QUIZ_STORAGE_STORE);
+  store.put({
+    key,
+    value: normalized,
+    updatedAt: new Date().toISOString()
+  });
+  await idbTxDone(tx);
+};
+
+const persistQuizStoreValue = (key, value, legacyKey) => {
+  const normalized = Array.isArray(value) ? value : [];
+  if (!supportsQuizIndexedDb()) {
+    try {
+      localStorage.setItem(legacyKey, JSON.stringify(normalized));
+    } catch (error) {
+      console.warn(`failed to persist legacy storage: ${legacyKey}`, error);
+    }
+    return;
+  }
+  writeQuizStoreValue(key, normalized)
+    .then(() => {
+      try {
+        localStorage.removeItem(legacyKey);
+      } catch (_error) {
+        // ignore localStorage remove failure
+      }
+    })
+    .catch((error) => {
+      console.warn(`failed to persist indexeddb store: ${key}`, error);
+      try {
+        localStorage.setItem(legacyKey, JSON.stringify(normalized));
+      } catch (_legacyError) {
+        // ignore fallback failure
+      }
+    });
+};
+
+const bootstrapQuizPersistentStorage = async () => {
+  cachedCustomPresets = parseLegacyArray(CUSTOM_PRESET_KEY);
+  cachedSavedWrongs = parseLegacyArray(WRONG_STORAGE_KEY);
+  cachedStudentNames = parseLegacyArray(STUDENT_NAMES_KEY);
+  cachedGroupNames = parseLegacyArray(GROUP_NAMES_KEY);
+  if (!supportsQuizIndexedDb()) return;
+  try {
+    const [
+      dbCustomPresets,
+      dbSavedWrongs,
+      dbStudentNames,
+      dbGroupNames
+    ] = await Promise.all([
+      readQuizStoreValue(QUIZ_STORE_KEY_CUSTOM_PRESETS),
+      readQuizStoreValue(QUIZ_STORE_KEY_WRONGS),
+      readQuizStoreValue(QUIZ_STORE_KEY_STUDENT_NAMES),
+      readQuizStoreValue(QUIZ_STORE_KEY_GROUP_NAMES)
+    ]);
+
+    const maybeMigrate = async (dbValue, legacyValue, storeKey, legacyKey) => {
+      if (dbValue.length) return dbValue;
+      if (!legacyValue.length) return [];
+      await writeQuizStoreValue(storeKey, legacyValue);
+      try {
+        localStorage.removeItem(legacyKey);
+      } catch (_error) {
+        // ignore remove error
+      }
+      return legacyValue;
+    };
+
+    cachedCustomPresets = await maybeMigrate(
+      dbCustomPresets,
+      cachedCustomPresets,
+      QUIZ_STORE_KEY_CUSTOM_PRESETS,
+      CUSTOM_PRESET_KEY
+    );
+    cachedSavedWrongs = await maybeMigrate(
+      dbSavedWrongs,
+      cachedSavedWrongs,
+      QUIZ_STORE_KEY_WRONGS,
+      WRONG_STORAGE_KEY
+    );
+    cachedStudentNames = await maybeMigrate(
+      dbStudentNames,
+      cachedStudentNames,
+      QUIZ_STORE_KEY_STUDENT_NAMES,
+      STUDENT_NAMES_KEY
+    );
+    cachedGroupNames = await maybeMigrate(
+      dbGroupNames,
+      cachedGroupNames,
+      QUIZ_STORE_KEY_GROUP_NAMES,
+      GROUP_NAMES_KEY
+    );
+  } catch (error) {
+    console.warn('failed to bootstrap quiz indexeddb storage', error);
+  }
+};
 
 const loadJson = async (path) => {
   const res = await fetch(`${path}?v=${CACHE_BUST}`);
@@ -519,22 +694,12 @@ const presets = [
 ];
 
 const loadCustomPresets = () => {
-  try {
-    const raw = localStorage.getItem(CUSTOM_PRESET_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (err) {
-    console.warn('failed to load custom presets', err);
-    return [];
-  }
+  return clonePersisted(cachedCustomPresets);
 };
 
 const saveCustomPresets = () => {
-  try {
-    localStorage.setItem(CUSTOM_PRESET_KEY, JSON.stringify(customPresets));
-  } catch (err) {
-    console.warn('failed to save custom presets', err);
-  }
+  cachedCustomPresets = Array.isArray(customPresets) ? clonePersisted(customPresets) : [];
+  persistQuizStoreValue(QUIZ_STORE_KEY_CUSTOM_PRESETS, cachedCustomPresets, CUSTOM_PRESET_KEY);
 };
 
 const basicModes = {
@@ -893,35 +1058,16 @@ const maybeAutoStartQuizFromLauncher = () => {
 
 const loadSavedWrongs = () => {
   if (!savedWrongListEl) return [];
-  try {
-    const raw = localStorage.getItem(WRONG_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (err) {
-    console.warn('failed to load saved wrongs', err);
-    return [];
-  }
+  return clonePersisted(cachedSavedWrongs);
 };
 
 const loadStudentNames = () => {
-  try {
-    const raw = localStorage.getItem(STUDENT_NAMES_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (err) {
-    console.warn('failed to load student names', err);
-    return [];
-  }
+  return clonePersisted(cachedStudentNames);
 };
 
 const saveStudentNames = (list) => {
-  try {
-    localStorage.setItem(STUDENT_NAMES_KEY, JSON.stringify(list));
-  } catch (err) {
-    console.warn('failed to save student names', err);
-  }
+  cachedStudentNames = Array.isArray(list) ? clonePersisted(list) : [];
+  persistQuizStoreValue(QUIZ_STORE_KEY_STUDENT_NAMES, cachedStudentNames, STUDENT_NAMES_KEY);
 };
 
 const parseGroupNames = (value) => {
@@ -1286,23 +1432,12 @@ const clearCustomSelection = () => {
 
 const loadGroupNames = () => {
   if (!groupNameListEl) return [];
-  try {
-    const raw = localStorage.getItem(GROUP_NAMES_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (err) {
-    console.warn('failed to load group names', err);
-    return [];
-  }
+  return clonePersisted(cachedGroupNames);
 };
 
 const saveGroupNames = (list) => {
-  try {
-    localStorage.setItem(GROUP_NAMES_KEY, JSON.stringify(list));
-  } catch (err) {
-    console.warn('failed to save group names', err);
-  }
+  cachedGroupNames = Array.isArray(list) ? clonePersisted(list) : [];
+  persistQuizStoreValue(QUIZ_STORE_KEY_GROUP_NAMES, cachedGroupNames, GROUP_NAMES_KEY);
 };
 
 const formatGroupLabel = (names) => {
@@ -1422,11 +1557,8 @@ const handleSaveStudentName = () => {
 };
 
 const saveSavedWrongs = (list) => {
-  try {
-    localStorage.setItem(WRONG_STORAGE_KEY, JSON.stringify(list));
-  } catch (err) {
-    console.warn('failed to save wrongs', err);
-  }
+  cachedSavedWrongs = Array.isArray(list) ? clonePersisted(list) : [];
+  persistQuizStoreValue(QUIZ_STORE_KEY_WRONGS, cachedSavedWrongs, WRONG_STORAGE_KEY);
 };
 
 const formatTimestamp = (date) => {
@@ -2858,6 +2990,7 @@ const init = async () => {
   validityShapePools.cuboid = validityPools.cuboid;
   defaultSettings = await loadJson('./data/quiz-settings.default.json');
   applyDefaultSettings(defaultSettings);
+  await bootstrapQuizPersistentStorage();
   hydrateCsvBankFromLauncherStorage();
   applyCsvToolModeUI();
   customPresets = loadCustomPresets();

@@ -19,11 +19,19 @@
 - 런처 설정 키: `jumpmap.launcher.setup.v1`
 - CSV 라이브러리 DB: `knolquiz-launcher-storage`
 - CSV 라이브러리 스토어: `savedCsvItems`
+- 퀴즈 로컬 DB: `knolquiz-quiz-storage`
+- 퀴즈 로컬 스토어: `kv`
+  - `customPresets`
+  - `savedWrongs`
+  - `studentNames`
+  - `groupNames`
 
 ## 마이그레이션 규칙
 - 기존 `localStorage`의 `savedCsvItems`가 있으면 초기 1회 `IndexedDB`로 이전한다.
 - 이전 후 `localStorage`에는 CSV 라이브러리 목록을 저장하지 않는다.
 - `IndexedDB`를 사용할 수 없는 환경에서는 호환을 위해 `savedCsvItems`를 `localStorage` fallback으로 유지한다.
+- 퀴즈 앱도 기존 로컬 키(`quiz_custom_presets_v1`, `mathNetMasterWrongSets`, `mathNetMasterStudentNames`, `mathNetMasterGroupNames`)를 초기 1회 `IndexedDB`로 이전한다.
+- 이전 후에는 `IndexedDB`를 우선 사용하고, 실패 시에만 localStorage fallback을 사용한다.
 
 ## 개발 규칙
 - 새 기능 추가 시:
