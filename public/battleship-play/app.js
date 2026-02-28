@@ -257,6 +257,21 @@ const distance = (ax, ay, bx, by) => {
   return Math.hypot(dx, dy);
 };
 
+const buildRoundedRectPath = (context, x, y, width, height, radius) => {
+  const r = Math.max(2, Math.min(radius, width / 2, height / 2));
+  context.beginPath();
+  context.moveTo(x + r, y);
+  context.lineTo(x + width - r, y);
+  context.quadraticCurveTo(x + width, y, x + width, y + r);
+  context.lineTo(x + width, y + height - r);
+  context.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+  context.lineTo(x + r, y + height);
+  context.quadraticCurveTo(x, y + height, x, y + height - r);
+  context.lineTo(x, y + r);
+  context.quadraticCurveTo(x, y, x + r, y);
+  context.closePath();
+};
+
 const getDrawSizeByLongEdge = (image, longEdge) => {
   if (!image || !image.naturalWidth || !image.naturalHeight) return null;
   const base = Math.max(image.naturalWidth, image.naturalHeight);
@@ -1045,6 +1060,36 @@ const drawGame = () => {
     ctx.fillStyle = '#3b2a1d';
     ctx.fillRect(shipX + 6, shipY + 14, shipW - 12, 16);
   }
+
+  const shipFramePad = 6;
+  const shipFrameX = shipX - shipFramePad;
+  const shipFrameY = shipY - shipFramePad;
+  const shipFrameW = shipW + shipFramePad * 2;
+  const shipFrameH = shipH + shipFramePad * 2;
+  const shipFrameRadius = Math.max(10, Math.round(Math.min(shipFrameW, shipFrameH) * 0.16));
+
+  // Slightly pressed-in border effect around the turtle ship.
+  ctx.save();
+  buildRoundedRectPath(ctx, shipFrameX, shipFrameY, shipFrameW, shipFrameH, shipFrameRadius);
+  ctx.clip();
+  const rimGradient = ctx.createLinearGradient(shipFrameX, shipFrameY, shipFrameX, shipFrameY + shipFrameH);
+  rimGradient.addColorStop(0, 'rgba(245, 251, 255, 0.30)');
+  rimGradient.addColorStop(0.45, 'rgba(20, 35, 70, 0.06)');
+  rimGradient.addColorStop(1, 'rgba(5, 12, 31, 0.34)');
+  ctx.fillStyle = rimGradient;
+  ctx.fillRect(shipFrameX, shipFrameY, shipFrameW, shipFrameH);
+  ctx.restore();
+
+  ctx.save();
+  buildRoundedRectPath(ctx, shipFrameX, shipFrameY, shipFrameW, shipFrameH, shipFrameRadius);
+  ctx.lineWidth = 1.4;
+  ctx.strokeStyle = 'rgba(226, 237, 255, 0.52)';
+  ctx.stroke();
+  buildRoundedRectPath(ctx, shipFrameX + 1.5, shipFrameY + 1.5, shipFrameW - 3, shipFrameH - 3, Math.max(8, shipFrameRadius - 2));
+  ctx.lineWidth = 2.2;
+  ctx.strokeStyle = 'rgba(8, 19, 43, 0.35)';
+  ctx.stroke();
+  ctx.restore();
 
   drawHpBar(shipX, shipY - 12, shipW, state.ship.hp, state.ship.maxHp, '#22c55e');
 
