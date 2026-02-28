@@ -9,7 +9,8 @@ const QUIZ_PRESET_LABELS = {
   'jumpmap-net-30': '전개도 학습 30문제',
   'jumpmap-net-12': '전개도 학습 12문제',
   'cube-only-24': '정육면체 중심 24문제',
-  'cuboid-only-24': '직육면체 중심 24문제'
+  'cuboid-only-24': '직육면체 중심 24문제',
+  'csv-upload': '업로드 CSV 문제'
 };
 
 const CHARACTER_LABELS = {
@@ -87,10 +88,13 @@ const getStartTargetUrl = (setup) => {
 const renderSummary = (box, setup) => {
   if (!box) return;
   box.innerHTML = '';
+  const quizLabel = setup.quizPresetId === 'csv-upload'
+    ? `업로드 CSV 문제${setup.customCsvFileName ? ` (${setup.customCsvFileName})` : ''}`
+    : (QUIZ_PRESET_LABELS[setup.quizPresetId] || setup.quizPresetId);
   const rows = [
     ['플레이 인원', `${setup.players}명`],
     ['게임', GAME_LABELS[setup.gameMode] || setup.gameMode],
-    ['퀴즈', QUIZ_PRESET_LABELS[setup.quizPresetId] || setup.quizPresetId],
+    ['퀴즈', quizLabel],
     ['종료 기준', setup.quizEndMode === 'time' ? `시간 종료 (${setup.quizTimeLimitSec}초)` : '문제 모두 풀이'],
     [
       '문제 소스',

@@ -759,7 +759,9 @@ const buildCsvBankFromLauncherSetup = (launcher) => {
 const hydrateCsvBankFromLauncherStorage = () => {
   const launcher = loadLauncherSetup();
   if (!launcher) return;
-  const launcherCsv = buildCsvBankFromLauncherSetup(launcher);
+  const launcherCsv = presetId === 'csv-upload'
+    ? buildCsvBankFromLauncherSetup(launcher)
+    : { bank: null, message: '' };
   if (!launcherCsv.bank) return;
   uploadedCsvQuestionBank = launcherCsv.bank;
   if (settingsInputs.customEnabled) settingsInputs.customEnabled.value = 'true';

@@ -518,6 +518,7 @@
             desc: '직육면체 전개도 중심 출제'
           }
         ];
+        const CSV_UPLOAD_PRESET_ID = 'csv-upload';
         const END_MODE_OPTIONS = [
           { id: 'count', label: '문제 다 풀면 종료' },
           { id: 'time', label: '시간 종료 시 종료' }
@@ -611,6 +612,9 @@
           state.customCsvEnabled = false;
           state.customCsvText = '';
           state.customCsvFileName = '';
+          if (state.quizPresetId === CSV_UPLOAD_PRESET_ID) {
+            state.quizPresetId = QUIZ_PRESETS[0].id;
+          }
           if (els.csvFileInput) els.csvFileInput.value = '';
           persistAndRefresh();
         });
@@ -630,6 +634,7 @@
           state.customCsvEnabled = true;
           state.customCsvText = text;
           state.customCsvFileName = file.name || '';
+          state.quizPresetId = CSV_UPLOAD_PRESET_ID;
           persistAndRefresh();
         });
         els.quizTimeLimitInput?.addEventListener('change', () => {
@@ -662,7 +667,6 @@
         function normalizeState(target) {
           target.players = Math.max(1, Math.min(6, Math.round(Number(target.players) || 1)));
           if (!GAME_OPTIONS.some((item) => item.id === target.gameMode)) target.gameMode = 'jumpmap';
-          if (!QUIZ_PRESETS.some((item) => item.id === target.quizPresetId)) target.quizPresetId = QUIZ_PRESETS[0].id;
           if (typeof target.characterId !== 'string' || !target.characterId.trim()) target.characterId = 'sejong';
           if (!Array.isArray(target.playerNames)) target.playerNames = [];
           if (!Array.isArray(target.playerTags)) target.playerTags = [];
@@ -691,6 +695,13 @@
           if (!target.customCsvText.trim()) {
             target.customCsvEnabled = false;
             target.customCsvFileName = '';
+          }
+          const availablePresetIds = new Set(QUIZ_PRESETS.map((item) => item.id));
+          if (target.customCsvEnabled) {
+            availablePresetIds.add(CSV_UPLOAD_PRESET_ID);
+          }
+          if (!availablePresetIds.has(target.quizPresetId)) {
+            target.quizPresetId = QUIZ_PRESETS[0].id;
           }
         }
 
@@ -899,6 +910,19 @@
           }
         }
 
+        function getQuizPresetOptions() {
+          const presets = QUIZ_PRESETS.slice();
+          if (state.customCsvEnabled && state.customCsvText.trim()) {
+            const preview = buildCsvPreviewModel(state.customCsvText);
+            presets.unshift({
+              id: CSV_UPLOAD_PRESET_ID,
+              title: `업로드 CSV 문제${state.customCsvFileName ? ` (${state.customCsvFileName})` : ''}`,
+              desc: `${preview.total}문항 · 로컬 업로드 파일`
+            });
+          }
+          return presets;
+        }
+
         function renderPlayerButtons() {
           els.playerButtons.innerHTML = '';
           PLAYER_OPTIONS.forEach((count) => {
@@ -917,7 +941,7 @@
 
         function renderQuizPresets() {
           els.quizPresets.innerHTML = '';
-          QUIZ_PRESETS.forEach((preset) => {
+          getQuizPresetOptions().forEach((preset) => {
             const row = document.createElement('label');
             row.className = `quiz-item${state.quizPresetId === preset.id ? ' is-selected' : ''}`;
             const radio = document.createElement('input');
@@ -1099,7 +1123,8 @@
         }
 
         function renderSummary() {
-          const quiz = QUIZ_PRESETS.find((item) => item.id === state.quizPresetId) || QUIZ_PRESETS[0];
+          const quizOptions = getQuizPresetOptions();
+          const quiz = quizOptions.find((item) => item.id === state.quizPresetId) || quizOptions[0] || QUIZ_PRESETS[0];
           const game = GAME_OPTIONS.find((item) => item.id === state.gameMode) || GAME_OPTIONS[0];
           const names = state.playerNames.slice(0, state.players).map((name, idx) => {
             const tag = state.playerTags[idx];
