@@ -1249,6 +1249,16 @@
       return `${meters.toFixed(2)}m`;
     };
 
+    const formatJumpmapEndReasonLabel = (rawReason = '') => {
+      const reason = String(rawReason || '').trim();
+      if (!reason) return '종료';
+      if (reason === 'reach_top_finish') return '꼭대기 도달 종료';
+      if (reason === 'test_exit') return '수동 종료';
+      if (reason === 'test_restart') return '재시작';
+      if (reason === 'test_rebuild') return '재구성';
+      return reason;
+    };
+
     const buildTopReachRanking = (views) => {
       const metrics = getPlayerMetrics();
       return (Array.isArray(views) ? views : [])
@@ -1274,21 +1284,30 @@
         });
     };
 
-    const buildTopReachFinishGuide = ({ winnerName, rankingRows = [], onRestart = null }) => {
+    const buildTopReachFinishGuide = ({
+      winnerName = '',
+      titleText = '점프맵 종료',
+      iconText = '🏁',
+      line1Text = '',
+      line2Text = '',
+      rankingRows = [],
+      onRestart = null,
+      onClose = null
+    }) => {
       const guide = document.createElement('div');
       guide.className = 'test-start-guide is-result';
       const title = document.createElement('div');
       title.className = 'test-start-guide-title';
-      title.textContent = '점프맵 종료';
+      title.textContent = titleText;
       const icon = document.createElement('div');
       icon.className = 'test-start-guide-count';
-      icon.textContent = '🏁';
+      icon.textContent = iconText;
       const line1 = document.createElement('div');
       line1.className = 'test-start-guide-line';
-      line1.textContent = `${winnerName} 님이 꼭대기에 도달했습니다.`;
+      line1.textContent = line1Text || (winnerName ? `${winnerName} 님이 꼭대기에 도달했습니다.` : '플레이가 종료되었습니다.');
       const line2 = document.createElement('div');
       line2.className = 'test-start-guide-line';
-      line2.textContent = '결과를 확인한 뒤 다시 시작하거나 기록/학급관리 화면으로 이동할 수 있습니다.';
+      line2.textContent = line2Text || '결과를 확인한 뒤 다시 시작하거나 기록/학급관리 화면으로 이동할 수 있습니다.';
       guide.append(title, icon, line1, line2);
 
       if (Array.isArray(rankingRows) && rankingRows.length) {
@@ -1316,6 +1335,16 @@
         });
         actions.appendChild(restartBtn);
       }
+      if (typeof onClose === 'function') {
+        const closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.className = 'test-start-guide-action-btn';
+        closeBtn.textContent = '테스트 완전 종료';
+        closeBtn.addEventListener('click', () => {
+          onClose();
+        });
+        actions.appendChild(closeBtn);
+      }
       const recordsLink = document.createElement('a');
       recordsLink.className = 'test-start-guide-action-btn';
       recordsLink.href = resolveEditorRuntimeAssetUrl('../../../../play/records/');
@@ -1334,6 +1363,14 @@
       guide.appendChild(actions);
 
       return guide;
+    };
+
+    const buildSessionSummaryLineText = (snapshot, reason = '') => {
+      const durationSec = Math.max(0, Math.round((Number(snapshot?.payload?.map?.durationMs) || 0) / 1000));
+      const objectCount = Number(snapshot?.payload?.map?.objectCount) || 0;
+      const playerCount = Math.max(1, Number(snapshot?.payload?.settings?.playerCount) || Number(state?.test?.players) || 1);
+      const reasonLabel = formatJumpmapEndReasonLabel(reason);
+      return `종료: ${reasonLabel} · 플레이 ${durationSec}초 · 오브젝트 ${objectCount}개 · 플레이어 ${playerCount}명`;
     };
 
     const resetPlayerStateAt = (playerState, basePoint = null) => {
@@ -2585,15 +2622,22 @@
       jumpmapGoalState.reached = true;
       jumpmapGoalState.winnerIndex = winnerIndex;
       const winnerName = getPlayerDisplayName(winnerIndex);
+      const snapshot = collectJumpmapSessionRecord('reach_top_finish');
       const rankingRows = buildTopReachRanking(views);
       clearAllInputs();
       views.forEach((playerView) => {
         closeQuizPanel(playerView, { reason: 'reach_top_finish' });
         const guide = buildTopReachFinishGuide({
           winnerName,
+          line2Text: snapshot
+            ? buildSessionSummaryLineText(snapshot, 'reach_top_finish')
+            : '결과를 확인한 뒤 다시 시작하거나 기록/학급관리 화면으로 이동할 수 있습니다.',
           rankingRows,
           onRestart: () => {
             rebuildActiveTestViews('reach_top_retry');
+          },
+          onClose: () => {
+            exitTestMode(true);
           }
         });
         playerView.view.appendChild(guide);
@@ -2933,17 +2977,68 @@
       });
     };
 
-    const exitTestMode = () => {
-      saveCurrentJumpmapSessionRecord('test_exit');
+    const hardExitTestMode = (reason = 'test_exit') => {
+      saveCurrentJumpmapSessionRecord(reason);
       clearAllInputs();
       state.test.active = false;
       els.testOverlay.classList.add('hidden');
       stopTestLoop();
       quizRuntimeState.sessions.clear();
+      jumpmapGoalState.reached = false;
+      jumpmapGoalState.winnerIndex = -1;
       recordRuntimeState.activeSessionSeq = 0;
       els.testViews.innerHTML = '';
       delete els.testViews.dataset.playerCount;
-      integration.emit('test:exit', {});
+      integration.emit('test:exit', { reason });
+    };
+
+    const showTestExitSummary = (reason = 'test_exit') => {
+      const views = getViews();
+      if (!state.test.active || !Array.isArray(views) || !views.length) return false;
+      const snapshot = collectJumpmapSessionRecord(reason);
+      if (!snapshot) return false;
+      jumpmapGoalState.reached = true;
+      jumpmapGoalState.winnerIndex = -1;
+      clearAllInputs();
+      stopTestLoop();
+      const rankingRows = buildTopReachRanking(views);
+      views.forEach((playerView) => {
+        closeQuizPanel(playerView, { reason });
+        playerView.view.querySelectorAll('.test-start-guide.is-result').forEach((el) => el.remove());
+        const guide = buildTopReachFinishGuide({
+          titleText: '점프맵 결과',
+          iconText: '📊',
+          line1Text: '테스트를 종료했습니다.',
+          line2Text: buildSessionSummaryLineText(snapshot, reason),
+          rankingRows,
+          onRestart: () => {
+            rebuildActiveTestViews('test_exit_retry');
+          },
+          onClose: () => {
+            hardExitTestMode('test_exit_close');
+          }
+        });
+        playerView.view.appendChild(guide);
+      });
+      saveCurrentJumpmapSessionRecord(reason);
+      integration.emit('test:exit_summary', {
+        reason,
+        players: state.test.players,
+        at: Date.now()
+      });
+      return true;
+    };
+
+    const exitTestMode = (forceClose = false) => {
+      if (!state.test.active) return;
+      if (forceClose || jumpmapGoalState.reached) {
+        hardExitTestMode('test_exit');
+        return;
+      }
+      const shown = showTestExitSummary('test_exit');
+      if (!shown) {
+        hardExitTestMode('test_exit');
+      }
     };
 
     const warpToSavePoint = (savePointId) => {
