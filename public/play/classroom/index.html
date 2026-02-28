@@ -178,6 +178,23 @@
         grid-template-columns: 1fr 1fr;
         gap: 8px;
       }
+      .policy-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .policy-check {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        min-height: 40px;
+        border: 1px solid rgba(24,41,75,0.2);
+        border-radius: 10px;
+        background: rgba(255,255,255,0.72);
+        padding: 8px 10px;
+        font-size: 13px;
+        font-weight: 700;
+      }
       .season-list,
       .leaderboard-list {
         border: 1px solid rgba(24,41,75,0.14);
@@ -207,6 +224,7 @@
         .student-check,
         .student-count { justify-content: flex-start; text-align: left; }
         .row2 { grid-template-columns: 1fr; }
+        .policy-grid { grid-template-columns: 1fr; }
       }
     </style>
   </head>
@@ -263,6 +281,27 @@
                     <option value="true">활성</option>
                     <option value="false">비활성</option>
                   </select>
+                </div>
+              </div>
+              <div class="field">
+                <label>시즌 점수 부문(복수 선택)</label>
+                <div class="policy-grid">
+                  <label class="policy-check" for="policy-quiz-total-score">
+                    <input id="policy-quiz-total-score" type="checkbox" checked />
+                    <span>기본퀴즈 총점</span>
+                  </label>
+                  <label class="policy-check" for="policy-quiz-correct-count">
+                    <input id="policy-quiz-correct-count" type="checkbox" />
+                    <span>기본퀴즈 정답 수</span>
+                  </label>
+                  <label class="policy-check" for="policy-jumpmap-best-height">
+                    <input id="policy-jumpmap-best-height" type="checkbox" checked />
+                    <span>점프맵 최고 높이</span>
+                  </label>
+                  <label class="policy-check" for="policy-jumpmap-quiz-correct">
+                    <input id="policy-jumpmap-quiz-correct" type="checkbox" />
+                    <span>점프맵 퀴즈 정답 수</span>
+                  </label>
                 </div>
               </div>
               <button class="btn primary" id="save-season-btn" type="button">시즌 저장/갱신</button>

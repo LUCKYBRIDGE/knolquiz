@@ -18,6 +18,10 @@ const els = {
   seasonNameInput: document.getElementById('season-name-input'),
   seasonPresetSelect: document.getElementById('season-preset-select'),
   seasonActiveInput: document.getElementById('season-active-input'),
+  policyQuizTotalScore: document.getElementById('policy-quiz-total-score'),
+  policyQuizCorrectCount: document.getElementById('policy-quiz-correct-count'),
+  policyJumpmapBestHeight: document.getElementById('policy-jumpmap-best-height'),
+  policyJumpmapQuizCorrect: document.getElementById('policy-jumpmap-quiz-correct'),
   saveSeason: document.getElementById('save-season-btn'),
   seasonList: document.getElementById('season-list'),
   seasonSelect: document.getElementById('season-select'),
@@ -31,8 +35,16 @@ const els = {
 const state = {
   draftStudents: [],
   seasons: [],
-  leaderboard: [],
+  leaderboardSections: [],
   selectedSeasonId: ''
+};
+
+const CATEGORY_LABELS = {
+  basicQuizTotalScore: '기본퀴즈 총점',
+  basicQuizCorrectCount: '기본퀴즈 정답 수',
+  jumpmapBestHeight: '점프맵 최고 높이(px)',
+  jumpmapQuizCorrect: '점프맵 퀴즈 정답 수',
+  overall: '통합'
 };
 
 const setStatus = (message, type = 'normal') => {
@@ -50,6 +62,64 @@ const normalizeStudentNo = (raw) => {
 const normalizeSeasonPresetId = (raw) => {
   const value = typeof raw === 'string' ? raw.trim() : '';
   return value;
+};
+
+const normalizeScorePolicies = (raw) => {
+  const source = (raw && typeof raw === 'object') ? raw : {};
+  return {
+    basicQuizTotalScore: source.basicQuizTotalScore !== false,
+    basicQuizCorrectCount: source.basicQuizCorrectCount === true,
+    jumpmapBestHeight: source.jumpmapBestHeight !== false,
+    jumpmapQuizCorrect: source.jumpmapQuizCorrect === true
+  };
+};
+
+const getEnabledSeasonCategories = (scorePolicies) => {
+  const policies = normalizeScorePolicies(scorePolicies);
+  const categories = [];
+  if (policies.basicQuizTotalScore) categories.push('basicQuizTotalScore');
+  if (policies.basicQuizCorrectCount) categories.push('basicQuizCorrectCount');
+  if (policies.jumpmapBestHeight) categories.push('jumpmapBestHeight');
+  if (policies.jumpmapQuizCorrect) categories.push('jumpmapQuizCorrect');
+  if (!categories.length) categories.push('basicQuizTotalScore');
+  return categories;
+};
+
+const getSeasonById = (seasonId) => (
+  state.seasons.find((season) => String(season?.seasonId || '') === String(seasonId || '')) || null
+);
+
+const readScorePoliciesFromForm = () => ({
+  basicQuizTotalScore: els.policyQuizTotalScore?.checked !== false,
+  basicQuizCorrectCount: els.policyQuizCorrectCount?.checked === true,
+  jumpmapBestHeight: els.policyJumpmapBestHeight?.checked !== false,
+  jumpmapQuizCorrect: els.policyJumpmapQuizCorrect?.checked === true
+});
+
+const applyScorePoliciesToForm = (rawPolicies) => {
+  const policies = normalizeScorePolicies(rawPolicies);
+  if (els.policyQuizTotalScore) els.policyQuizTotalScore.checked = policies.basicQuizTotalScore;
+  if (els.policyQuizCorrectCount) els.policyQuizCorrectCount.checked = policies.basicQuizCorrectCount;
+  if (els.policyJumpmapBestHeight) els.policyJumpmapBestHeight.checked = policies.jumpmapBestHeight;
+  if (els.policyJumpmapQuizCorrect) els.policyJumpmapQuizCorrect.checked = policies.jumpmapQuizCorrect;
+};
+
+const formatDateTime = (raw) => {
+  const date = raw ? new Date(raw) : null;
+  if (!date || Number.isNaN(date.getTime())) return '-';
+  return date.toLocaleString('ko-KR', { hour12: false });
+};
+
+const formatModeLabel = (rawMode, rawSource) => {
+  if (rawMode === 'basic-quiz') return '기본퀴즈';
+  if (rawMode === 'jumpmap') return '점프맵';
+  if (rawSource === 'manual-classroom-page') return '수동기록';
+  return rawMode || rawSource || '기타';
+};
+
+const summarizeSeasonPolicies = (season) => {
+  const categories = getEnabledSeasonCategories(season?.scorePolicies);
+  return categories.map((category) => CATEGORY_LABELS[category] || category).join(', ');
 };
 
 const setSeasonPresetSelectValue = (value) => {
@@ -72,12 +142,14 @@ const fillSeasonForm = (season = null) => {
     if (els.seasonNameInput) els.seasonNameInput.value = '';
     setSeasonPresetSelectValue('');
     if (els.seasonActiveInput) els.seasonActiveInput.value = 'true';
+    applyScorePoliciesToForm(null);
     return;
   }
   if (els.seasonIdInput) els.seasonIdInput.value = String(season.seasonId || '').trim();
   if (els.seasonNameInput) els.seasonNameInput.value = String(season.name || '').trim();
   setSeasonPresetSelectValue(season.quizPresetId || '');
   if (els.seasonActiveInput) els.seasonActiveInput.value = season.active === false ? 'false' : 'true';
+  applyScorePoliciesToForm(season.scorePolicies);
 };
 
 const buildDraftStudents = (loadedStudents = []) => {
@@ -170,7 +242,7 @@ const renderSeasons = () => {
         name.textContent = `${season.name || season.seasonId}${season.active === false ? ' (비활성)' : ''}`;
         const meta = document.createElement('div');
         meta.className = 'meta';
-        meta.textContent = `ID: ${season.seasonId} · 프리셋: ${season.quizPresetId || '-'} · 시작: ${season.startDate || '-'}`;
+        meta.textContent = `ID: ${season.seasonId} · 프리셋: ${season.quizPresetId || '-'} · 부문: ${summarizeSeasonPolicies(season)} · 시작: ${season.startDate || '-'}`;
         item.append(name, meta);
         item.addEventListener('click', () => {
           fillSeasonForm(season);
@@ -205,24 +277,45 @@ const renderSeasons = () => {
 const renderLeaderboard = () => {
   if (!els.leaderboardList) return;
   els.leaderboardList.innerHTML = '';
-  if (!state.leaderboard.length) {
+  if (!state.leaderboardSections.length) {
     const empty = document.createElement('div');
     empty.className = 'empty';
     empty.textContent = '명예의 전당 데이터가 없습니다.';
     els.leaderboardList.appendChild(empty);
     return;
   }
-  state.leaderboard.forEach((row) => {
-    const item = document.createElement('div');
-    item.className = 'item';
-    const name = document.createElement('div');
-    name.className = 'name';
-    name.textContent = `${row.rank}위 · ${row.studentName}(${row.studentNo}번)`;
-    const meta = document.createElement('div');
-    meta.className = 'meta';
-    meta.textContent = `최고 ${row.bestScore}점 · 평균 ${row.averageScore}점 · 시도 ${row.attemptCount}회`;
-    item.append(name, meta);
-    els.leaderboardList.appendChild(item);
+  state.leaderboardSections.forEach((section) => {
+    const header = document.createElement('div');
+    header.className = 'item';
+    const headerName = document.createElement('div');
+    headerName.className = 'name';
+    headerName.textContent = `[부문] ${section.label}`;
+    const headerMeta = document.createElement('div');
+    headerMeta.className = 'meta';
+    headerMeta.textContent = `${section.rows.length}명`;
+    header.append(headerName, headerMeta);
+    els.leaderboardList.appendChild(header);
+
+    if (!section.rows.length) {
+      const empty = document.createElement('div');
+      empty.className = 'empty';
+      empty.textContent = `${section.label} 데이터가 없습니다.`;
+      els.leaderboardList.appendChild(empty);
+      return;
+    }
+
+    section.rows.forEach((row) => {
+      const item = document.createElement('div');
+      item.className = 'item';
+      const name = document.createElement('div');
+      name.className = 'name';
+      name.textContent = `${row.rank}위 · ${row.studentName}(${row.studentNo}번)`;
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      meta.textContent = `최고 ${row.bestScore}점 · 평균 ${row.averageScore}점 · 시도 ${row.attemptCount}회 · 최근 ${row.lastScore}점 (${formatModeLabel(row.lastMode, row.lastSource)}, ${formatDateTime(row.lastPlayedAt)})`;
+      item.append(name, meta);
+      els.leaderboardList.appendChild(item);
+    });
   });
 };
 
@@ -235,6 +328,7 @@ const reloadData = async () => {
     ]);
     state.draftStudents = buildDraftStudents(attendanceSummary.students || []);
     state.seasons = Array.isArray(seasons) ? seasons : [];
+    state.leaderboardSections = [];
     renderStudents();
     renderSeasons();
     renderLeaderboard();
@@ -273,6 +367,7 @@ const saveSeason = async () => {
   const name = String(els.seasonNameInput?.value || '').trim();
   const quizPresetId = normalizeSeasonPresetId(els.seasonPresetSelect?.value || '');
   const active = String(els.seasonActiveInput?.value || 'true') !== 'false';
+  const scorePolicies = readScorePoliciesFromForm();
   if (!seasonId) {
     setStatus('시즌 ID를 입력하세요.', 'error');
     return;
@@ -283,7 +378,8 @@ const saveSeason = async () => {
       seasonId,
       name: name || seasonId,
       active,
-      quizPresetId
+      quizPresetId,
+      scorePolicies
     });
     await reloadData();
     fillSeasonForm(null);
@@ -298,16 +394,26 @@ const loadLeaderboard = async () => {
   const seasonId = String(els.seasonSelect?.value || state.selectedSeasonId || '').trim();
   state.selectedSeasonId = seasonId;
   if (!seasonId) {
-    state.leaderboard = [];
+    state.leaderboardSections = [];
     renderLeaderboard();
     setStatus('명예의 전당 시즌을 선택하세요.', 'error');
     return;
   }
+  const season = getSeasonById(seasonId);
+  const categories = getEnabledSeasonCategories(season?.scorePolicies);
   setStatus('명예의 전당을 불러오는 중...');
   try {
-    state.leaderboard = await listClassroomSeasonLeaderboard(seasonId, 50);
+    const sectionRows = await Promise.all(
+      categories.map(async (category) => ({
+        category,
+        label: CATEGORY_LABELS[category] || category,
+        rows: await listClassroomSeasonLeaderboard(seasonId, 50, category)
+      }))
+    );
+    state.leaderboardSections = sectionRows;
     renderLeaderboard();
-    setStatus(`명예의 전당 갱신 완료 · 시즌 ${seasonId} · ${state.leaderboard.length}명`);
+    const totalRows = sectionRows.reduce((sum, section) => sum + section.rows.length, 0);
+    setStatus(`명예의 전당 갱신 완료 · 시즌 ${seasonId} · 부문 ${sectionRows.length}개 · 항목 ${totalRows}개`);
   } catch (error) {
     console.error('[ClassroomPage] load leaderboard failed', error);
     setStatus('명예의 전당을 불러오지 못했습니다.', 'error');
@@ -318,6 +424,8 @@ const addManualScore = async () => {
   const seasonId = String(els.seasonSelect?.value || state.selectedSeasonId || '').trim();
   const studentNo = normalizeStudentNo(els.manualStudentNo?.value);
   const score = Math.round(Number(els.manualScore?.value) || 0);
+  const season = getSeasonById(seasonId);
+  const categories = getEnabledSeasonCategories(season?.scorePolicies);
   if (!seasonId) {
     setStatus('먼저 시즌을 선택하세요.', 'error');
     return;
@@ -328,14 +436,18 @@ const addManualScore = async () => {
   }
   setStatus('수동 점수를 기록 중...');
   try {
-    await recordClassroomSeasonScore({
-      seasonId,
-      studentNo,
-      score,
-      payload: { source: 'manual-classroom-page' }
-    });
+    for (let i = 0; i < categories.length; i += 1) {
+      const category = categories[i];
+      await recordClassroomSeasonScore({
+        seasonId,
+        studentNo,
+        category,
+        score,
+        payload: { source: 'manual-classroom-page', category }
+      });
+    }
     await loadLeaderboard();
-    setStatus(`수동 점수 기록 완료 · 시즌 ${seasonId} · ${studentNo}번`);
+    setStatus(`수동 점수 기록 완료 · 시즌 ${seasonId} · ${studentNo}번 · 부문 ${categories.length}개`);
   } catch (error) {
     console.error('[ClassroomPage] add manual score failed', error);
     setStatus('수동 점수 기록에 실패했습니다.', 'error');
