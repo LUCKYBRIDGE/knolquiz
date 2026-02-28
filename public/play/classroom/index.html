@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>학급관리 (로컬)</title>
+    <style>
+      :root {
+        --ink: #18294b;
+        --muted: #5b6b89;
+        --line: rgba(24, 41, 75, 0.14);
+        --paper: rgba(251, 247, 236, 0.96);
+        --bg1: #f0e8d6;
+        --bg2: #ddd3bc;
+        --gold: #caa23a;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; min-height: 100%; }
+      body {
+        font-family: "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 8% 10%, rgba(255,255,255,0.65), transparent 46%),
+          radial-gradient(circle at 92% 20%, rgba(255,255,255,0.5), transparent 52%),
+          linear-gradient(180deg, var(--bg1), var(--bg2));
+      }
+      .shell { max-width: 1320px; margin: 0 auto; padding: 16px; }
+      .topbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+      .title {
+        margin: 0;
+        font-size: clamp(24px, 2.6vw, 36px);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+      }
+      .top-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+      .btn {
+        border: 2px solid rgba(24, 41, 75, 0.85);
+        background: #fff;
+        color: var(--ink);
+        border-radius: 12px;
+        padding: 9px 13px;
+        font-weight: 800;
+        cursor: pointer;
+        min-height: 42px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .btn.primary {
+        background: linear-gradient(180deg, #f9db73, var(--gold));
+        border-color: #9d7c22;
+        color: #3a2a03;
+      }
+      .status {
+        margin-bottom: 12px;
+        padding: 10px 14px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: rgba(255,255,255,0.65);
+        color: var(--muted);
+        font-weight: 700;
+      }
+      .status.error { color: #b91c1c; }
+      .grid {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: 12px;
+      }
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--paper);
+        box-shadow: 0 10px 22px rgba(24,41,75,0.08);
+        overflow: hidden;
+      }
+      .card h2 {
+        margin: 0;
+        padding: 12px 14px;
+        font-size: 18px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255,255,255,0.7);
+      }
+      .card .body {
+        padding: 10px;
+      }
+      .card .note {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        margin-top: 8px;
+      }
+      .student-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 8px;
+      }
+      .student-list {
+        max-height: 68vh;
+        overflow: auto;
+        border: 1px solid rgba(24,41,75,0.14);
+        border-radius: 10px;
+        background: rgba(255,255,255,0.66);
+      }
+      .student-row {
+        display: grid;
+        grid-template-columns: 64px 1fr 88px 92px;
+        gap: 8px;
+        align-items: center;
+        padding: 8px;
+        border-bottom: 1px solid rgba(24,41,75,0.08);
+      }
+      .student-row:last-child { border-bottom: 0; }
+      .student-row.new { background: rgba(255, 249, 229, 0.9); }
+      .student-no {
+        font-weight: 900;
+        text-align: center;
+        border-radius: 8px;
+        border: 1px solid rgba(24,41,75,0.18);
+        background: rgba(255,255,255,0.85);
+        padding: 8px 4px;
+      }
+      .student-name-input {
+        width: 100%;
+        border: 1px solid rgba(24,41,75,0.2);
+        border-radius: 8px;
+        min-height: 38px;
+        padding: 8px 10px;
+        font: inherit;
+      }
+      .student-check {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .student-count {
+        text-align: right;
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 700;
+      }
+      .panel {
+        display: grid;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .field {
+        display: grid;
+        gap: 6px;
+      }
+      .field label {
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 800;
+      }
+      .field input,
+      .field select {
+        width: 100%;
+        border: 1px solid rgba(24,41,75,0.24);
+        border-radius: 10px;
+        min-height: 40px;
+        padding: 8px 10px;
+        font: inherit;
+      }
+      .row2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .season-list,
+      .leaderboard-list {
+        border: 1px solid rgba(24,41,75,0.14);
+        border-radius: 10px;
+        background: rgba(255,255,255,0.66);
+        max-height: 240px;
+        overflow: auto;
+      }
+      .item {
+        padding: 8px;
+        border-bottom: 1px solid rgba(24,41,75,0.08);
+      }
+      .item:last-child { border-bottom: 0; }
+      .item .name { font-weight: 800; }
+      .item .meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+      .empty {
+        padding: 10px;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+      }
+      @media (max-width: 1100px) {
+        .grid { grid-template-columns: 1fr; }
+      }
+      @media (max-width: 760px) {
+        .student-row { grid-template-columns: 58px 1fr; }
+        .student-check,
+        .student-count { justify-content: flex-start; text-align: left; }
+        .row2 { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <div class="topbar">
+        <h1 class="title">학급관리 (로컬)</h1>
+        <div class="top-actions">
+          <button class="btn primary" id="refresh-btn" type="button">새로고침</button>
+          <a class="btn" href="../records/">로컬 기록 보기</a>
+          <a class="btn" href="../../">런처로</a>
+        </div>
+      </div>
+      <div class="status" id="status-box">학급 데이터를 불러오는 중...</div>
+      <div class="grid">
+        <section class="card">
+          <h2>학생 1~50 관리</h2>
+          <div class="body">
+            <div class="student-actions">
+              <button class="btn" id="init-students-btn" type="button">1~50 기본 생성</button>
+              <button class="btn primary" id="save-students-btn" type="button">학생정보 저장</button>
+            </div>
+            <div class="student-list" id="student-list"></div>
+            <div class="note">학번은 고정(1~50)이며, 이름/활성상태를 수정 후 저장하면 플레이어 선택과 기록 집계에 반영됩니다.</div>
+          </div>
+        </section>
+        <section class="card">
+          <h2>시즌 / 명예의 전당</h2>
+          <div class="body">
+            <div class="panel">
+              <div class="field">
+                <label for="season-id-input">시즌 ID</label>
+                <input id="season-id-input" type="text" placeholder="예: 2026-spring-1" />
+              </div>
+              <div class="field">
+                <label for="season-name-input">시즌 이름</label>
+                <input id="season-name-input" type="text" placeholder="예: 2026 봄 1차" />
+              </div>
+              <button class="btn primary" id="save-season-btn" type="button">시즌 저장/갱신</button>
+            </div>
+            <div class="season-list" id="season-list"></div>
+            <div class="panel">
+              <div class="field">
+                <label for="season-select">리더보드 시즌</label>
+                <select id="season-select"></select>
+              </div>
+              <button class="btn" id="load-leaderboard-btn" type="button">명예의 전당 불러오기</button>
+              <div class="row2">
+                <div class="field">
+                  <label for="manual-student-no">수동점수 학번</label>
+                  <input id="manual-student-no" type="number" min="1" max="50" value="1" />
+                </div>
+                <div class="field">
+                  <label for="manual-score">수동점수</label>
+                  <input id="manual-score" type="number" step="1" value="100" />
+                </div>
+              </div>
+              <button class="btn" id="add-manual-score-btn" type="button">수동점수 기록(테스트용)</button>
+            </div>
+            <div class="leaderboard-list" id="leaderboard-list"></div>
+            <div class="note">수동점수는 시즌 점수 집계 API 검증용 도구입니다. 실제 플레이 연동은 다음 단계에서 붙입니다.</div>
+          </div>
+        </section>
+      </div>
+    </div>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
