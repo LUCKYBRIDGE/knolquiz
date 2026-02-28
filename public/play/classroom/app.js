@@ -283,7 +283,12 @@ const renderSeasons = () => {
         item.title = '클릭해서 시즌 편집 폼으로 불러오기';
         const name = document.createElement('div');
         name.className = 'name';
-        name.textContent = `[${lifecycle.label}] ${season.name || season.seasonId}`;
+        const badge = document.createElement('span');
+        badge.className = `season-badge ${lifecycle.code}`;
+        badge.textContent = lifecycle.label;
+        const title = document.createElement('span');
+        title.textContent = season.name || season.seasonId;
+        name.append(badge, title);
         const meta = document.createElement('div');
         meta.className = 'meta';
         meta.textContent = `ID: ${season.seasonId} · 기간: ${season.startDate || '-'} ~ ${season.endDate || '무기한'} · 프리셋: ${season.quizPresetId || '-'} · 부문: ${summarizeSeasonPolicies(season)}`;
@@ -308,7 +313,7 @@ const renderSeasons = () => {
       const lifecycle = getSeasonLifecycleStatus(season);
       const option = document.createElement('option');
       option.value = season.seasonId || '';
-      option.textContent = `[${lifecycle.label}] ${season.name || season.seasonId}`;
+      option.textContent = `${season.name || season.seasonId} (${lifecycle.label})`;
       els.seasonSelect.appendChild(option);
     });
     const runningSeason = state.seasons.find((season) => getSeasonLifecycleStatus(season).code === 'active')?.seasonId || '';

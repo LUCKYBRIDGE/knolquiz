@@ -208,8 +208,49 @@
         border-bottom: 1px solid rgba(24,41,75,0.08);
       }
       .item:last-child { border-bottom: 0; }
-      .item .name { font-weight: 800; }
+      .item .name {
+        font-weight: 800;
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
       .item .meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+      .season-badge {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 2px 8px;
+        border: 1px solid transparent;
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 0.01em;
+      }
+      .season-badge.active {
+        color: #166534;
+        background: #dcfce7;
+        border-color: #86efac;
+      }
+      .season-badge.scheduled {
+        color: #1d4ed8;
+        background: #dbeafe;
+        border-color: #93c5fd;
+      }
+      .season-badge.ended {
+        color: #92400e;
+        background: #fef3c7;
+        border-color: #fcd34d;
+      }
+      .season-badge.inactive {
+        color: #334155;
+        background: #e2e8f0;
+        border-color: #cbd5e1;
+      }
+      .season-badge.invalid {
+        color: #b91c1c;
+        background: #fee2e2;
+        border-color: #fca5a5;
+      }
       .empty {
         padding: 10px;
         color: var(--muted);
