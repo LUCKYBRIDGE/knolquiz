@@ -94,6 +94,23 @@ push/CI 직전 게이트(원격/운영값 정리 후):
 node scripts/jumpmap-r7-preflight.mjs --release-gate
 ```
 
+## 모바일/태블릿 QA (권장)
+
+자동 정적 점검:
+
+```bash
+cd /Users/baekjiyun/Desktop/WAN/knolquiz-runtime
+node scripts/mobile-tablet-qa-check.mjs
+```
+
+실기기 수동 점검:
+
+- 체크리스트 문서: `docs/mobile-tablet-manual-qa-checklist.md`
+- 권장 흐름:
+  1. 자동 정적 점검 통과 확인
+  2. 실기기 매트릭스(세로/가로, 1~6인) 점검
+  3. 실패 시 템플릿으로 재현 정보 기록
+
 ## 운영 점검 (선택)
 
 - 런처 -> 점프맵 -> legacy/compat 진입 spot-check 1회
