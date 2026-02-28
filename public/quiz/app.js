@@ -1,9 +1,17 @@
 import { createQuizEngine } from './core/engine.js';
 import { buildWeightedQuestionBank } from './core/bank.js';
 import { validateQuestionBank } from './core/validate.js';
+import { generatePlaceValueAreaModelBank } from './core/generators/place-value-area-model.js';
+import { parseCsvQuestionBank } from './core/importers/csv-question-bank.js';
+import {
+  isPlaceValueAreaModelQuestion,
+  renderPlaceValueAreaModelQuestion
+} from './renderers/place-value-area-model.js';
 import { saveQuizSessionRecord } from '../shared/local-game-records.js';
 
 const $ = (selector) => document.querySelector(selector);
+const launchParams = new URLSearchParams(window.location.search);
+const csvToolMode = String(launchParams.get('mode') || '').trim().toLowerCase() === 'csv';
 
 const settingsCard = $('#settings-card');
 const quizGrid = $('#quiz-grid');
@@ -22,9 +30,12 @@ const presetCancel = $('#preset-cancel');
 const presetConfirm = $('#preset-confirm');
 const presetText = $('#preset-text');
 const presetSummary = $('#preset-summary');
+const quizAppTitleEl = document.getElementById('quiz-app-title');
+const appModeBannerEl = $('#app-mode-banner');
 const basicListEl = $('#basic-list');
 const basicFiveBtn = $('#basic-5min');
 const basicTwelveBtn = $('#basic-12q');
+const basicPvamBtn = $('#basic-pvam');
 const advancedToggle = $('#advanced-toggle');
 const advancedSettings = $('#advanced-settings');
 const typeToggle = $('#type-toggle');
@@ -72,6 +83,10 @@ const customListEl = $('#custom-list');
 const customRandomBtn = $('#custom-random');
 const customRandomCount = $('#custom-random-count');
 const customClearBtn = $('#custom-clear');
+const customCsvFileInput = $('#custom-csv-file');
+const customCsvClearBtn = $('#custom-csv-clear');
+const customCsvStatusEl = $('#custom-csv-status');
+const customCsvTemplateBtn = $('#custom-csv-template');
 const confirmTypeCountsBtn = $('#confirm-type-counts');
 const confirmStatusEl = $('#count-confirm-status');
 
@@ -100,6 +115,7 @@ const settingsInputs = {
   timeBonusPer: $('#setting-time-bonus-per'),
   timeBonusCap: $('#setting-time-bonus-cap'),
   customEnabled: $('#setting-custom-enabled'),
+  customCsvEnabled: $('#setting-custom-csv-enabled'),
   customIds: $('#setting-custom-ids')
 };
 
@@ -140,6 +156,7 @@ let pendingStartSettings = null;
 let countsConfirmed = false;
 let pendingBasicMode = null;
 let typeOpen = false;
+let uploadedCsvQuestionBank = null;
 const CUSTOM_PRESET_KEY = 'quiz_custom_presets_v1';
 let customPresets = [];
 const syncRepeatSetting = () => {
@@ -325,6 +342,9 @@ const applyDefaultSettings = (settings) => {
   if (settingsInputs.customEnabled) {
     settingsInputs.customEnabled.value = settings.customQuestionMode ? 'true' : 'false';
   }
+  if (settingsInputs.customCsvEnabled) {
+    settingsInputs.customCsvEnabled.value = settings.customCsvMode ? 'true' : 'false';
+  }
   if (settingsInputs.customIds) {
     settingsInputs.customIds.value = (settings.customQuestionIds || []).join(', ');
   }
@@ -365,6 +385,27 @@ const applyDefaultSettings = (settings) => {
 };
 
 const presets = [
+  {
+    id: 'pvam-mixed-demo',
+    label: '영역모델 곱셈 데모',
+    description: '과정+결과 혼합 10문제',
+    settings: {
+      quizEndMode: 'count',
+      quizTimeLimitSec: 0,
+      timeLimitSec: 0,
+      rankingEnabled: false,
+      shuffleChoices: false,
+      selectionMode: 'sequential',
+      avoidRepeat: true
+    },
+    pvamDemo: {
+      count: 10,
+      seed: 1,
+      min: 11,
+      max: 99,
+      taskKinds: ['mixed_process', 'partial_sums', 'partial_cells', 'final_product']
+    }
+  },
   {
     id: 'parallel-focus',
     label: '평행한 면 집중',
@@ -554,6 +595,42 @@ const basicModes = {
       shuffleChoices: true,
       rankingEnabled: false
     }
+  },
+  pvam: {
+    label: '영역모델 곱셈 데모',
+    settings: {
+      quizEndMode: 'count',
+      quizTimeLimitSec: 0,
+      timeLimitSec: 0,
+      questionTypes: {
+        cube_facecolor: { enabled: true, count: 2 },
+        cube_edgecolor: { enabled: true, count: 2 },
+        cube_validity: { enabled: true, count: 2 },
+        cuboid_facecolor: { enabled: true, count: 2 },
+        cuboid_edgecolor: { enabled: true, count: 2 },
+        cuboid_validity: { enabled: true, count: 2 }
+      },
+      score: {
+        base: 10,
+        comboEnabled: false,
+        comboBonus: 0,
+        timeBonusEnabled: false,
+        timeBonusPerSec: 0,
+        timeBonusMaxRatio: 0
+      },
+      wrongDelaySec: 1,
+      selectionMode: 'sequential',
+      avoidRepeat: true,
+      shuffleChoices: false,
+      rankingEnabled: false
+    },
+    pvamDemo: {
+      count: 10,
+      seed: 1,
+      min: 11,
+      max: 99,
+      taskKinds: ['decompose_factors', 'partial_cells', 'partial_sums', 'mixed_process', 'final_product']
+    }
   }
 };
 
@@ -570,6 +647,82 @@ const mergeSettings = (base, override = {}) => {
   return merged;
 };
 
+const parseQueryBool = (value) => {
+  if (value == null) return false;
+  const normalized = String(value).trim().toLowerCase();
+  return ['1', 'true', 'yes', 'on'].includes(normalized);
+};
+
+const buildPvamDemoQuestionBank = (settings) => {
+  const params = new URLSearchParams(window.location.search);
+  if (!parseQueryBool(params.get('pvamDemo'))) return null;
+
+  const countFallback = Math.max(1, Math.min(20, Number(settings?.questionCount) || 10));
+  const count = Math.max(1, Math.min(50, Number(params.get('pvamCount')) || countFallback));
+  const seedValue = params.get('pvamSeed');
+  const seed = seedValue != null && seedValue !== '' ? Number.parseInt(seedValue, 10) : 1;
+  const min = Math.max(10, Math.min(99, Number(params.get('pvamMin')) || 11));
+  const max = Math.max(min, Math.min(99, Number(params.get('pvamMax')) || 99));
+  const supportedTaskKinds = new Set(['decompose_factors', 'decompose', 'final_product', 'partial_cells', 'partial_sums', 'partial_sum', 'mixed_process']);
+  const taskKindsRaw = String(params.get('pvamTaskKinds') || 'decompose_factors,partial_cells,partial_sums,mixed_process,final_product')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+  const taskKinds = taskKindsRaw
+    .filter((kind) => supportedTaskKinds.has(kind))
+    .map((kind) => (kind === 'partial_sum'
+      ? 'partial_sums'
+      : (kind === 'decompose' ? 'decompose_factors' : kind)));
+  const finalTaskKinds = taskKinds.length ? taskKinds : ['decompose_factors', 'partial_cells', 'partial_sums', 'mixed_process', 'final_product'];
+
+  const bank = generatePlaceValueAreaModelBank({
+    count,
+    seed: Number.isInteger(seed) ? seed : 1,
+    min,
+    max,
+    taskKinds: finalTaskKinds
+  });
+  const validation = validateQuestionBank(bank);
+  if (!validation.valid) {
+    console.warn('pvam demo bank invalid', validation.errors);
+    return null;
+  }
+  return bank;
+};
+
+const buildPvamPresetQuestionBank = (preset, settings) => {
+  const config = preset?.pvamDemo;
+  if (!config) return null;
+
+  const countFallback = Math.max(1, Math.min(20, Number(settings?.questionCount) || 10));
+  const count = Math.max(1, Math.min(50, Number(config.count) || countFallback));
+  const seed = Number.isInteger(config.seed) ? config.seed : 1;
+  const min = Math.max(10, Math.min(99, Number(config.min) || 11));
+  const max = Math.max(min, Math.min(99, Number(config.max) || 99));
+  const supportedTaskKinds = new Set(['decompose_factors', 'decompose', 'final_product', 'partial_cells', 'partial_sums', 'partial_sum', 'mixed_process']);
+  const taskKinds = Array.isArray(config.taskKinds)
+    ? config.taskKinds
+        .filter((kind) => supportedTaskKinds.has(kind))
+        .map((kind) => (kind === 'partial_sum'
+          ? 'partial_sums'
+          : (kind === 'decompose' ? 'decompose_factors' : kind)))
+    : [];
+
+  const bank = generatePlaceValueAreaModelBank({
+    count,
+    seed,
+    min,
+    max,
+    taskKinds: taskKinds.length ? taskKinds : ['decompose_factors', 'partial_cells', 'partial_sums', 'mixed_process', 'final_product']
+  });
+  const validation = validateQuestionBank(bank);
+  if (!validation.valid) {
+    console.warn('pvam preset bank invalid', validation.errors);
+    return null;
+  }
+  return bank;
+};
+
 const loadLauncherSetup = () => {
   try {
     const raw = localStorage.getItem(LAUNCHER_SETUP_STORAGE_KEY);
@@ -580,6 +733,38 @@ const loadLauncherSetup = () => {
     console.warn('failed to load launcher setup', err);
     return null;
   }
+};
+
+const buildCsvBankFromLauncherSetup = (launcher) => {
+  const enabled = launcher?.customCsvEnabled === true;
+  const text = typeof launcher?.customCsvText === 'string' ? launcher.customCsvText : '';
+  if (!enabled || !text.trim()) {
+    return { bank: null, message: '' };
+  }
+  const parsed = parseCsvQuestionBank(text);
+  if (!parsed.valid || !parsed.bank) {
+    const error = parsed.errors?.[0] || 'CSV 파싱 실패';
+    return { bank: null, message: `런처 CSV 무시: ${error}` };
+  }
+  const validation = validateQuestionBank(parsed.bank);
+  if (!validation.valid) {
+    return { bank: null, message: `런처 CSV 무시: ${validation.errors[0]}` };
+  }
+  return {
+    bank: parsed.bank,
+    message: `런처 CSV 문제 ${parsed.bank.questions.length}개를 사용합니다.`
+  };
+};
+
+const hydrateCsvBankFromLauncherStorage = () => {
+  const launcher = loadLauncherSetup();
+  if (!launcher) return;
+  const launcherCsv = buildCsvBankFromLauncherSetup(launcher);
+  if (!launcherCsv.bank) return;
+  uploadedCsvQuestionBank = launcherCsv.bank;
+  if (settingsInputs.customEnabled) settingsInputs.customEnabled.value = 'true';
+  if (settingsInputs.customCsvEnabled) settingsInputs.customCsvEnabled.value = 'true';
+  setCustomCsvStatus(launcherCsv.message || `런처 CSV 문제 ${launcherCsv.bank.questions.length}개 로드 완료`, 'success');
 };
 
 const buildLauncherBasicQuizSettings = () => {
@@ -662,13 +847,30 @@ const buildLauncherBasicQuizSettings = () => {
   settings.questionCount = Object.values(settings.questionTypes || {})
     .reduce((sum, cfg) => sum + ((cfg && cfg.enabled) ? (cfg.count || 0) : 0), 0);
   settings.loopQuestions = false;
-  return settings;
+  const launcherCsv = buildCsvBankFromLauncherSetup(launcher);
+  return {
+    settings,
+    launcherCsv
+  };
 };
 
 const maybeAutoStartQuizFromLauncher = () => {
-  const settings = buildLauncherBasicQuizSettings();
-  if (!settings) return false;
-  setLoadStatus('런처 설정으로 기본 퀴즈를 시작합니다.', 'success');
+  const launcherConfig = buildLauncherBasicQuizSettings();
+  if (!launcherConfig) return false;
+  const { settings, launcherCsv } = launcherConfig;
+  if (launcherCsv?.bank) {
+    uploadedCsvQuestionBank = launcherCsv.bank;
+    settings.customQuestionMode = true;
+    settings.customCsvMode = true;
+    settings.customQuestionIds = [];
+    settings.questionCount = launcherCsv.bank.questions.length;
+    setLoadStatus(launcherCsv.message || '런처 CSV 문제를 불러왔습니다.', 'success');
+  } else if (launcherCsv?.message) {
+    uploadedCsvQuestionBank = null;
+    setLoadStatus(launcherCsv.message, 'fail');
+  } else {
+    setLoadStatus('런처 설정으로 기본 퀴즈를 시작합니다.', 'success');
+  }
   startQuizWithSettings(settings, false);
   return true;
 };
@@ -720,6 +922,80 @@ const parseCustomIds = (value) => {
     .split(/[\n,]+/)
     .map((entry) => entry.trim())
     .filter((entry) => entry.length > 0);
+};
+
+const setCustomCsvStatus = (message, type) => {
+  if (!customCsvStatusEl) return;
+  customCsvStatusEl.textContent = message || '';
+  customCsvStatusEl.classList.remove('success', 'fail', 'warn');
+  if (type) customCsvStatusEl.classList.add(type);
+};
+
+const clearCsvQuestionBank = ({ silent = false } = {}) => {
+  uploadedCsvQuestionBank = null;
+  if (settingsInputs.customCsvEnabled) {
+    settingsInputs.customCsvEnabled.value = 'false';
+  }
+  if (customCsvFileInput) {
+    customCsvFileInput.value = '';
+  }
+  if (!silent) {
+    setCustomCsvStatus('업로드된 CSV 문제를 해제했습니다.', 'warn');
+  }
+  applyQuestionModeUI();
+};
+
+const isTextChoiceQuestion = (question) => (
+  question?.renderKind === 'text_choice'
+  || question?.type === 'csv_choice'
+);
+
+const isTextShortAnswerQuestion = (question) => (
+  question?.renderKind === 'text_short_answer'
+  || question?.type === 'csv_subjective'
+);
+
+const buildCsvTemplate = () => [
+  ['문제 내용', '선택지1', '선택지2', '선택지3(선택)', '선택지4(선택)', '정답번호', '문제시간(초)', '정답인정단어', '단어포함시정답처리여부'],
+  ['37 x 24의 값을 고르세요.', '888', '740', '148', '628', '1', '20', '', ''],
+  ['(30+7) x (20+4) 에서 30x4는?', '120', '140', '600', '28', '1', '15', '', ''],
+  ['세종대왕의 이름을 쓰세요.', '', '', '', '', '', '0', '세종,세종대왕', 'Y']
+].map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(',')).join('\n');
+
+const loadCsvQuestionBankFromFile = async (file) => {
+  if (!file) {
+    setCustomCsvStatus('CSV 파일을 선택해 주세요.', 'fail');
+    return;
+  }
+  const name = String(file.name || '').toLowerCase();
+  if (!name.endsWith('.csv')) {
+    setCustomCsvStatus('CSV 확장자 파일만 업로드할 수 있습니다.', 'fail');
+    return;
+  }
+  const text = await file.text();
+  const parsed = parseCsvQuestionBank(text);
+  if (!parsed.valid || !parsed.bank) {
+    const firstError = parsed.errors?.[0] || 'CSV 파싱 실패';
+    setCustomCsvStatus(firstError, 'fail');
+    return;
+  }
+  const validation = validateQuestionBank(parsed.bank);
+  if (!validation.valid) {
+    setCustomCsvStatus(`문제 형식 오류: ${validation.errors[0]}`, 'fail');
+    return;
+  }
+
+  uploadedCsvQuestionBank = parsed.bank;
+  if (settingsInputs.customCsvEnabled) settingsInputs.customCsvEnabled.value = 'true';
+  if (settingsInputs.customEnabled) settingsInputs.customEnabled.value = 'true';
+  applyQuestionModeUI();
+
+  const warning = parsed.warnings?.[0] ? ` · 참고: ${parsed.warnings[0]}` : '';
+  setCustomCsvStatus(
+    `CSV 문제 ${uploadedCsvQuestionBank.questions.length}개 로드 완료${warning}`,
+    'success'
+  );
+  setLoadStatus(`CSV 문제 ${uploadedCsvQuestionBank.questions.length}개를 사용할 준비가 되었습니다.`, 'success');
 };
 
 const getTotalTypeCount = () => {
@@ -874,14 +1150,22 @@ const renderCustomQuestionList = () => {
 const updateCustomPanelVisibility = () => {
   if (!customPanelEl || !settingsInputs.customEnabled) return;
   const enabled = settingsInputs.customEnabled.value === 'true';
+  const csvMode = settingsInputs.customCsvEnabled?.value === 'true'
+    && uploadedCsvQuestionBank?.questions?.length > 0;
   customPanelEl.classList.toggle('hidden', !enabled);
   if (enabled) {
-    renderCustomQuestionList();
+    if (!csvMode) renderCustomQuestionList();
+  }
+  customPanelEl.classList.toggle('csv-loaded', Boolean(csvMode));
+  if (csvMode && customCsvStatusEl && !customCsvStatusEl.textContent.trim()) {
+    setCustomCsvStatus(`CSV 문제 ${uploadedCsvQuestionBank.questions.length}개가 적용됩니다.`, 'success');
   }
 };
 
 const applyQuestionModeUI = () => {
   const isCustom = settingsInputs.customEnabled?.value === 'true';
+  const csvMode = settingsInputs.customCsvEnabled?.value === 'true'
+    && uploadedCsvQuestionBank?.questions?.length > 0;
   if (modeButtons.length) {
     modeButtons.forEach((btn) => {
       const mode = btn.dataset.modeSelect;
@@ -889,9 +1173,17 @@ const applyQuestionModeUI = () => {
     });
   }
   if (modeHelp) {
-    modeHelp.textContent = isCustom
-      ? '현재: 교사 커스텀 문제 사용 중 (전개도 문제 세트는 반영되지 않음)'
-      : '현재: 전개도 문제 세트 사용 중 (교사 커스텀 문제는 반영되지 않음)';
+    if (csvToolMode) {
+      modeHelp.textContent = csvMode
+        ? `현재: CSV 업로드 문제 사용 중 (${uploadedCsvQuestionBank.questions.length}문항)`
+        : '현재: CSV 업로드 대기 중';
+    } else if (!isCustom) {
+      modeHelp.textContent = '현재: 전개도 문제 세트 사용 중 (교사 커스텀 문제는 반영되지 않음)';
+    } else if (csvMode) {
+      modeHelp.textContent = `현재: CSV 업로드 문제 사용 중 (${uploadedCsvQuestionBank.questions.length}문항)`;
+    } else {
+      modeHelp.textContent = '현재: 교사 커스텀 문제 사용 중 (전개도 문제 세트는 반영되지 않음)';
+    }
   }
   if (typeToggle) {
     typeToggle.disabled = isCustom;
@@ -905,6 +1197,34 @@ const applyQuestionModeUI = () => {
   }
   updateCountConfirmStatus();
   updateCustomPanelVisibility();
+};
+
+const applyCsvToolModeUI = () => {
+  if (!csvToolMode) return;
+  document.body.classList.add('csv-tool-mode');
+  if (quizAppTitleEl) {
+    quizAppTitleEl.textContent = 'CSV 문제 생성 퀴즈';
+  }
+  if (appModeBannerEl) {
+    appModeBannerEl.textContent = 'CSV 문제 생성 전용 모드입니다. 기존 문제은행 선택 기능은 숨김 처리됩니다.';
+    appModeBannerEl.classList.remove('hidden');
+  }
+  if (advancedSettings) {
+    advancedSettings.classList.remove('hidden');
+  }
+  if (advancedToggle) {
+    advancedToggle.classList.add('hidden');
+  }
+  if (settingsInputs.customEnabled) {
+    settingsInputs.customEnabled.value = 'true';
+  }
+  if (uploadedCsvQuestionBank?.questions?.length && settingsInputs.customCsvEnabled) {
+    settingsInputs.customCsvEnabled.value = 'true';
+  }
+  applyQuestionModeUI();
+  if (!uploadedCsvQuestionBank?.questions?.length) {
+    setLoadStatus('CSV 문제 생성 모드입니다. 문제양식 업로드 후 시작하세요.', null);
+  }
 };
 
 const invalidateConfirmedCounts = () => {
@@ -1212,6 +1532,22 @@ const openPresetModal = (preset) => {
   }
   if (presetSummary && defaultSettings) {
     const merged = mergeSettings(defaultSettings, preset.settings || {});
+    if (preset?.pvamDemo) {
+      const config = preset.pvamDemo;
+      const taskKinds = Array.isArray(config.taskKinds) && config.taskKinds.length
+        ? config.taskKinds.join(', ')
+        : 'final_product, partial_cells';
+      const lines = [
+        '모드: 자릿값 기반 직사각형 영역모델 곱셈(구조화 입력)',
+        `문항 수: ${config.count ?? 10}`,
+        `범위: ${config.min ?? 11} ~ ${config.max ?? 99} (2자리 x 2자리)`,
+        `문항 종류: ${taskKinds}`,
+        `선택지 퀴즈와 별도 데모 bank로 시작`
+      ];
+      presetSummary.innerHTML = `<ul>${lines.map((line) => `<li>${line}</li>`).join('')}</ul>`;
+      presetModal.classList.remove('hidden');
+      return;
+    }
     const typeCounts = Object.entries(merged.questionTypes || {})
       .filter(([, cfg]) => cfg.enabled && (cfg.count ?? 0) > 0)
       .map(([key, cfg]) => {
@@ -1222,9 +1558,11 @@ const openPresetModal = (preset) => {
       ? typeCounts.map((item) => `${item.label} ${item.count}`).join(', ')
       : '없음';
     const totalCount = typeCounts.reduce((sum, item) => sum + item.count, 0);
-    const customSummary = merged.customQuestionMode
-      ? `문제 직접 선택 및 출제: ${merged.customQuestionIds?.length || 0}개`
-      : '문제 직접 선택 및 출제: 사용 안 함';
+    const customSummary = merged.customCsvMode
+      ? `CSV 업로드 문제 사용: ${uploadedCsvQuestionBank?.questions?.length || 0}개`
+      : (merged.customQuestionMode
+        ? `문제 직접 선택 및 출제: ${merged.customQuestionIds?.length || 0}개`
+        : '문제 직접 선택 및 출제: 사용 안 함');
     const lines = [
       `플레이어: ${merged.playerCount ?? 1}`,
       `종료 기준: ${merged.quizEndMode === 'time' ? `시간 ${merged.quizTimeLimitSec || 0}초` : `문제 ${totalCount}문제`}`,
@@ -1257,7 +1595,12 @@ const applyPresetAndStart = () => {
   applyDefaultSettings(merged);
   syncRepeatSetting();
   updateCustomPanelVisibility();
+  const pvamPresetBank = buildPvamPresetQuestionBank(pendingPreset, merged);
   closePresetModal();
+  if (pvamPresetBank) {
+    startQuizWithSettings(merged, false, pvamPresetBank);
+    return;
+  }
   startQuiz();
 };
 
@@ -1316,7 +1659,11 @@ const openBasicModal = (modeKey) => {
   if (!mode) return;
   pendingBasicMode = modeKey;
   if (basicTitle) basicTitle.textContent = mode.label;
-  if (basicDesc) basicDesc.textContent = '인원, 시간/문제 수, 보너스를 조정할 수 있어요.';
+  if (basicDesc) {
+    basicDesc.textContent = mode.pvamDemo
+      ? '인원과 문제 수를 조정해 자릿값 영역모델 곱셈 퀴즈를 시작합니다.'
+      : '인원, 시간/문제 수, 보너스를 조정할 수 있어요.';
+  }
   if (basicPlayers) basicPlayers.value = '1';
   if (basicRanking) basicRanking.value = mode.settings.rankingEnabled ? 'true' : 'false';
   if (basicGame) basicGame.value = 'quiz';
@@ -1351,7 +1698,11 @@ const applyBasicMode = () => {
   if (!pendingBasicMode || !defaultSettings) return;
   const mode = basicModes[pendingBasicMode];
   if (!mode) return;
-  if (basicDesc) basicDesc.textContent = '인원, 시간/문제 수, 보너스를 조정할 수 있어요.';
+  if (basicDesc) {
+    basicDesc.textContent = mode.pvamDemo
+      ? '인원과 문제 수를 조정해 자릿값 영역모델 곱셈 퀴즈를 시작합니다.'
+      : '인원, 시간/문제 수, 보너스를 조정할 수 있어요.';
+  }
   const isTimeMode = mode.settings.quizEndMode === 'time';
   const timeValue = Math.max(0, Number(basicTime?.value) || 0);
   const countValue = Math.max(0, Number(basicCount?.value) || 0);
@@ -1388,12 +1739,28 @@ const applyBasicMode = () => {
   if (basicTimeBonusPer) merged.score.timeBonusPerSec = Math.max(0, Number(basicTimeBonusPer.value) || 0);
   if (basicTimeBonusCap) merged.score.timeBonusMaxRatio = Math.max(0, Number(basicTimeBonusCap.value) || 0);
 
+  let pvamDemoBank = null;
+  if (mode.pvamDemo) {
+    const pvamMode = {
+      ...mode,
+      pvamDemo: {
+        ...mode.pvamDemo,
+        count: (!isTimeMode && countValue > 0) ? countValue : (mode.pvamDemo.count ?? 10)
+      }
+    };
+    pvamDemoBank = buildPvamPresetQuestionBank(pvamMode, merged);
+    if (!pvamDemoBank) {
+      if (basicDesc) basicDesc.textContent = '영역모델 데모 문제 생성에 실패했습니다.';
+      return;
+    }
+  }
+
   closeBasicModal();
   if (playerCount === 2 && twoPlayerLayout === '1x2') {
     openFaceModal(merged);
     return;
   }
-  startQuizWithSettings(merged, false);
+  startQuizWithSettings(merged, false, pvamDemoBank || undefined);
 };
 
 const startWithFaceSetting = (faceToFace) => {
@@ -1462,6 +1829,9 @@ const readSettings = () => {
   const groupNames = parseGroupNames(groupNamesInput?.value || '');
   const rankingEnabled = settingsInputs.ranking?.value === 'true';
   const customQuestionMode = settingsInputs.customEnabled?.value === 'true';
+  const customCsvMode = customQuestionMode
+    && settingsInputs.customCsvEnabled?.value === 'true'
+    && uploadedCsvQuestionBank?.questions?.length > 0;
   const customQuestionIds = settingsInputs.customIds
     ? parseCustomIds(settingsInputs.customIds.value || '')
     : collectCustomSelectedIds();
@@ -1504,6 +1874,7 @@ const readSettings = () => {
     groupNames,
     rankingEnabled,
     customQuestionMode,
+    customCsvMode,
     customQuestionIds,
     questionTypes,
     timeLimitSec: Number(settingsInputs.time.value) || 0,
@@ -1543,11 +1914,58 @@ const closeZoom = () => {
   zoomModal.classList.add('hidden');
 };
 
+const renderTextShortAnswerQuestion = ({ choicesEl, question, onSubmit }) => {
+  if (!choicesEl || !isTextShortAnswerQuestion(question)) return;
+  const root = document.createElement('div');
+  root.className = 'short-answer-widget';
+
+  const description = document.createElement('div');
+  description.className = 'short-answer-desc';
+  description.textContent = '답을 직접 입력하고 제출하세요.';
+  root.appendChild(description);
+
+  const inputRow = document.createElement('div');
+  inputRow.className = 'short-answer-row';
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.autocomplete = 'off';
+  input.spellcheck = false;
+  input.className = 'short-answer-input';
+  input.placeholder = '정답 입력';
+  input.setAttribute('aria-label', '주관식 정답 입력');
+
+  const submitBtn = document.createElement('button');
+  submitBtn.type = 'button';
+  submitBtn.className = 'primary short-answer-submit';
+  submitBtn.textContent = '제출';
+
+  const submit = () => {
+    if (typeof onSubmit !== 'function') return;
+    onSubmit(input.value || '');
+  };
+
+  submitBtn.addEventListener('click', submit);
+  input.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    submit();
+  });
+
+  inputRow.append(input, submitBtn);
+  root.appendChild(inputRow);
+  choicesEl.innerHTML = '';
+  choicesEl.classList.add('structured-choices');
+  choicesEl.style.removeProperty('height');
+  choicesEl.appendChild(root);
+  requestAnimationFrame(() => input.focus());
+};
+
 const updateChoiceLayout = (card) => {
   if (!card) return;
   const choicesEl = card.querySelector('[data-role="choices"]');
   const questionImg = card.querySelector('[data-role="question-img"]');
   if (!choicesEl || !questionImg) return;
+  if (choicesEl.classList.contains('structured-choices')) return;
   const count = choicesEl.children.length;
   if (!count) return;
 
@@ -1751,20 +2169,42 @@ const createPlayerSession = ({ index, studentId, groupName, settings, questionBa
     if (accuracyEl) accuracyEl.textContent = `${accuracy}%`;
   };
 
+  const resolveQuestionTimeLimitSec = (question) => {
+    const questionRaw = question?.timeLimitSec;
+    if (questionRaw == null || questionRaw === '') {
+      return Math.max(0, Number(engine.getState().settings.timeLimitSec) || 0);
+    }
+    const parsed = Number(questionRaw);
+    if (!Number.isFinite(parsed)) {
+      return Math.max(0, Number(engine.getState().settings.timeLimitSec) || 0);
+    }
+    return Math.max(0, parsed);
+  };
+
   const renderQuestion = (question) => {
-    currentQuestion = fixChoices(question);
-    card.classList.toggle('no-question', currentQuestion.type === 'validity');
+    const structuredQuestion = isPlaceValueAreaModelQuestion(question);
+    const shortAnswerQuestion = isTextShortAnswerQuestion(question);
+    currentQuestion = structuredQuestion ? { ...question } : fixChoices(question);
+    const textChoiceQuestion = isTextChoiceQuestion(currentQuestion);
+    card.classList.toggle(
+      'no-question',
+      currentQuestion.type === 'validity' || structuredQuestion || textChoiceQuestion || shortAnswerQuestion
+    );
     if (promptEl) {
       if (currentQuestion.type === 'validity') {
         promptEl.textContent = currentQuestion.mode === 'invalid'
           ? '잘못된 형태의 전개도를 고르세요'
           : '올바른 형태의 전개도를 고르세요';
+      } else if (shortAnswerQuestion) {
+        promptEl.textContent = currentQuestion.prompt || currentQuestion.question || '문항';
+      } else if (textChoiceQuestion) {
+        promptEl.textContent = currentQuestion.prompt || currentQuestion.question || '문항';
       } else {
         promptEl.textContent = currentQuestion.prompt;
       }
     }
     if (questionImg && questionFrame) {
-      if (currentQuestion.type === 'validity') {
+      if (currentQuestion.type === 'validity' || structuredQuestion || textChoiceQuestion || shortAnswerQuestion) {
         questionFrame.style.display = 'none';
         questionImg.removeAttribute('src');
       } else {
@@ -1773,38 +2213,64 @@ const createPlayerSession = ({ index, studentId, groupName, settings, questionBa
         questionImg.onload = () => requestAnimationFrame(() => updateChoiceLayout(card));
       }
     }
-    if (choicesEl) choicesEl.innerHTML = '';
+    if (choicesEl) {
+      choicesEl.innerHTML = '';
+      if (!structuredQuestion) choicesEl.classList.remove('structured-choices');
+      choicesEl.style.removeProperty('height');
+    }
     setFeedback('', null);
     locked = false;
 
-    currentQuestion.choices.forEach((choice, idx) => {
-      const btn = document.createElement('button');
-      const choiceIndex = (idx % 4) + 1;
-      btn.className = `choice-btn choice-color-${choiceIndex}`;
-      btn.dataset.choice = choice;
-      const badge = document.createElement('span');
-      badge.className = 'choice-badge';
-      badge.textContent = `${idx + 1}`;
-      const img = document.createElement('img');
-      img.src = `./nets/${choice}`;
-      img.alt = 'choice';
-      img.onload = () => requestAnimationFrame(() => updateChoiceLayout(card));
-      btn.appendChild(badge);
-      btn.appendChild(img);
-      btn.addEventListener('click', () => handleAnswer(choice, false));
-      choicesEl?.appendChild(btn);
-    });
+    if (structuredQuestion) {
+      renderPlaceValueAreaModelQuestion({
+        choicesEl,
+        question: currentQuestion,
+        onSubmit: (answerInput) => handleAnswer(answerInput, false)
+      });
+    } else if (shortAnswerQuestion) {
+      renderTextShortAnswerQuestion({
+        choicesEl,
+        question: currentQuestion,
+        onSubmit: (answerInput) => handleAnswer(answerInput, false)
+      });
+    } else {
+      currentQuestion.choices.forEach((choice, idx) => {
+        const btn = document.createElement('button');
+        const choiceIndex = (idx % 4) + 1;
+        btn.className = `choice-btn choice-color-${choiceIndex}`;
+        btn.dataset.choice = choice;
+        const badge = document.createElement('span');
+        badge.className = 'choice-badge';
+        badge.textContent = `${idx + 1}`;
+        btn.appendChild(badge);
+        if (textChoiceQuestion) {
+          btn.classList.add('choice-btn-text');
+          const label = document.createElement('span');
+          label.className = 'choice-text';
+          label.textContent = choice;
+          btn.appendChild(label);
+        } else {
+          const img = document.createElement('img');
+          img.src = `./nets/${choice}`;
+          img.alt = 'choice';
+          img.onload = () => requestAnimationFrame(() => updateChoiceLayout(card));
+          btn.appendChild(img);
+        }
+        btn.addEventListener('click', () => handleAnswer(choice, false));
+        choicesEl?.appendChild(btn);
+      });
 
-    requestAnimationFrame(() => updateChoiceLayout(card));
+      requestAnimationFrame(() => updateChoiceLayout(card));
+    }
+    const questionTimeLimitSec = resolveQuestionTimeLimitSec(currentQuestion);
     if (settings.quizEndMode !== 'time') {
-      startTimer(engine.getState().settings.timeLimitSec);
+      startTimer(questionTimeLimitSec);
     } else {
       clearQuestionTimeout();
-      const limitSec = engine.getState().settings.timeLimitSec;
-      if (limitSec > 0) {
+      if (questionTimeLimitSec > 0) {
         questionTimeoutId = setTimeout(() => {
           handleAnswer(null, true);
-        }, limitSec * 1000);
+        }, questionTimeLimitSec * 1000);
       }
     }
   };
@@ -1883,6 +2349,23 @@ const createPlayerSession = ({ index, studentId, groupName, settings, questionBa
       if (value === currentQuestion.answer) btn.classList.add('correct');
       if (value === choice && value !== currentQuestion.answer) btn.classList.add('wrong');
     });
+    if (result.answerKind === 'structured') {
+      const wrongFields = new Set(result.wrongFields || []);
+      const structuredInputs = [...(choicesEl?.querySelectorAll('[data-structured-input]') || [])];
+      structuredInputs.forEach((inputEl) => {
+        inputEl.classList.remove('is-correct', 'is-wrong');
+        if (result.correct) {
+          inputEl.classList.add('is-correct');
+          return;
+        }
+        const fieldId = inputEl.dataset.structuredInput || '';
+        if (wrongFields.has(fieldId)) {
+          inputEl.classList.add('is-wrong');
+        } else {
+          inputEl.classList.add('is-correct');
+        }
+      });
+    }
 
     if (result.correct) {
       setFeedback('정답입니다!', 'success');
@@ -2190,17 +2673,29 @@ document.addEventListener('keydown', (event) => {
 const startQuizWithSettings = (settings, faceToFace, customBank) => {
   sessionSettings = { ...settings, faceToFace };
   if (logOutputEl) logOutputEl.value = '';
+  const csvCustomBank = settings.customCsvMode && uploadedCsvQuestionBank?.questions?.length
+    ? uploadedCsvQuestionBank
+    : null;
+  const pvamDemoBank = (!customBank && !settings.customQuestionMode)
+    ? buildPvamDemoQuestionBank(settings)
+    : null;
   const customBankFromIds = settings.customQuestionMode && settings.customQuestionIds?.length
     ? buildCustomQuestionBank(settings.customQuestionIds)
     : null;
-  if (settings.customQuestionMode && settings.customQuestionIds?.length && customBankFromIds?.questions?.length) {
+  if (csvCustomBank) {
+    questionBank = csvCustomBank;
+    setLoadStatus(`CSV 업로드 문제로 시작합니다. (${questionBank.questions.length}문항)`, 'success');
+  } else if (settings.customQuestionMode && settings.customQuestionIds?.length && customBankFromIds?.questions?.length) {
     questionBank = customBankFromIds;
     setLoadStatus('커스텀 문제로 시작합니다.', 'success');
   } else if (settings.customQuestionMode && settings.customQuestionIds?.length) {
     questionBank = buildWeightedQuestionBank(banks, settings);
     setLoadStatus('커스텀 문제를 찾지 못했습니다. 일반 출제로 시작합니다.', 'fail');
   } else {
-    questionBank = customBank || buildWeightedQuestionBank(banks, settings);
+    questionBank = customBank || pvamDemoBank || buildWeightedQuestionBank(banks, settings);
+    if (pvamDemoBank) {
+      setLoadStatus(`영역모델 데모 문제로 시작합니다. (${questionBank.questions.length}문항)`, 'success');
+    }
   }
   settings.questionCount = questionBank.questions.length;
   settings.loopQuestions = settings.quizEndMode === 'time';
@@ -2274,6 +2769,10 @@ const startQuizWithSettings = (settings, faceToFace, customBank) => {
 };
 
 const startQuiz = () => {
+  if (csvToolMode && !(uploadedCsvQuestionBank?.questions?.length > 0)) {
+    setLoadStatus('CSV 문제를 먼저 업로드해 주세요.', 'fail');
+    return;
+  }
   const settings = readSettings();
   if (settings.playerCount === 2 && settings.twoPlayerLayout === '1x2') {
     openFaceModal(settings);
@@ -2333,6 +2832,8 @@ const init = async () => {
   validityShapePools.cuboid = validityPools.cuboid;
   defaultSettings = await loadJson('./data/quiz-settings.default.json');
   applyDefaultSettings(defaultSettings);
+  hydrateCsvBankFromLauncherStorage();
+  applyCsvToolModeUI();
   customPresets = loadCustomPresets();
   renderPresets();
   renderSavedWrongs();
@@ -2342,6 +2843,7 @@ const init = async () => {
   syncRepeatSetting();
   settingsInputs.mode?.addEventListener('change', syncRepeatSetting);
   settingsInputs.customEnabled?.addEventListener('change', updateCustomPanelVisibility);
+  settingsInputs.customCsvEnabled?.addEventListener('change', applyQuestionModeUI);
   settingsInputs.customIds?.addEventListener('input', syncCustomCheckboxes);
   Object.values(typeInputs).forEach((fields) => {
     fields.enabled?.addEventListener('change', () => {
@@ -2353,22 +2855,48 @@ const init = async () => {
   confirmTypeCountsBtn?.addEventListener('click', confirmTypeCounts);
   customRandomBtn?.addEventListener('click', handleRandomCustomSelection);
   customClearBtn?.addEventListener('click', clearCustomSelection);
+  customCsvFileInput?.addEventListener('change', async () => {
+    const [file] = customCsvFileInput.files || [];
+    try {
+      await loadCsvQuestionBankFromFile(file);
+    } catch (error) {
+      console.error(error);
+      setCustomCsvStatus('CSV 파일을 읽는 중 오류가 발생했습니다.', 'fail');
+    }
+  });
+  customCsvClearBtn?.addEventListener('click', () => clearCsvQuestionBank());
+  customCsvTemplateBtn?.addEventListener('click', (event) => {
+    event.preventDefault();
+    const content = buildCsvTemplate();
+    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'knolquiz-question-template.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+  });
   updateCustomPanelVisibility();
 
   basicFiveBtn?.addEventListener('click', () => openBasicModal('5min'));
   basicTwelveBtn?.addEventListener('click', () => openBasicModal('12q'));
+  basicPvamBtn?.addEventListener('click', () => openBasicModal('pvam'));
   if (advancedToggle && advancedSettings) {
     const setAdvancedOpen = (open) => {
       advancedSettings.classList.toggle('hidden', !open);
       advancedToggle.textContent = open ? '퀴즈 설계 닫기' : '퀴즈 설계하기';
       advancedToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
     };
-    let advancedOpen = false;
+    let advancedOpen = csvToolMode;
     setAdvancedOpen(advancedOpen);
-    advancedToggle.addEventListener('click', () => {
-      advancedOpen = !advancedOpen;
-      setAdvancedOpen(advancedOpen);
-    });
+    if (!csvToolMode) {
+      advancedToggle.addEventListener('click', () => {
+        advancedOpen = !advancedOpen;
+        setAdvancedOpen(advancedOpen);
+      });
+    } else {
+      advancedToggle.classList.add('hidden');
+    }
   }
   if (typeToggle && typeGrid) {
     const setTypeOpen = (open) => {

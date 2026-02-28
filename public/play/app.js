@@ -87,6 +87,12 @@ const renderSummary = (box, setup) => {
     ['플레이 인원', `${setup.players}명`],
     ['게임', GAME_LABELS[setup.gameMode] || setup.gameMode],
     ['퀴즈', QUIZ_PRESET_LABELS[setup.quizPresetId] || setup.quizPresetId],
+    [
+      '문제 소스',
+      setup.customCsvEnabled && typeof setup.customCsvText === 'string' && setup.customCsvText.trim()
+        ? `CSV 업로드 (${setup.customCsvFileName || '이름 없음'})`
+        : '기본 프리셋'
+    ],
     ['캐릭터', setup.gameMode === 'jumpmap' ? (CHARACTER_LABELS[setup.characterId] || setup.characterId) : '사용 안 함'],
     ['스타트 후보', setup.gameMode === 'jumpmap' ? (setup.jumpmapStartPointId || '시작지점') : '해당 없음'],
     [

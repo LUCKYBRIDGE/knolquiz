@@ -7,10 +7,11 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <header>전개도 퀴즈 MVP</header>
+    <header id="quiz-app-title">전개도 퀴즈 MVP</header>
     <main>
       <section class="card" id="settings-card">
         <h2>퀴즈 설정</h2>
+        <div class="mode-banner hidden" id="app-mode-banner"></div>
         <div class="settings-group">
           <div class="group-title">기본 모드</div>
           <div class="group-note">버튼을 누르면 바로 시작합니다.</div>
@@ -23,6 +24,10 @@
           <button class="preset-btn preset-hero" type="button" id="basic-12q">
             <span class="preset-hero-title">기본 모드(12문제)</span>
             <span class="preset-hero-sub">전개도 학습 · 균등 12문제</span>
+          </button>
+          <button class="preset-btn preset-hero" type="button" id="basic-pvam">
+            <span class="preset-hero-title">영역모델 곱셈 데모</span>
+            <span class="preset-hero-sub">자릿값 기반 · 과정/결과 혼합</span>
           </button>
         </div>
         <button class="secondary name-manage-toggle" type="button" id="name-manage-toggle">
@@ -241,10 +246,22 @@
           <div class="settings-block tone-teal">
             <div class="settings-group">
               <div class="group-title">교사 커스텀 문제</div>
-              <div class="group-note">문제 ID를 쉼표 또는 줄바꿈으로 입력하세요.</div>
+              <div class="group-note">CSV 업로드 또는 문제 ID 직접 선택으로 출제할 수 있습니다.</div>
             </div>
             <input type="hidden" id="setting-custom-enabled" value="false" />
+            <input type="hidden" id="setting-custom-csv-enabled" value="false" />
+            <input type="hidden" id="setting-custom-ids" value="" />
             <div class="custom-panel hidden" id="custom-panel">
+              <div class="csv-upload" id="csv-upload-panel">
+                <div class="csv-upload-header">CSV 업로드</div>
+                <div class="group-note">헤더: 문제 내용, 선택지1, 선택지2, 선택지3(선택), 선택지4(선택), 정답번호, 문제시간(초), 정답인정단어, 단어포함시정답처리여부</div>
+                <input type="file" id="custom-csv-file" accept=".csv,text/csv" />
+                <div class="csv-upload-actions">
+                  <button class="secondary" type="button" id="custom-csv-template">CSV 양식 다운로드</button>
+                  <button class="secondary" type="button" id="custom-csv-clear">CSV 해제</button>
+                </div>
+                <div class="csv-upload-status" id="custom-csv-status"></div>
+              </div>
               <div class="custom-actions">
                 <button class="secondary" type="button" id="custom-random">랜덤 선택</button>
                 <div class="custom-count">

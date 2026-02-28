@@ -233,6 +233,42 @@
         color: #5a4b3e;
         margin-top: 2px;
       }
+      .csv-tools {
+        display: grid;
+        gap: 8px;
+      }
+      .csv-tools-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .csv-tool-btn {
+        border: 2px solid var(--line);
+        background: #fffdf6;
+        border-radius: 12px;
+        min-height: 44px;
+        font-weight: 900;
+        cursor: pointer;
+        font: inherit;
+      }
+      .csv-tool-btn:hover { transform: translateY(-1px); }
+      .csv-file-input {
+        width: 100%;
+        border: 2px solid rgba(47, 38, 31, 0.7);
+        border-radius: 10px;
+        background: #fff;
+        min-height: 42px;
+        padding: 8px 10px;
+        font: inherit;
+      }
+      .csv-file-input.hidden-input { display: none; }
+      .csv-status {
+        font-size: 13px;
+        font-weight: 800;
+        color: #4b3f35;
+      }
+      .csv-status.success { color: #166534; }
+      .csv-status.fail { color: #b91c1c; }
       .summary {
         display: grid;
         gap: 10px;
@@ -322,6 +358,22 @@
           </div>
 
           <div class="section">
+            <div class="section-title">2-1. 문제 양식/업로드</div>
+            <div class="csv-tools">
+              <div class="csv-tools-row">
+                <button type="button" class="csv-tool-btn" id="csv-template-btn">문제양식 다운받기</button>
+                <button type="button" class="csv-tool-btn" id="csv-upload-btn">문제 업로드하기</button>
+              </div>
+              <div class="csv-tools-row">
+                <button type="button" class="csv-tool-btn" id="csv-clear-btn">업로드 해제</button>
+                <div class="note" style="display:flex;align-items:center;justify-content:center;">CSV 업로드 시 기본 퀴즈에 반영</div>
+              </div>
+              <input type="file" id="csv-file-input" class="csv-file-input hidden-input" accept=".csv,text/csv" />
+              <div class="csv-status" id="csv-status">현재 업로드된 CSV 없음</div>
+            </div>
+          </div>
+
+          <div class="section">
             <div class="section-title">3. 게임 선택</div>
             <div class="game-buttons" id="game-buttons"></div>
           </div>
@@ -358,7 +410,8 @@
             <button class="start-btn" id="start-btn" type="button">바로 시작</button>
             <div class="tool-links">
               <a class="tool-link" href="./jumpmap-editor/">맵 에디터 (개발도구)</a>
-              <a class="tool-link" href="./quiz/">퀴즈 앱 (개발도구)</a>
+              <a class="tool-link" href="./quiz/">기존 문제은행 퀴즈 앱 (개발도구)</a>
+              <a class="tool-link" href="./quiz/?mode=csv">CSV 문제 생성 퀴즈 (신규)</a>
               <a class="tool-link" href="./play/records/">로컬 기록 보기</a>
             </div>
             <div class="note">현재 점프맵 런타임 분리 작업 중입니다. 사용자 플레이는 운영 경로를 우선 사용하고, 일부 경계 구간은 레거시 호환 모드로 연결됩니다.</div>
@@ -421,6 +474,9 @@
           quizPresetId: 'jumpmap-net-30',
           characterId: 'sejong',
           jumpmapStartPointId: '',
+          customCsvEnabled: false,
+          customCsvText: '',
+          customCsvFileName: '',
           playerNames: ['사용자1'],
           playerTags: ['']
         });
@@ -442,9 +498,13 @@
           startBtn: document.getElementById('start-btn'),
           characterSection: document.getElementById('character-section'),
           characterSelect: document.getElementById('character-select'),
-          startPointSelect: document.getElementById('startpoint-select')
-          ,
-          startPointNote: document.getElementById('startpoint-note')
+          startPointSelect: document.getElementById('startpoint-select'),
+          startPointNote: document.getElementById('startpoint-note'),
+          csvTemplateBtn: document.getElementById('csv-template-btn'),
+          csvUploadBtn: document.getElementById('csv-upload-btn'),
+          csvClearBtn: document.getElementById('csv-clear-btn'),
+          csvFileInput: document.getElementById('csv-file-input'),
+          csvStatus: document.getElementById('csv-status')
         };
 
         renderAll();
@@ -465,6 +525,44 @@
         });
         els.startPointSelect.addEventListener('change', (e) => {
           state.jumpmapStartPointId = String(e.target.value || '');
+          persistAndRefresh();
+        });
+        els.csvTemplateBtn?.addEventListener('click', () => {
+          const content = buildCsvTemplate();
+          const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'knolquiz-question-template.csv';
+          link.click();
+          URL.revokeObjectURL(url);
+        });
+        els.csvUploadBtn?.addEventListener('click', () => {
+          els.csvFileInput?.click();
+        });
+        els.csvClearBtn?.addEventListener('click', () => {
+          state.customCsvEnabled = false;
+          state.customCsvText = '';
+          state.customCsvFileName = '';
+          if (els.csvFileInput) els.csvFileInput.value = '';
+          persistAndRefresh();
+        });
+        els.csvFileInput?.addEventListener('change', async (event) => {
+          const file = event?.target?.files?.[0];
+          if (!file) return;
+          if (!String(file.name || '').toLowerCase().endsWith('.csv')) {
+            updateCsvStatus('CSV 파일(.csv)만 업로드할 수 있습니다.', 'fail');
+            return;
+          }
+          const text = await file.text();
+          const headerCheck = hasCsvCoreHeaders(text);
+          if (!headerCheck.ok) {
+            updateCsvStatus(headerCheck.message, 'fail');
+            return;
+          }
+          state.customCsvEnabled = true;
+          state.customCsvText = text;
+          state.customCsvFileName = file.name || '';
           persistAndRefresh();
         });
 
@@ -512,6 +610,13 @@
             return tag.trim();
           });
           target.jumpmapStartPointId = typeof target.jumpmapStartPointId === 'string' ? target.jumpmapStartPointId : '';
+          target.customCsvEnabled = target.customCsvEnabled === true;
+          target.customCsvText = typeof target.customCsvText === 'string' ? target.customCsvText : '';
+          target.customCsvFileName = typeof target.customCsvFileName === 'string' ? target.customCsvFileName : '';
+          if (!target.customCsvText.trim()) {
+            target.customCsvEnabled = false;
+            target.customCsvFileName = '';
+          }
         }
 
         function persistAndRefresh() {
@@ -525,8 +630,52 @@
           renderQuizPresets();
           renderGameButtons();
           renderNameInputs();
+          renderCsvTools();
           renderGameConditional();
           renderSummary();
+        }
+
+        function buildCsvTemplate() {
+          const rows = [
+            ['문제 내용', '선택지1', '선택지2', '선택지3(선택)', '선택지4(선택)', '정답번호', '문제시간(초)', '정답인정단어', '단어포함시정답처리여부'],
+            ['37 x 24의 값을 고르세요.', '888', '740', '148', '628', '1', '20', '', ''],
+            ['세종대왕의 이름을 쓰세요.', '', '', '', '', '', '0', '세종,세종대왕', 'Y']
+          ];
+          return rows
+            .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(','))
+            .join('\n');
+        }
+
+        function hasCsvCoreHeaders(text) {
+          const firstLine = String(text || '')
+            .split(/\r?\n/)
+            .find((line) => String(line || '').trim().length > 0) || '';
+          const cols = firstLine
+            .split(',')
+            .map((col) => String(col || '').replace(/^\uFEFF/, '').replace(/^"|"$/g, '').trim());
+          const normalized = new Set(cols.map((col) => col.replace(/\s+/g, '')));
+          if (!normalized.has('문제내용')) {
+            return { ok: false, message: 'CSV 헤더에 "문제 내용"이 필요합니다.' };
+          }
+          return { ok: true };
+        }
+
+        function updateCsvStatus(message, type) {
+          if (!els.csvStatus) return;
+          els.csvStatus.textContent = message;
+          els.csvStatus.classList.remove('success', 'fail');
+          if (type) els.csvStatus.classList.add(type);
+        }
+
+        function renderCsvTools() {
+          if (!els.csvStatus) return;
+          if (state.customCsvEnabled && state.customCsvText.trim()) {
+            const fileLabel = state.customCsvFileName ? ` (${state.customCsvFileName})` : '';
+            const rowCount = state.customCsvText.split(/\r?\n/).filter((line) => line.trim().length > 0).length;
+            updateCsvStatus(`CSV 업로드 완료${fileLabel} · ${Math.max(0, rowCount - 1)}행 데이터`, 'success');
+          } else {
+            updateCsvStatus('현재 업로드된 CSV 없음', null);
+          }
         }
 
         function renderPlayerButtons() {
@@ -730,10 +879,14 @@
             const tag = state.playerTags[idx];
             return tag ? `${name}(${tag})` : name;
           }).join(', ');
+          const csvSummary = state.customCsvEnabled && state.customCsvText.trim()
+            ? `CSV 업로드 사용 (${state.customCsvFileName || '이름 없음'})${state.gameMode === 'jumpmap' ? ' · 현재는 기본 퀴즈 경로에서 적용' : ''}`
+            : 'CSV 업로드 사용 안 함';
           els.summaryBox.innerHTML = `
             <div><strong>인원</strong>: ${state.players}명</div>
             <div><strong>플레이어</strong>: ${names}</div>
             <div><strong>퀴즈</strong>: ${quiz.title}</div>
+            <div><strong>문제 소스</strong>: ${csvSummary}</div>
             <div><strong>게임</strong>: ${game.label}</div>
             ${state.gameMode === 'jumpmap' ? `<div><strong>캐릭터</strong>: 세종 (기본)</div>` : ''}
             <div style="margin-top:8px;color:#5a4b3e;">시작 버튼을 누르면 설정이 로컬에 저장되고 게임이 바로 시작됩니다.</div>
