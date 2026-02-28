@@ -15,7 +15,9 @@
    - `node scripts/jumpmap-local-serve.mjs`
 2. 자동 정적 점검 실행
    - `node scripts/mobile-tablet-qa-check.mjs`
-3. 분리 검증 실행(권장)
+3. QA 이슈 로그 정합성 점검
+   - `node scripts/qa-issues-check.mjs`
+4. 분리 검증 실행(권장)
    - `cd /Users/baekjiyun/Desktop/WAN/math-net-master-quiz`
    - `node scripts/jumpmap-verify-split.mjs --skip-smoke`
 
