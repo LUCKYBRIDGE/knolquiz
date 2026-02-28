@@ -776,6 +776,8 @@ const buildLauncherBasicQuizSettings = () => {
   if (!launcher || launcher.gameMode !== 'basic-quiz') return null;
 
   const presetId = String(launcher.quizPresetId || '').trim();
+  const launcherQuizEndMode = launcher.quizEndMode === 'time' ? 'time' : 'count';
+  const launcherQuizTimeLimitSec = Math.max(10, Math.min(3600, Math.round(Number(launcher.quizTimeLimitSec) || 180)));
   const playerCount = Math.max(1, Math.min(6, Math.round(Number(launcher.players) || 1)));
   const playerNames = Array.isArray(launcher.playerNames)
     ? launcher.playerNames
@@ -798,8 +800,8 @@ const buildLauncherBasicQuizSettings = () => {
   settings.rankingEnabled = false;
   settings.customQuestionMode = false;
   settings.customQuestionIds = [];
-  settings.quizEndMode = 'count';
-  settings.quizTimeLimitSec = 0;
+  settings.quizEndMode = launcherQuizEndMode;
+  settings.quizTimeLimitSec = launcherQuizEndMode === 'time' ? launcherQuizTimeLimitSec : 0;
   settings.timeLimitSec = 30;
   settings.selectionMode = 'random';
   settings.avoidRepeat = true;
@@ -846,7 +848,7 @@ const buildLauncherBasicQuizSettings = () => {
 
   settings.questionCount = Object.values(settings.questionTypes || {})
     .reduce((sum, cfg) => sum + ((cfg && cfg.enabled) ? (cfg.count || 0) : 0), 0);
-  settings.loopQuestions = false;
+  settings.loopQuestions = settings.quizEndMode === 'time';
   const launcherCsv = buildCsvBankFromLauncherSetup(launcher);
   return {
     settings,
