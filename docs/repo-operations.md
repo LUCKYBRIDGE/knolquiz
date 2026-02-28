@@ -106,10 +106,12 @@ node scripts/mobile-tablet-qa-check.mjs
 실기기 수동 점검:
 
 - 체크리스트 문서: `docs/mobile-tablet-manual-qa-checklist.md`
+- 이슈 로그 문서: `docs/qa-issues.md`
 - 권장 흐름:
   1. 자동 정적 점검 통과 확인
   2. 실기기 매트릭스(세로/가로, 1~6인) 점검
   3. 실패 시 템플릿으로 재현 정보 기록
+  4. `docs/qa-issues.md`에 상태/우선순위/해결커밋 기록
 
 ## 운영 점검 (선택)
 
