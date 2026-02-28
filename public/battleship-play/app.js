@@ -61,6 +61,13 @@ const els = {
   killScore: document.getElementById('kill-score'),
   goldValue: document.getElementById('gold-value'),
   expValue: document.getElementById('exp-value'),
+  attackSpeedStat: document.getElementById('attack-speed-stat'),
+  attackSpeedLevelStat: document.getElementById('attack-speed-level-stat'),
+  attackPowerStat: document.getElementById('attack-power-stat'),
+  attackPowerLevelStat: document.getElementById('attack-power-level-stat'),
+  projectileCountStat: document.getElementById('projectile-count-stat'),
+  projectileLevelStat: document.getElementById('projectile-level-stat'),
+  dpsStat: document.getElementById('dps-stat'),
   status: document.getElementById('status-text'),
   buyHealBtn: document.getElementById('buy-heal-btn'),
   openQuizBtn: document.getElementById('open-quiz-btn'),
@@ -911,6 +918,31 @@ const refreshHud = () => {
   els.killScore.textContent = String(state.score.kills);
   els.goldValue.textContent = String(state.score.gold);
   els.expValue.textContent = String(state.score.exp);
+
+  const speedMultiplier = 1 + state.ship.attackSpeedLevel * 0.12;
+  const shotsPerSec = 1000 / getAttackCooldownMs();
+  const dps = state.ship.attackPower * state.ship.projectileCount * shotsPerSec;
+  if (els.attackSpeedStat) {
+    els.attackSpeedStat.textContent = `x${speedMultiplier.toFixed(2)} · ${shotsPerSec.toFixed(2)}/s`;
+  }
+  if (els.attackSpeedLevelStat) {
+    els.attackSpeedLevelStat.textContent = `Lv.${state.ship.attackSpeedLevel}`;
+  }
+  if (els.attackPowerStat) {
+    els.attackPowerStat.textContent = String(state.ship.attackPower);
+  }
+  if (els.attackPowerLevelStat) {
+    els.attackPowerLevelStat.textContent = `Lv.${state.ship.attackPowerLevel}`;
+  }
+  if (els.projectileCountStat) {
+    els.projectileCountStat.textContent = `x${state.ship.projectileCount}`;
+  }
+  if (els.projectileLevelStat) {
+    els.projectileLevelStat.textContent = `Lv.${state.ship.projectileLevel}`;
+  }
+  if (els.dpsStat) {
+    els.dpsStat.textContent = dps.toFixed(1);
+  }
 
   const elapsedSec = state.waves.elapsedSec;
   const normalTier = getUnlockedEnemyTier(elapsedSec);
