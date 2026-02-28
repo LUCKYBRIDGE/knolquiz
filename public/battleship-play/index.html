@@ -26,6 +26,11 @@
         margin: 8px auto;
         height: calc(100% - 16px);
       }
+      body.layout-bottom .layout {
+        grid-template-columns: 1fr;
+        height: auto;
+        min-height: calc(100% - 16px);
+      }
       .stage-wrap {
         border: 2px solid var(--line);
         border-radius: 14px;
@@ -37,6 +42,7 @@
         max-height: 100%;
         min-height: 0;
       }
+      body.layout-bottom .stage-wrap { max-height: none; }
       #game-canvas {
         width: 100%;
         height: 100%;
@@ -49,6 +55,10 @@
         align-content: start;
         min-height: 0;
         overflow: auto;
+      }
+      body.layout-bottom .side {
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        overflow: visible;
       }
       .card {
         border: 2px solid var(--line);
@@ -277,6 +287,7 @@
       @media (max-width: 980px) {
         .layout { grid-template-columns: 1fr; height: auto; min-height: calc(100% - 16px); }
         .stage-wrap { max-height: none; }
+        .side { grid-template-columns: 1fr; overflow: visible; }
       }
     </style>
   </head>
@@ -302,7 +313,7 @@
           <div class="stat-grid">
             <div class="stat">
               <div class="k">공격속도</div>
-              <div class="v" id="attack-speed-stat">x1.00</div>
+              <div class="v" id="attack-speed-stat">1m/s x1.0</div>
               <div class="k" id="attack-speed-level-stat">Lv.0</div>
             </div>
             <div class="stat">
@@ -312,13 +323,13 @@
             </div>
             <div class="stat">
               <div class="k">총알 개수</div>
-              <div class="v" id="projectile-count-stat">x1</div>
+              <div class="v" id="projectile-count-stat">1발</div>
               <div class="k" id="projectile-level-stat">Lv.0</div>
             </div>
             <div class="stat">
-              <div class="k">초당 화력</div>
-              <div class="v" id="dps-stat">22.6</div>
-              <div class="k">공격력 × 탄수 × 초당발사</div>
+              <div class="k">화력 지수</div>
+              <div class="v" id="dps-stat">23</div>
+              <div class="k">높을수록 강함</div>
             </div>
           </div>
           <p class="hint">레벨 업을 할수록 스탯이 올라가고 생존이 쉬워집니다.</p>
@@ -355,17 +366,9 @@
         <section class="card">
           <h2>전장 정보</h2>
           <div class="meta-grid">
-            <div class="meta-item"><div class="k">위험도</div><div class="v" id="danger-level">Lv.1</div></div>
-            <div class="meta-item"><div class="k">전장 리듬</div><div class="v" id="flow-state">보통</div></div>
-            <div class="meta-item"><div class="k">현재 적 수</div><div class="v" id="alive-enemy-count">0</div></div>
-            <div class="meta-item"><div class="k">일반 해금</div><div class="v" id="normal-tier-state">01~02</div></div>
-            <div class="meta-item"><div class="k">특수 해금</div><div class="v" id="elite-tier-state">대기</div></div>
-            <div class="meta-item"><div class="k">다음 일반 해금</div><div class="v" id="next-normal-tier-time">24초</div></div>
-            <div class="meta-item"><div class="k">다음 특수 해금</div><div class="v" id="next-elite-tier-time">240초</div></div>
-            <div class="meta-item"><div class="k">스폰 간격</div><div class="v" id="spawn-cooldown">1.26초</div></div>
-            <div class="meta-item"><div class="k">다음 스폰</div><div class="v" id="next-spawn-time">0.65초</div></div>
+            <div class="meta-item"><div class="k">현재 적 정보</div><div class="v" id="current-enemy-info">없음</div></div>
           </div>
-          <p class="hint">해금/스폰 정보를 보며 업그레이드 타이밍을 잡아보세요.</p>
+          <p class="hint">현재 전장에 나온 적 이름을 보여줍니다.</p>
         </section>
       </aside>
     </main>

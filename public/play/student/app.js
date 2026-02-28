@@ -5,6 +5,7 @@ import {
   listClassroomSeasonLeaderboard,
   listRecentQuizSessions,
   listRecentJumpmapSessions,
+  listRecentBattleshipSessions,
   listWrongAnswers
 } from '../../shared/local-game-records.js';
 
@@ -20,6 +21,7 @@ const els = {
   summary: document.getElementById('summary-grid'),
   quizList: document.getElementById('quiz-list'),
   jumpmapList: document.getElementById('jumpmap-list'),
+  battleshipList: document.getElementById('battleship-list'),
   seasonList: document.getElementById('season-list'),
   wrongList: document.getElementById('wrong-list')
 };
@@ -32,6 +34,7 @@ const state = {
   playerStatsByNo: new Map(),
   quizRows: [],
   jumpmapRows: [],
+  battleshipRows: [],
   wrongRows: [],
   seasonRows: []
 };
@@ -40,7 +43,10 @@ const CATEGORY_LABELS = {
   basicQuizTotalScore: '기본퀴즈 총점',
   basicQuizCorrectCount: '기본퀴즈 정답 수',
   jumpmapBestHeight: '점프맵 최고 높이(px)',
-  jumpmapQuizCorrect: '점프맵 퀴즈 정답 수'
+  jumpmapQuizCorrect: '점프맵 퀴즈 정답 수',
+  battleshipKills: '거북선 격파 수',
+  battleshipSurvivedSec: '거북선 생존 시간(초)',
+  battleshipQuizSolved: '거북선 퀴즈 정답 수'
 };
 
 const normalizeStudentNo = (raw) => {
@@ -189,7 +195,10 @@ const normalizeScorePolicies = (raw) => {
     basicQuizTotalScore: source.basicQuizTotalScore !== false,
     basicQuizCorrectCount: source.basicQuizCorrectCount === true,
     jumpmapBestHeight: source.jumpmapBestHeight !== false,
-    jumpmapQuizCorrect: source.jumpmapQuizCorrect === true
+    jumpmapQuizCorrect: source.jumpmapQuizCorrect === true,
+    battleshipKills: source.battleshipKills !== false,
+    battleshipSurvivedSec: source.battleshipSurvivedSec === true,
+    battleshipQuizSolved: source.battleshipQuizSolved === true
   };
 };
 
@@ -200,6 +209,9 @@ const getEnabledCategories = (scorePolicies) => {
   if (policies.basicQuizCorrectCount) categories.push('basicQuizCorrectCount');
   if (policies.jumpmapBestHeight) categories.push('jumpmapBestHeight');
   if (policies.jumpmapQuizCorrect) categories.push('jumpmapQuizCorrect');
+  if (policies.battleshipKills) categories.push('battleshipKills');
+  if (policies.battleshipSurvivedSec) categories.push('battleshipSurvivedSec');
+  if (policies.battleshipQuizSolved) categories.push('battleshipQuizSolved');
   return categories.length ? categories : ['basicQuizTotalScore'];
 };
 
@@ -227,7 +239,7 @@ const buildPeriodSelect = () => {
   state.selectedPeriodDays = normalized;
   els.periodSelect.value = normalized ? String(normalized) : 'all';
   if (els.periodNote) {
-    els.periodNote.textContent = `${getSelectedPeriodLabel()} 기준으로 퀴즈/점프맵/오답/시즌 기록을 필터링합니다.`;
+    els.periodNote.textContent = `${getSelectedPeriodLabel()} 기준으로 퀴즈/점프맵/거북선/오답/시즌 기록을 필터링합니다.`;
   }
 };
 
@@ -239,6 +251,7 @@ const renderSummary = () => {
   const playerStats = state.playerStatsByNo.get(no) || {};
   const quizStats = playerStats.stats || {};
   const jumpmapStats = playerStats.jumpmapStats || {};
+  const battleshipStats = playerStats.battleshipStats || {};
 
   const rows = [
     ['학생번호', getStudentLabel(no)],
@@ -249,7 +262,9 @@ const renderSummary = () => {
     ['퀴즈 누적', `${Number(quizStats.quizRuns) || 0}판 · 정답률 ${Number(quizStats.accuracy) || 0}%`],
     ['퀴즈 누적점수', `${Number(quizStats.totalScore) || 0}점`],
     ['점프맵 누적', `${Number(jumpmapStats.runs) || 0}판`],
-    ['점프맵 최고높이', pxToMeterText(jumpmapStats.bestHeightPx)]
+    ['점프맵 최고높이', pxToMeterText(jumpmapStats.bestHeightPx)],
+    ['거북선 누적', `${Number(battleshipStats.runs) || 0}판 · 격파 ${Number(battleshipStats.totalKills) || 0}`],
+    ['거북선 최장생존', `${Number(battleshipStats.bestSurvivedSec) || 0}초`]
   ];
 
   rows.forEach(([keyText, valueText]) => {
@@ -306,6 +321,27 @@ const renderJumpmapRows = () => {
   });
 };
 
+const renderBattleshipRows = () => {
+  clearNode(els.battleshipList);
+  if (!state.battleshipRows.length) {
+    appendEmpty(els.battleshipList, '해당 학생의 거북선 디펜스 기록이 없습니다.');
+    return;
+  }
+  state.battleshipRows.slice(0, 20).forEach((row) => {
+    const item = document.createElement('div');
+    item.className = 'item';
+    const title = document.createElement('div');
+    title.className = 'title-line';
+    title.textContent = `${formatTime(row.createdAt)} · 격파 ${row.kills} · 생존 ${row.survivedSec}초`;
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    meta.textContent =
+      `웨이브 ${row.maxWaveLevel} · 퀴즈 ${row.quizSolved}정답 · 함선HP ${row.shipHp} · 종료 ${row.endReason || '-'}`;
+    item.append(title, meta);
+    els.battleshipList.appendChild(item);
+  });
+};
+
 const renderWrongRows = () => {
   clearNode(els.wrongList);
   if (!state.wrongRows.length) {
@@ -353,6 +389,7 @@ const buildStudentCsv = () => {
   const playerStats = state.playerStatsByNo.get(studentNo) || {};
   const quizStats = playerStats.stats || {};
   const jumpmapStats = playerStats.jumpmapStats || {};
+  const battleshipStats = playerStats.battleshipStats || {};
   const studentName = student?.name || getStudentLabel(studentNo);
   const periodText = getSelectedPeriodLabel();
   const criteria = `학생:${studentName}(${studentNo}번) / 기간:${periodText}`;
@@ -378,8 +415,8 @@ const buildStudentCsv = () => {
     `출석:${Number(state.attendanceByNo.get(studentNo)) || 0}일`,
     `퀴즈누적:${Number(quizStats?.quizRuns) || 0}판`,
     `퀴즈정답률:${Number(quizStats?.accuracy) || 0}%`,
-    `점프맵누적:${Number(jumpmapStats?.runs) || 0}판`,
-    `점프맵최고:${pxToMeterText(jumpmapStats?.bestHeightPx)}`
+    `점프맵:${Number(jumpmapStats?.runs) || 0}판 / 최고:${pxToMeterText(jumpmapStats?.bestHeightPx)}`,
+    `거북선:${Number(battleshipStats?.runs) || 0}판 / 격파:${Number(battleshipStats?.totalKills) || 0}`
   ]);
 
   state.quizRows.forEach((row) => {
@@ -408,6 +445,21 @@ const buildStudentCsv = () => {
       `퀴즈:${row.quizCorrect}/${row.quizAttempts}`,
       `점프:${row.jumps}`,
       `더블:${row.doubleJumps}`,
+      `종료:${row.endReason || '-'}`
+    ]);
+  });
+
+  state.battleshipRows.forEach((row) => {
+    rows.push([
+      criteria,
+      '거북선 디펜스',
+      row.createdAt || '',
+      studentNo,
+      studentName,
+      `격파:${row.kills}`,
+      `생존:${row.survivedSec}초`,
+      `웨이브:${row.maxWaveLevel}`,
+      `퀴즈:${row.quizSolved}`,
       `종료:${row.endReason || '-'}`
     ]);
   });
@@ -458,7 +510,7 @@ const exportStudentCsv = () => {
   const student = state.studentsByNo.get(state.selectedStudentNo);
   const studentName = student?.name || getStudentLabel(state.selectedStudentNo);
   setStatus(
-    `CSV 저장 완료 · ${studentName}(${state.selectedStudentNo}번) · 기간 ${getSelectedPeriodLabel()} · 퀴즈 ${state.quizRows.length}건 · 점프맵 ${state.jumpmapRows.length}건 · 오답 ${state.wrongRows.length}건`
+    `CSV 저장 완료 · ${studentName}(${state.selectedStudentNo}번) · 기간 ${getSelectedPeriodLabel()} · 퀴즈 ${state.quizRows.length}건 · 점프맵 ${state.jumpmapRows.length}건 · 거북선 ${state.battleshipRows.length}건 · 오답 ${state.wrongRows.length}건`
   );
 };
 
@@ -470,6 +522,7 @@ const rebuildFilteredRows = async () => {
 
   state.quizRows = [];
   state.jumpmapRows = [];
+  state.battleshipRows = [];
   state.wrongRows = [];
   state.seasonRows = [];
 
@@ -515,6 +568,32 @@ const rebuildFilteredRows = async () => {
     });
   });
 
+  const filteredBattleshipSessions = state._battleshipSessions
+    .filter((session) => isWithinSelectedPeriod(session?.createdAt, periodDays))
+    .filter((session) => (Array.isArray(session?.players) ? session.players : [])
+      .some((player) => matchesStudentNoByTag(player?.tag, studentNo)));
+  filteredBattleshipSessions.forEach((session) => {
+    const matched = (Array.isArray(session?.players) ? session.players : [])
+      .find((player) => matchesStudentNoByTag(player?.tag, studentNo));
+    state.battleshipRows.push({
+      createdAt: session.createdAt,
+      kills: Number(matched?.summary?.kills) || 0,
+      quizSolved: Number(matched?.summary?.quizSolved) || 0,
+      shipHp: Number(matched?.summary?.shipHp) || 0,
+      survivedSec: Math.max(
+        0,
+        Number(session?.settingsSummary?.survivedSec)
+        || Number(session?.settingsSummary?.timeElapsedSec)
+        || 0
+      ),
+      maxWaveLevel: Number(session?.settingsSummary?.maxWaveLevel) || 0,
+      endReason:
+        session?.settingsSummary?.endReason
+        || session?.settingsSummary?.battleshipEndMode
+        || ''
+    });
+  });
+
   state.wrongRows = state._wrongs
     .filter((wrong) => isWithinSelectedPeriod(wrong?.createdAt, periodDays))
     .filter((wrong) => matchesStudentNoByTag(wrong?.playerTag, studentNo));
@@ -548,25 +627,27 @@ const rebuildFilteredRows = async () => {
   renderSummary();
   renderQuizRows();
   renderJumpmapRows();
+  renderBattleshipRows();
   renderWrongRows();
   renderSeasonRows();
 
   const student = state.studentsByNo.get(studentNo);
   const studentName = student?.name || getStudentLabel(studentNo);
   setStatus(
-    `${studentName}(${studentNo}번) · 기간 ${getSelectedPeriodLabel()} · 퀴즈 ${state.quizRows.length}건 · 점프맵 ${state.jumpmapRows.length}건 · 오답 ${state.wrongRows.length}건 · 시즌 ${state.seasonRows.length}개`
+    `${studentName}(${studentNo}번) · 기간 ${getSelectedPeriodLabel()} · 퀴즈 ${state.quizRows.length}건 · 점프맵 ${state.jumpmapRows.length}건 · 거북선 ${state.battleshipRows.length}건 · 오답 ${state.wrongRows.length}건 · 시즌 ${state.seasonRows.length}개`
   );
 };
 
 const loadAll = async () => {
   setStatus('학생 기록을 불러오는 중...');
   try {
-    const [students, attendanceSummary, seasons, quizSessions, jumpmapSessions, wrongs] = await Promise.all([
+    const [students, attendanceSummary, seasons, quizSessions, jumpmapSessions, battleshipSessions, wrongs] = await Promise.all([
       listClassroomStudents({ includeInactive: true }),
       summarizeClassroomAttendance(),
       listClassroomSeasons({ includeInactive: true }),
       listRecentQuizSessions(120),
       listRecentJumpmapSessions(120),
+      listRecentBattleshipSessions(120),
       listWrongAnswers(500)
     ]);
 
@@ -628,6 +709,35 @@ const loadAll = async () => {
         playerRecordMap.set(no, next);
       });
     });
+    (Array.isArray(battleshipSessions) ? battleshipSessions : []).forEach((session) => {
+      const sessionSurvivedSec = Math.max(
+        0,
+        Number(session?.settingsSummary?.survivedSec)
+        || Number(session?.settingsSummary?.timeElapsedSec)
+        || 0
+      );
+      const sessionWave = Number(session?.settingsSummary?.maxWaveLevel) || 0;
+      (Array.isArray(session?.players) ? session.players : []).forEach((player) => {
+        const no = normalizeStudentNo(player?.tag);
+        if (!no) return;
+        const prev = playerRecordMap.get(no) || {};
+        const prevBattleship = prev.battleshipStats || {};
+        const kills = Number(player?.summary?.kills) || 0;
+        const quizSolved = Number(player?.summary?.quizSolved) || 0;
+        const next = {
+          ...prev,
+          battleshipStats: {
+            runs: (Number(prevBattleship.runs) || 0) + 1,
+            totalKills: (Number(prevBattleship.totalKills) || 0) + kills,
+            totalQuizSolved: (Number(prevBattleship.totalQuizSolved) || 0) + quizSolved,
+            bestKills: Math.max(Number(prevBattleship.bestKills) || 0, kills),
+            bestSurvivedSec: Math.max(Number(prevBattleship.bestSurvivedSec) || 0, sessionSurvivedSec),
+            bestWaveLevel: Math.max(Number(prevBattleship.bestWaveLevel) || 0, sessionWave)
+          }
+        };
+        playerRecordMap.set(no, next);
+      });
+    });
     playerRecordMap.forEach((value, key) => {
       state.playerStatsByNo.set(key, value);
     });
@@ -635,6 +745,7 @@ const loadAll = async () => {
     state._seasons = Array.isArray(seasons) ? seasons : [];
     state._quizSessions = Array.isArray(quizSessions) ? quizSessions : [];
     state._jumpmapSessions = Array.isArray(jumpmapSessions) ? jumpmapSessions : [];
+    state._battleshipSessions = Array.isArray(battleshipSessions) ? battleshipSessions : [];
     state._wrongs = Array.isArray(wrongs) ? wrongs : [];
 
     const queryFilters = readFiltersFromQuery();

@@ -5,18 +5,20 @@ import { saveBattleshipSessionRecord } from '../shared/local-game-records.js';
 
 const STORAGE_KEY = 'jumpmap.launcher.setup.v1';
 const SHIP_IMAGE_SRC = '../quiz_battleship/battleship-ship.png';
-const ELITE_UNLOCK_TIME_SEC = 240;
-const ENEMY_TIER_UNLOCK_STEP_SEC = 24;
-const ELITE_TIER_UNLOCK_STEP_SEC = 30;
+const SHIP_SPRITE_CROP = Object.freeze({ x: 354, y: 43, width: 316, height: 482 });
+const SHIP_RENDER_LONG_EDGE = 72;
+const ELITE_UNLOCK_TIME_SEC = 180;
+const ENEMY_TIER_UNLOCK_STEP_SEC = 18;
+const ELITE_TIER_UNLOCK_STEP_SEC = 24;
 const SPAWN_START_COOLDOWN_MS = 2000;
 const SPAWN_MIN_COOLDOWN_MS = 620;
-const SPAWN_DECAY_PER_SEC = 3.1;
-const HP_GROWTH_STEP_SEC = 30;
-const HP_GROWTH_PER_STEP = 0.14;
-const SPEED_GROWTH_STEP_SEC = 45;
-const SPEED_GROWTH_PER_STEP = 0.06;
-const TOUCH_GROWTH_STEP_SEC = 55;
-const TOUCH_GROWTH_PER_STEP = 0.06;
+const SPAWN_DECAY_PER_SEC = 4.4;
+const HP_GROWTH_STEP_SEC = 24;
+const HP_GROWTH_PER_STEP = 0.18;
+const SPEED_GROWTH_STEP_SEC = 34;
+const SPEED_GROWTH_PER_STEP = 0.09;
+const TOUCH_GROWTH_STEP_SEC = 40;
+const TOUCH_GROWTH_PER_STEP = 0.09;
 const SIZE_GROWTH_STEP_SEC = 75;
 const ELITE_CHANCE_BASE = 0.08;
 const ELITE_CHANCE_MAX = 0.55;
@@ -33,6 +35,10 @@ const FLOW_SURGE_START_SEC = 32;
 const FLOW_SURGE_END_SEC = 40;
 const FLOW_AFTERSHOCK_END_SEC = 46;
 const SHIP_BASE_ATTACK_POWER = 14;
+const SHIP_BASE_ATTACK_COOLDOWN_MS = 620;
+const SHIP_ATTACK_SPEED_LEVEL_STEP = 0.1;
+const EARLY_ATTACK_SLOW_WINDOW_SEC = 70;
+const EARLY_ATTACK_SLOW_MAX_RATIO = 1.22;
 const ENEMY_DEFINITIONS = Object.freeze([
   { tier: 1, code: '01', name: '도깨비불', file: 'battleship-01ddokaebibul.png', baseHp: 34, baseSpeed: 58, baseTouchDamage: 8, baseSize: 56 },
   { tier: 2, code: '02', name: '물귀신', file: 'battleship-02mulguisin.png', baseHp: 46, baseSpeed: 62, baseTouchDamage: 9, baseSize: 58 },
@@ -57,7 +63,7 @@ const LOADING_ROTATE_MS = 1400;
 const LOADING_GAME_TIPS = Object.freeze([
   '가장 가까운 적을 자동 공격합니다. EXP로 공격속도/공격력/총알 개수를 올리세요.',
   '퀴즈를 열어 정답을 맞히면 EXP와 골드를 얻습니다. 필요할 때 체력도 회복하세요.',
-  '시간이 지날수록 적 단계와 전장 압박이 올라갑니다. 전장 정보를 보고 업그레이드 타이밍을 잡으세요.'
+  '시간이 지날수록 적 단계와 전장 압박이 올라갑니다. 업그레이드 타이밍을 잘 잡아보세요.'
 ]);
 const LOADING_HISTORY_FACTS = Object.freeze([
   {
@@ -95,15 +101,7 @@ const els = {
   upgradeSpeedBtn: document.getElementById('upgrade-speed-btn'),
   upgradePowerBtn: document.getElementById('upgrade-power-btn'),
   upgradeBulletBtn: document.getElementById('upgrade-bullet-btn'),
-  dangerLevel: document.getElementById('danger-level'),
-  aliveEnemyCount: document.getElementById('alive-enemy-count'),
-  normalTierState: document.getElementById('normal-tier-state'),
-  eliteTierState: document.getElementById('elite-tier-state'),
-  nextNormalTierTime: document.getElementById('next-normal-tier-time'),
-  nextEliteTierTime: document.getElementById('next-elite-tier-time'),
-  spawnCooldown: document.getElementById('spawn-cooldown'),
-  nextSpawnTime: document.getElementById('next-spawn-time'),
-  flowState: document.getElementById('flow-state'),
+  currentEnemyInfo: document.getElementById('current-enemy-info'),
   quizLayer: document.getElementById('quiz-layer'),
   quizCloseBtn: document.getElementById('quiz-close-btn'),
   quizPrompt: document.getElementById('quiz-prompt'),
@@ -147,15 +145,26 @@ const readSetup = () => {
 
 const setup = (() => {
   const source = readSetup() || {};
-  const names = Array.isArray(source.playerNames) ? source.playerNames : ['사용자1'];
-  const tags = Array.isArray(source.playerTags) ? source.playerTags : [''];
+  const requestedPlayers = Math.max(1, Math.min(6, Math.round(Number(source.players) || 1)));
+  const names = Array.isArray(source.playerNames) ? source.playerNames.slice(0, 6) : [];
+  const tags = Array.isArray(source.playerTags) ? source.playerTags.slice(0, 6) : [];
+  while (names.length < requestedPlayers) names.push(`사용자${names.length + 1}`);
+  while (tags.length < requestedPlayers) tags.push('');
+  const participants = names.slice(0, requestedPlayers).map((name, index) => {
+    const normalizedName = String(name || '').trim() || `사용자${index + 1}`;
+    const normalizedTag = String(tags[index] || '').trim();
+    return {
+      name: normalizedName,
+      tag: normalizedTag
+    };
+  });
   const rawBattleshipEndMode = String(source.battleshipEndMode || '').trim().toLowerCase();
   const battleshipEndMode = (rawBattleshipEndMode === 'ship-hp' || rawBattleshipEndMode === 'time' || rawBattleshipEndMode === 'kills')
     ? rawBattleshipEndMode
     : 'ship-hp';
   return {
-    playerName: String(names[0] || '사용자1').trim() || '사용자1',
-    playerTag: String(tags[0] || '').trim(),
+    players: requestedPlayers,
+    participants,
     launcherQuizPresetId: typeof source.quizPresetId === 'string' ? source.quizPresetId : 'jumpmap-net-30',
     customCsvEnabled: source.customCsvEnabled === true,
     customCsvText: typeof source.customCsvText === 'string' ? source.customCsvText : '',
@@ -165,6 +174,36 @@ const setup = (() => {
     battleshipKillLimit: Math.max(1, Math.min(9999, Math.round(Number(source.battleshipKillLimit) || 120)))
   };
 })();
+
+const query = new URLSearchParams(window.location.search);
+const singleMode = query.get('single') === '1';
+const requestedPlayerIndex = Math.round(Number(query.get('playerIndex')));
+const activePlayerIndex = clamp(
+  Number.isFinite(requestedPlayerIndex) ? requestedPlayerIndex : 0,
+  0,
+  Math.max(0, setup.players - 1)
+);
+const activeParticipant = setup.participants[activePlayerIndex] || { name: '사용자1', tag: '' };
+const activeParticipantLabel = activeParticipant.tag
+  ? `${activePlayerIndex + 1}P ${activeParticipant.name}(${activeParticipant.tag})`
+  : `${activePlayerIndex + 1}P ${activeParticipant.name}`;
+const shouldRedirectToSplitHost = setup.players > 1 && !singleMode;
+
+const resolveLayoutMode = () => {
+  const width = Math.max(1, Number(window.innerWidth) || 1);
+  const height = Math.max(1, Number(window.innerHeight) || 1);
+  const aspect = width / height;
+  if (width <= 980) return 'bottom';
+  if (setup.players >= 4) return 'bottom';
+  if (setup.players >= 2 && aspect <= 1.75) return 'bottom';
+  if (aspect <= 1.45) return 'bottom';
+  return 'side';
+};
+
+const applyLayoutMode = () => {
+  const useBottom = resolveLayoutMode() === 'bottom';
+  document.body.classList.toggle('layout-bottom', useBottom);
+};
 
 const isBattleUsableQuestion = (question) => (
   question
@@ -237,14 +276,16 @@ const shipImage = new Image();
 shipImage.src = SHIP_IMAGE_SRC;
 
 const getAttackCooldownMs = () => {
-  const speedMultiplier = 1 + state.ship.attackSpeedLevel * 0.12;
-  return 620 / speedMultiplier;
+  const speedMultiplier = 1 + state.ship.attackSpeedLevel * SHIP_ATTACK_SPEED_LEVEL_STEP;
+  const earlyProgress = clamp(state.waves.elapsedSec / EARLY_ATTACK_SLOW_WINDOW_SEC, 0, 1);
+  const earlySlowRatio = EARLY_ATTACK_SLOW_MAX_RATIO - ((EARLY_ATTACK_SLOW_MAX_RATIO - 1) * earlyProgress);
+  return (SHIP_BASE_ATTACK_COOLDOWN_MS * earlySlowRatio) / speedMultiplier;
 };
 
 const getHealCost = () => 24 + Math.floor(state.ship.goldSpent / 45) * 4;
-const getSpeedUpgradeCost = () => Math.round(22 * Math.pow(1.35, state.ship.attackSpeedLevel));
-const getPowerUpgradeCost = () => Math.round(26 * Math.pow(1.4, state.ship.attackPowerLevel));
-const getBulletUpgradeCost = () => Math.round(40 * Math.pow(1.55, state.ship.projectileLevel));
+const getSpeedUpgradeCost = () => Math.round(10 * Math.pow(1.32, state.ship.attackSpeedLevel));
+const getPowerUpgradeCost = () => Math.round(12 * Math.pow(1.36, state.ship.attackPowerLevel));
+const getBulletUpgradeCost = () => Math.round(18 * Math.pow(1.42, state.ship.projectileLevel));
 
 const setStatus = (text) => {
   state.statusText = text;
@@ -255,21 +296,6 @@ const distance = (ax, ay, bx, by) => {
   const dx = ax - bx;
   const dy = ay - by;
   return Math.hypot(dx, dy);
-};
-
-const buildRoundedRectPath = (context, x, y, width, height, radius) => {
-  const r = Math.max(2, Math.min(radius, width / 2, height / 2));
-  context.beginPath();
-  context.moveTo(x + r, y);
-  context.lineTo(x + width - r, y);
-  context.quadraticCurveTo(x + width, y, x + width, y + r);
-  context.lineTo(x + width, y + height - r);
-  context.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
-  context.lineTo(x + r, y + height);
-  context.quadraticCurveTo(x, y + height, x, y + height - r);
-  context.lineTo(x, y + r);
-  context.quadraticCurveTo(x, y, x + r, y);
-  context.closePath();
 };
 
 const getDrawSizeByLongEdge = (image, longEdge) => {
@@ -626,11 +652,11 @@ const getEnemySpawnPoint = (radius) => {
 };
 
 const shouldSpawnHardenedEnemy = (elapsedSec, flow, def) => {
-  if (elapsedSec < 65) return false;
+  if (elapsedSec < 45) return false;
   const tierBonus = Math.max(0, def.tier - 1) * 0.008;
-  const elapsedBonus = clamp((elapsedSec - 65) / 420, 0, 1) * 0.14;
+  const elapsedBonus = clamp((elapsedSec - 45) / 360, 0, 1) * 0.18;
   const flowBonus = Number(flow?.hardenedBonus) || 0;
-  const chance = clamp(0.03 + tierBonus + elapsedBonus + flowBonus, 0.01, 0.36);
+  const chance = clamp(0.045 + tierBonus + elapsedBonus + flowBonus, 0.01, 0.42);
   return Math.random() < chance;
 };
 
@@ -767,14 +793,52 @@ const getNearestEnemy = () => {
   return nearest;
 };
 
+const getCurrentEnemyInfoText = () => {
+  if (!Array.isArray(state.enemies) || !state.enemies.length) return '없음';
+  const byTier = state.enemies
+    .slice()
+    .sort((a, b) => (Number(a?.tier) || 0) - (Number(b?.tier) || 0));
+  const labels = [];
+  const seen = new Set();
+  for (let i = 0; i < byTier.length; i += 1) {
+    const enemy = byTier[i];
+    const baseName = typeof enemy?.name === 'string' && enemy.name.trim()
+      ? enemy.name.trim()
+      : `적 ${String(enemy?.tier || '').padStart(2, '0')}`;
+    const label = enemy?.elite ? `붉은 특수효과 ${baseName}` : baseName;
+    if (seen.has(label)) continue;
+    seen.add(label);
+    labels.push(label);
+  }
+  if (!labels.length) return '없음';
+  if (labels.length <= 3) return labels.join(', ');
+  return `${labels.slice(0, 3).join(', ')} 외 ${labels.length - 3}종`;
+};
+
+const getProjectileAngleOffsets = (count) => {
+  const total = Math.max(1, Number(count) || 1);
+  if (total <= 1) return [0];
+
+  const offsets = [0];
+  const maxOffset = total === 2 ? 0.065 : 0.13;
+  const sidePairs = Math.ceil((total - 1) / 2);
+  const step = maxOffset / Math.max(1, sidePairs);
+
+  for (let level = 1; offsets.length < total; level += 1) {
+    const offset = step * level;
+    if (offsets.length < total) offsets.push(offset);
+    if (offsets.length < total) offsets.push(-offset);
+  }
+  return offsets;
+};
+
 const shootAt = (target) => {
   if (!target) return;
   const count = Math.max(1, state.ship.projectileCount);
   const baseAngle = Math.atan2(target.y - state.ship.y, target.x - state.ship.x);
-  const spread = count > 1 ? 0.26 : 0;
-  for (let i = 0; i < count; i += 1) {
-    const ratio = count === 1 ? 0 : (i / (count - 1));
-    const angle = baseAngle + (ratio - 0.5) * spread;
+  const offsets = getProjectileAngleOffsets(count);
+  for (let i = 0; i < offsets.length; i += 1) {
+    const angle = baseAngle + offsets[i];
     state.projectiles.push({
       x: state.ship.x + Math.cos(angle) * 34,
       y: state.ship.y + Math.sin(angle) * 34,
@@ -789,11 +853,10 @@ const shootAt = (target) => {
 const addKillReward = (enemy) => {
   const tier = Math.max(1, Number(enemy?.tier) || 1);
   const eliteBonus = enemy?.elite ? 2 : 0;
+  const gainedExp = Math.max(1, 1 + Math.floor((tier - 1) / 2) + (enemy?.elite ? 2 : 0));
   state.score.kills += 1;
   state.score.gold += 2 + tier + eliteBonus;
-  if (enemy?.elite) {
-    state.score.exp += 2 + Math.floor(tier / 2);
-  }
+  state.score.exp += gainedExp;
   if (state.score.kills % 10 === 0) {
     state.score.exp += 4;
     setStatus(`연속 격파 보너스! EXP +4 (누적 ${state.score.kills}킬)`);
@@ -828,7 +891,7 @@ const closeQuizLayer = ({ keepStatus = false } = {}) => {
   els.quizResult.className = 'quiz-result';
   setQuizActionButtonsVisible(false);
   if (!keepStatus) {
-    setStatus('퀴즈를 종료하고 전투를 재개했습니다.');
+    setStatus('퀴즈를 종료했습니다.');
   }
 };
 
@@ -904,7 +967,7 @@ const showNextQuizQuestion = () => {
   const nextQuestion = resolveNextQuizQuestion();
   if (!nextQuestion) {
     closeQuizLayer({ keepStatus: true });
-    setStatus('퀴즈 문제를 모두 확인했습니다. 전투를 재개합니다.');
+    setStatus('퀴즈 문제를 모두 확인했습니다.');
     return;
   }
   state.quiz.currentQuestion = nextQuestion;
@@ -913,7 +976,7 @@ const showNextQuizQuestion = () => {
 
 const openQuizLayer = async () => {
   if (state.gameover) return;
-  if (state.paused && els.quizLayer.classList.contains('show')) return;
+  if (els.quizLayer.classList.contains('show')) return;
   setStatus('퀴즈를 준비하는 중...');
   await loadQuizBank();
   if (state.quiz.error) {
@@ -926,7 +989,6 @@ const openQuizLayer = async () => {
 };
 
 const updateGame = (dtSec, nowMs) => {
-  if (state.paused) return;
   state.waves.elapsedSec += dtSec;
   state.waves.level = 1 + Math.floor(state.waves.elapsedSec / 20);
 
@@ -1051,9 +1113,12 @@ const drawGame = () => {
     ctx.fillRect(0, y, canvas.width, 1);
   }
 
-  let shipW = 122;
-  let shipH = 88;
-  const shipSize = getDrawSizeByLongEdge(shipImage, 150);
+  let shipW = 47;
+  let shipH = 72;
+  const shipSize = getDrawSizeByLongEdge(
+    { naturalWidth: SHIP_SPRITE_CROP.width, naturalHeight: SHIP_SPRITE_CROP.height },
+    SHIP_RENDER_LONG_EDGE
+  );
   if (shipSize) {
     shipW = shipSize.width;
     shipH = shipSize.height;
@@ -1062,43 +1127,23 @@ const drawGame = () => {
   const shipY = state.ship.y - shipH / 2;
 
   if (shipImage.complete && shipImage.naturalWidth > 0) {
-    ctx.drawImage(shipImage, shipX, shipY, shipW, shipH);
+    ctx.drawImage(
+      shipImage,
+      SHIP_SPRITE_CROP.x,
+      SHIP_SPRITE_CROP.y,
+      SHIP_SPRITE_CROP.width,
+      SHIP_SPRITE_CROP.height,
+      shipX,
+      shipY,
+      shipW,
+      shipH
+    );
   } else {
     ctx.fillStyle = '#6b3f1f';
     ctx.fillRect(shipX, shipY + 24, shipW, 42);
     ctx.fillStyle = '#3b2a1d';
     ctx.fillRect(shipX + 6, shipY + 14, shipW - 12, 16);
   }
-
-  const shipFramePad = 6;
-  const shipFrameX = shipX - shipFramePad;
-  const shipFrameY = shipY - shipFramePad;
-  const shipFrameW = shipW + shipFramePad * 2;
-  const shipFrameH = shipH + shipFramePad * 2;
-  const shipFrameRadius = Math.max(10, Math.round(Math.min(shipFrameW, shipFrameH) * 0.16));
-
-  // Slightly pressed-in border effect around the turtle ship.
-  ctx.save();
-  buildRoundedRectPath(ctx, shipFrameX, shipFrameY, shipFrameW, shipFrameH, shipFrameRadius);
-  ctx.clip();
-  const rimGradient = ctx.createLinearGradient(shipFrameX, shipFrameY, shipFrameX, shipFrameY + shipFrameH);
-  rimGradient.addColorStop(0, 'rgba(245, 251, 255, 0.30)');
-  rimGradient.addColorStop(0.45, 'rgba(20, 35, 70, 0.06)');
-  rimGradient.addColorStop(1, 'rgba(5, 12, 31, 0.34)');
-  ctx.fillStyle = rimGradient;
-  ctx.fillRect(shipFrameX, shipFrameY, shipFrameW, shipFrameH);
-  ctx.restore();
-
-  ctx.save();
-  buildRoundedRectPath(ctx, shipFrameX, shipFrameY, shipFrameW, shipFrameH, shipFrameRadius);
-  ctx.lineWidth = 1.4;
-  ctx.strokeStyle = 'rgba(226, 237, 255, 0.52)';
-  ctx.stroke();
-  buildRoundedRectPath(ctx, shipFrameX + 1.5, shipFrameY + 1.5, shipFrameW - 3, shipFrameH - 3, Math.max(8, shipFrameRadius - 2));
-  ctx.lineWidth = 2.2;
-  ctx.strokeStyle = 'rgba(8, 19, 43, 0.35)';
-  ctx.stroke();
-  ctx.restore();
 
   drawHpBar(shipX, shipY - 12, shipW, state.ship.hp, state.ship.maxHp, '#22c55e');
 
@@ -1167,13 +1212,6 @@ const drawGame = () => {
   if (eliteTier > 0) {
     ctx.fillText(`붉은특수 01~${String(eliteTier).padStart(2, '0')} 출현`, 14, 70);
   }
-  if (state.paused && !state.gameover) {
-    ctx.fillStyle = 'rgba(8, 15, 35, 0.65)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#fff';
-    ctx.font = '900 28px Apple SD Gothic Neo, Malgun Gothic, sans-serif';
-    ctx.fillText('퀴즈 진행 중', canvas.width / 2 - 72, canvas.height / 2);
-  }
 };
 
 const refreshHud = () => {
@@ -1182,11 +1220,11 @@ const refreshHud = () => {
   els.goldValue.textContent = String(state.score.gold);
   els.expValue.textContent = String(state.score.exp);
 
-  const speedMultiplier = 1 + state.ship.attackSpeedLevel * 0.12;
+  const speedMultiplier = 1 + state.ship.attackSpeedLevel * SHIP_ATTACK_SPEED_LEVEL_STEP;
   const shotsPerSec = 1000 / getAttackCooldownMs();
   const dps = state.ship.attackPower * state.ship.projectileCount * shotsPerSec;
   if (els.attackSpeedStat) {
-    els.attackSpeedStat.textContent = `x${speedMultiplier.toFixed(2)} · ${shotsPerSec.toFixed(2)}/s`;
+    els.attackSpeedStat.textContent = `1m/s x${speedMultiplier.toFixed(1)}`;
   }
   if (els.attackSpeedLevelStat) {
     els.attackSpeedLevelStat.textContent = `Lv.${state.ship.attackSpeedLevel}`;
@@ -1198,39 +1236,18 @@ const refreshHud = () => {
     els.attackPowerLevelStat.textContent = `Lv.${state.ship.attackPowerLevel}`;
   }
   if (els.projectileCountStat) {
-    els.projectileCountStat.textContent = `x${state.ship.projectileCount}`;
+    els.projectileCountStat.textContent = `${state.ship.projectileCount}발`;
   }
   if (els.projectileLevelStat) {
     els.projectileLevelStat.textContent = `Lv.${state.ship.projectileLevel}`;
   }
   if (els.dpsStat) {
-    els.dpsStat.textContent = dps.toFixed(1);
+    els.dpsStat.textContent = String(Math.round(dps));
   }
 
-  const elapsedSec = state.waves.elapsedSec;
-  const normalTier = getUnlockedEnemyTier(elapsedSec);
-  const eliteTier = getEliteUnlockedTier(elapsedSec);
-  const nextNormalSec = getSecondsToNextNormalTier(elapsedSec);
-  const nextEliteSec = getSecondsToNextEliteTier(elapsedSec);
-  const nextSpawnSec = Math.max(0, state.nextSpawnMs / 1000);
-
-  if (els.dangerLevel) els.dangerLevel.textContent = `Lv.${getDangerLevel()}`;
-  if (els.aliveEnemyCount) els.aliveEnemyCount.textContent = String(state.enemies.length);
-  if (els.normalTierState) els.normalTierState.textContent = `01~${String(normalTier).padStart(2, '0')}`;
-  if (els.eliteTierState) {
-    els.eliteTierState.textContent = eliteTier > 0
-      ? `01~${String(eliteTier).padStart(2, '0')}`
-      : '대기';
+  if (els.currentEnemyInfo) {
+    els.currentEnemyInfo.textContent = getCurrentEnemyInfoText();
   }
-  if (els.nextNormalTierTime) {
-    els.nextNormalTierTime.textContent = normalTier >= 10 ? '최대 단계' : formatSecText(nextNormalSec);
-  }
-  if (els.nextEliteTierTime) {
-    els.nextEliteTierTime.textContent = eliteTier >= 10 ? '최대 단계' : formatSecText(nextEliteSec);
-  }
-  if (els.spawnCooldown) els.spawnCooldown.textContent = formatSecText(state.activeSpawnCooldownMs / 1000);
-  if (els.nextSpawnTime) els.nextSpawnTime.textContent = formatSecText(nextSpawnSec);
-  if (els.flowState) els.flowState.textContent = state.flow?.label || '보통';
 
   const healCost = getHealCost();
   els.buyHealBtn.textContent = `체력 회복 (${healCost}G)`;
@@ -1276,8 +1293,8 @@ const saveSessionRecord = async () => {
         endReason: state.endReason || ''
       },
       players: [{
-        name: setup.playerName,
-        tag: setup.playerTag,
+        name: activeParticipant.name,
+        tag: activeParticipant.tag,
         kills: state.score.kills,
         quizSolved: state.score.quizSolved,
         shipHp: Math.max(0, Math.round(state.ship.hp)),
@@ -1369,7 +1386,7 @@ els.quizCloseBtn.addEventListener('click', () => {
 });
 
 els.quizNextBtn?.addEventListener('click', () => {
-  if (!state.paused || state.gameover) return;
+  if (state.gameover || !els.quizLayer.classList.contains('show')) return;
   showNextQuizQuestion();
 });
 
@@ -1402,7 +1419,8 @@ const initializeGame = async () => {
   } else if (state.quiz.error) {
     setStatus(state.quiz.error);
   } else {
-    setStatus(`적이 거북선에 닿기 전에 최대한 많이 격파하세요. 종료 기준: ${getEndCriteriaLabel()}`);
+    const participantPrefix = setup.players > 1 ? `${activeParticipantLabel} · ` : '';
+    setStatus(`${participantPrefix}적이 거북선에 닿기 전에 최대한 많이 격파하세요. 종료 기준: ${getEndCriteriaLabel()}`);
   }
   state.running = true;
   refreshHud();
@@ -1413,5 +1431,13 @@ const initializeGame = async () => {
   });
 };
 
-refreshHud();
-initializeGame();
+if (shouldRedirectToSplitHost) {
+  const splitUrl = new URL('./split/', window.location.href);
+  splitUrl.searchParams.set('fromLauncher', query.get('fromLauncher') || '1');
+  window.location.replace(splitUrl.toString());
+} else {
+  refreshHud();
+  applyLayoutMode();
+  window.addEventListener('resize', applyLayoutMode, { passive: true });
+  initializeGame();
+}

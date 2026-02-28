@@ -26,6 +26,9 @@ const els = {
   policyQuizCorrectCount: document.getElementById('policy-quiz-correct-count'),
   policyJumpmapBestHeight: document.getElementById('policy-jumpmap-best-height'),
   policyJumpmapQuizCorrect: document.getElementById('policy-jumpmap-quiz-correct'),
+  policyBattleshipKills: document.getElementById('policy-battleship-kills'),
+  policyBattleshipSurvivedSec: document.getElementById('policy-battleship-survived-sec'),
+  policyBattleshipQuizSolved: document.getElementById('policy-battleship-quiz-solved'),
   saveSeason: document.getElementById('save-season-btn'),
   archiveEndedSeasons: document.getElementById('archive-ended-seasons-btn'),
   seasonList: document.getElementById('season-list'),
@@ -57,6 +60,9 @@ const CATEGORY_LABELS = {
   basicQuizCorrectCount: '기본퀴즈 정답 수',
   jumpmapBestHeight: '점프맵 최고 높이(px)',
   jumpmapQuizCorrect: '점프맵 퀴즈 정답 수',
+  battleshipKills: '거북선 격파 수',
+  battleshipSurvivedSec: '거북선 생존 시간(초)',
+  battleshipQuizSolved: '거북선 퀴즈 정답 수',
   overall: '통합'
 };
 const CATEGORY_UNITS = Object.freeze({
@@ -64,13 +70,19 @@ const CATEGORY_UNITS = Object.freeze({
   basicQuizCorrectCount: '개',
   jumpmapBestHeight: 'px',
   jumpmapQuizCorrect: '개',
+  battleshipKills: '킬',
+  battleshipSurvivedSec: '초',
+  battleshipQuizSolved: '개',
   overall: '점'
 });
 const HALL_SHOWCASE_PRIORITY = Object.freeze([
+  'battleshipKills',
   'basicQuizTotalScore',
   'jumpmapBestHeight',
+  'battleshipSurvivedSec',
   'basicQuizCorrectCount',
   'jumpmapQuizCorrect',
+  'battleshipQuizSolved',
   'overall'
 ]);
 
@@ -221,7 +233,10 @@ const normalizeScorePolicies = (raw) => {
     basicQuizTotalScore: source.basicQuizTotalScore !== false,
     basicQuizCorrectCount: source.basicQuizCorrectCount === true,
     jumpmapBestHeight: source.jumpmapBestHeight !== false,
-    jumpmapQuizCorrect: source.jumpmapQuizCorrect === true
+    jumpmapQuizCorrect: source.jumpmapQuizCorrect === true,
+    battleshipKills: source.battleshipKills !== false,
+    battleshipSurvivedSec: source.battleshipSurvivedSec === true,
+    battleshipQuizSolved: source.battleshipQuizSolved === true
   };
 };
 
@@ -232,6 +247,9 @@ const getEnabledSeasonCategories = (scorePolicies) => {
   if (policies.basicQuizCorrectCount) categories.push('basicQuizCorrectCount');
   if (policies.jumpmapBestHeight) categories.push('jumpmapBestHeight');
   if (policies.jumpmapQuizCorrect) categories.push('jumpmapQuizCorrect');
+  if (policies.battleshipKills) categories.push('battleshipKills');
+  if (policies.battleshipSurvivedSec) categories.push('battleshipSurvivedSec');
+  if (policies.battleshipQuizSolved) categories.push('battleshipQuizSolved');
   if (!categories.length) categories.push('basicQuizTotalScore');
   return categories;
 };
@@ -244,7 +262,10 @@ const readScorePoliciesFromForm = () => ({
   basicQuizTotalScore: els.policyQuizTotalScore?.checked !== false,
   basicQuizCorrectCount: els.policyQuizCorrectCount?.checked === true,
   jumpmapBestHeight: els.policyJumpmapBestHeight?.checked !== false,
-  jumpmapQuizCorrect: els.policyJumpmapQuizCorrect?.checked === true
+  jumpmapQuizCorrect: els.policyJumpmapQuizCorrect?.checked === true,
+  battleshipKills: els.policyBattleshipKills?.checked !== false,
+  battleshipSurvivedSec: els.policyBattleshipSurvivedSec?.checked === true,
+  battleshipQuizSolved: els.policyBattleshipQuizSolved?.checked === true
 });
 
 const applyScorePoliciesToForm = (rawPolicies) => {
@@ -253,6 +274,9 @@ const applyScorePoliciesToForm = (rawPolicies) => {
   if (els.policyQuizCorrectCount) els.policyQuizCorrectCount.checked = policies.basicQuizCorrectCount;
   if (els.policyJumpmapBestHeight) els.policyJumpmapBestHeight.checked = policies.jumpmapBestHeight;
   if (els.policyJumpmapQuizCorrect) els.policyJumpmapQuizCorrect.checked = policies.jumpmapQuizCorrect;
+  if (els.policyBattleshipKills) els.policyBattleshipKills.checked = policies.battleshipKills;
+  if (els.policyBattleshipSurvivedSec) els.policyBattleshipSurvivedSec.checked = policies.battleshipSurvivedSec;
+  if (els.policyBattleshipQuizSolved) els.policyBattleshipQuizSolved.checked = policies.battleshipQuizSolved;
 };
 
 const formatDateTime = (raw) => {

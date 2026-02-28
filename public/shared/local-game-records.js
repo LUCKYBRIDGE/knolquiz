@@ -133,7 +133,10 @@ const normalizeSeasonScorePolicies = (raw) => {
     basicQuizTotalScore: source.basicQuizTotalScore !== false,
     basicQuizCorrectCount: source.basicQuizCorrectCount === true,
     jumpmapBestHeight: source.jumpmapBestHeight !== false,
-    jumpmapQuizCorrect: source.jumpmapQuizCorrect === true
+    jumpmapQuizCorrect: source.jumpmapQuizCorrect === true,
+    battleshipKills: source.battleshipKills !== false,
+    battleshipSurvivedSec: source.battleshipSurvivedSec === true,
+    battleshipQuizSolved: source.battleshipQuizSolved === true
   };
 };
 
@@ -144,6 +147,9 @@ const getSeasonEnabledCategories = (scorePolicies) => {
   if (policies.basicQuizCorrectCount) categories.push('basicQuizCorrectCount');
   if (policies.jumpmapBestHeight) categories.push('jumpmapBestHeight');
   if (policies.jumpmapQuizCorrect) categories.push('jumpmapQuizCorrect');
+  if (policies.battleshipKills) categories.push('battleshipKills');
+  if (policies.battleshipSurvivedSec) categories.push('battleshipSurvivedSec');
+  if (policies.battleshipQuizSolved) categories.push('battleshipQuizSolved');
   return categories;
 };
 
@@ -487,6 +493,67 @@ const recordSeasonScoresFromJumpmapSession = async (db, {
   return { seasonId: normalizedSeasonId, recordedCount, categories };
 };
 
+const recordSeasonScoresFromBattleshipSession = async (db, {
+  season,
+  sessionId,
+  launcherQuizPresetId,
+  createdAt,
+  players,
+  settings
+}) => {
+  let recordedCount = 0;
+  const normalizedSeasonId = typeof season?.seasonId === 'string' ? season.seasonId.trim() : '';
+  if (!normalizedSeasonId) return { seasonId: '', recordedCount };
+  const policies = normalizeSeasonScorePolicies(season?.scorePolicies);
+  const categories = getSeasonEnabledCategories(policies)
+    .filter((category) => category.startsWith('battleship'));
+  if (!categories.length) categories.push('battleshipKills');
+  const normalizedPlayers = Array.isArray(players) ? players : [];
+  const survivedSec = Math.max(0, Number(settings?.survivedSec) || 0);
+  const maxWaveLevel = Math.max(0, Number(settings?.maxWaveLevel) || 0);
+  const endReason = typeof settings?.endReason === 'string' ? settings.endReason : '';
+
+  for (let i = 0; i < normalizedPlayers.length; i += 1) {
+    const player = normalizedPlayers[i];
+    const studentNo = normalizeStudentNo(player?.tag);
+    if (!studentNo) continue;
+    const kills = Math.max(0, Number(player?.summary?.kills) || 0);
+    const quizSolved = Math.max(0, Number(player?.summary?.quizSolved) || 0);
+    const shipHp = Math.max(0, Number(player?.summary?.shipHp) || 0);
+    const playerName = normalizeName(player?.name, `${studentNo}번`);
+
+    for (let c = 0; c < categories.length; c += 1) {
+      const category = categories[c];
+      const score = category === 'battleshipSurvivedSec'
+        ? survivedSec
+        : (category === 'battleshipQuizSolved' ? quizSolved : kills);
+      await upsertSeasonScoreWithDb(db, {
+        seasonId: normalizedSeasonId,
+        studentNo,
+        category,
+        score,
+        playedAt: createdAt,
+        payload: {
+          mode: 'battleship-defense',
+          source: 'battleship-play',
+          category,
+          sessionId,
+          launcherQuizPresetId: launcherQuizPresetId || null,
+          playerName,
+          kills,
+          quizSolved,
+          survivedSec,
+          maxWaveLevel,
+          shipHp,
+          endReason
+        }
+      });
+      recordedCount += 1;
+    }
+  }
+  return { seasonId: normalizedSeasonId, recordedCount, categories };
+};
+
 const insertWrongAnswers = async (db, sessionId, players, createdAt) => {
   const wrongEntries = [];
   (players || []).forEach((log, playerIndex) => {
@@ -739,7 +806,11 @@ export const saveBattleshipSessionRecord = async ({ settings = {}, players = [],
       playerCount: Number(settings?.playerCount) || normalizedPlayers.length || 1,
       shipMaxHp: Math.max(0, Number(settings?.shipMaxHp) || 0),
       survivedSec: Math.max(0, Number(settings?.survivedSec) || 0),
-      maxWaveLevel: Math.max(0, Number(settings?.maxWaveLevel) || 0)
+      maxWaveLevel: Math.max(0, Number(settings?.maxWaveLevel) || 0),
+      battleshipEndMode: typeof settings?.battleshipEndMode === 'string' ? settings.battleshipEndMode : '',
+      battleshipTimeLimitSec: Math.max(0, Number(settings?.battleshipTimeLimitSec) || 0),
+      battleshipKillLimit: Math.max(0, Number(settings?.battleshipKillLimit) || 0),
+      endReason: typeof settings?.endReason === 'string' ? settings.endReason : ''
     },
     players: normalizedPlayers.map((player, index) => {
       const name = normalizeName(player?.name, `사용자${index + 1}`);
@@ -769,10 +840,29 @@ export const saveBattleshipSessionRecord = async ({ settings = {}, players = [],
     await upsertBattleshipPlayerRecord(db, playerId, playerName, playerTag, player, createdAt);
   }
 
+  let seasonSummary = { seasonId: '', recordedCount: 0 };
+  try {
+    const activeSeason = await findAutoSeasonForSession(db, settings?.launcherQuizPresetId);
+    if (activeSeason?.seasonId) {
+      seasonSummary = await recordSeasonScoresFromBattleshipSession(db, {
+        season: activeSeason,
+        sessionId,
+        launcherQuizPresetId: settings?.launcherQuizPresetId || '',
+        createdAt,
+        players: normalizedPlayers,
+        settings
+      });
+    }
+  } catch (error) {
+    console.warn('[LocalRecords] failed to record classroom season score (battleship)', error);
+  }
+
   return {
     sessionId,
     createdAt,
-    playerCount: normalizedPlayers.length
+    playerCount: normalizedPlayers.length,
+    seasonId: seasonSummary.seasonId || null,
+    seasonScoreCount: Number(seasonSummary.recordedCount) || 0
   };
 };
 

@@ -126,7 +126,10 @@ const getStartTargetUrl = (setup) => {
     return url;
   }
   if (setup.gameMode === 'battleship-defense') {
-    const url = new URL('../battleship-play/', window.location.href);
+    const url = new URL(
+      setup.players > 1 ? '../battleship-play/split/' : '../battleship-play/',
+      window.location.href
+    );
     url.searchParams.set('launchMode', 'play');
     url.searchParams.set('fromLauncher', '1');
     return url;
