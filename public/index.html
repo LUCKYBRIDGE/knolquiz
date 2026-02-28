@@ -673,7 +673,7 @@
           customCsvFileName: '',
           savedCsvItems: [],
           playerNames: ['사용자1'],
-          playerTags: ['']
+          playerTags: ['1']
         });
 
         let csvLibraryDbPromise = null;
@@ -722,6 +722,7 @@
         loadRuntimeMapStartPoints();
 
         els.startBtn.addEventListener('click', () => {
+          normalizeState(state);
           state.savedAt = new Date().toISOString();
           saveSetup(state);
           const playUrl = new URL('./play/', window.location.href);
@@ -1023,6 +1024,41 @@
           };
         }
 
+        function normalizeStudentTag(raw) {
+          const value = typeof raw === 'string' ? raw.trim() : String(raw || '').trim();
+          if (!value) return '';
+          const parsed = Math.round(Number(value));
+          if (!Number.isFinite(parsed) || parsed < 1 || parsed > 50) return '';
+          return String(parsed);
+        }
+
+        function normalizePlayerTags(rawTags, playerCount) {
+          const list = Array.isArray(rawTags) ? rawTags.slice(0, playerCount) : [];
+          while (list.length < playerCount) list.push('');
+          const next = [];
+          const used = new Set();
+          for (let i = 0; i < playerCount; i += 1) {
+            const normalized = normalizeStudentTag(list[i]);
+            if (!normalized || used.has(normalized)) {
+              next.push('');
+              continue;
+            }
+            used.add(normalized);
+            next.push(normalized);
+          }
+          for (let i = 0; i < playerCount; i += 1) {
+            if (next[i]) continue;
+            for (let no = 1; no <= 50; no += 1) {
+              const candidate = String(no);
+              if (used.has(candidate)) continue;
+              used.add(candidate);
+              next[i] = candidate;
+              break;
+            }
+          }
+          return next;
+        }
+
         function saveSetup(setup) {
           try {
             window.localStorage.setItem(STORAGE_KEY, JSON.stringify(buildPersistableSetup(setup)));
@@ -1049,10 +1085,7 @@
             const trimmed = typeof name === 'string' ? name.trim() : '';
             return trimmed || `사용자${idx + 1}`;
           });
-          target.playerTags = target.playerTags.slice(0, target.players).map((tag) => {
-            if (typeof tag !== 'string') return '';
-            return tag.trim();
-          });
+          target.playerTags = normalizePlayerTags(target.playerTags, target.players);
           target.jumpmapStartPointId = typeof target.jumpmapStartPointId === 'string' ? target.jumpmapStartPointId : '';
           target.jumpmapEndMode = target.jumpmapEndMode === 'reach-top' ? 'reach-top' : 'none';
           target.quizEndMode = target.quizEndMode === 'time' ? 'time' : 'count';
@@ -1558,14 +1591,17 @@
               state.playerNames[i] = input.value.trim() || `사용자${i + 1}`;
               persistAndRefresh();
             });
-            const tagInput = document.createElement('input');
-            tagInput.type = 'text';
-            tagInput.maxLength = 8;
+            const tagInput = document.createElement('select');
             tagInput.className = 'name-tag';
-            tagInput.value = state.playerTags[i] || '';
-            tagInput.placeholder = '번호';
+            for (let no = 1; no <= 50; no += 1) {
+              const option = document.createElement('option');
+              option.value = String(no);
+              option.textContent = `${no}번`;
+              tagInput.appendChild(option);
+            }
+            tagInput.value = normalizeStudentTag(state.playerTags[i]) || '1';
             tagInput.addEventListener('change', () => {
-              state.playerTags[i] = tagInput.value.trim();
+              state.playerTags[i] = normalizeStudentTag(tagInput.value);
               persistAndRefresh();
             });
             row.append(badge, input, tagInput);
