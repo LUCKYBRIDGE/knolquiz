@@ -29,6 +29,7 @@ const els = {
   seasonList: document.getElementById('season-list'),
   seasonSelect: document.getElementById('season-select'),
   loadLeaderboard: document.getElementById('load-leaderboard-btn'),
+  exportLeaderboardCsv: document.getElementById('export-leaderboard-csv-btn'),
   manualStudentNo: document.getElementById('manual-student-no'),
   manualScore: document.getElementById('manual-score'),
   addManualScore: document.getElementById('add-manual-score-btn'),
@@ -39,6 +40,7 @@ const state = {
   draftStudents: [],
   seasons: [],
   leaderboardSections: [],
+  loadedLeaderboardSeasonId: '',
   selectedSeasonId: ''
 };
 
@@ -151,6 +153,8 @@ const formatModeLabel = (rawMode, rawSource) => {
   if (rawSource === 'manual-classroom-page') return '수동기록';
   return rawMode || rawSource || '기타';
 };
+
+const escapeCsvCell = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
 
 const summarizeSeasonPolicies = (season) => {
   const categories = getEnabledSeasonCategories(season?.scorePolicies);
@@ -361,6 +365,104 @@ const renderLeaderboard = () => {
   });
 };
 
+const fetchLeaderboardSections = async (seasonId) => {
+  const season = getSeasonById(seasonId);
+  const categories = getEnabledSeasonCategories(season?.scorePolicies);
+  return Promise.all(
+    categories.map(async (category) => ({
+      category,
+      label: CATEGORY_LABELS[category] || category,
+      rows: await listClassroomSeasonLeaderboard(seasonId, 50, category)
+    }))
+  );
+};
+
+const buildLeaderboardCsv = (seasonId, seasonName, seasonStatusLabel, sections) => {
+  const rows = [[
+    '시즌ID',
+    '시즌명',
+    '시즌상태',
+    '부문코드',
+    '부문명',
+    '순위',
+    '학생번호',
+    '학생이름',
+    '최고점',
+    '평균점',
+    '누적점수',
+    '시도횟수',
+    '최근점수',
+    '최근모드',
+    '최근소스',
+    '최근기록시각'
+  ]];
+  sections.forEach((section) => {
+    section.rows.forEach((row) => {
+      rows.push([
+        seasonId,
+        seasonName,
+        seasonStatusLabel,
+        section.category,
+        section.label,
+        row.rank,
+        row.studentNo,
+        row.studentName,
+        row.bestScore,
+        row.averageScore,
+        row.totalScore,
+        row.attemptCount,
+        row.lastScore,
+        formatModeLabel(row.lastMode, row.lastSource),
+        row.lastSource || '',
+        row.lastPlayedAt || ''
+      ]);
+    });
+  });
+  return rows.map((row) => row.map((cell) => escapeCsvCell(cell)).join(',')).join('\n');
+};
+
+const downloadTextFile = (fileName, text, mimeType) => {
+  const normalizedText = String(text || '');
+  const withBom = mimeType.includes('text/csv') ? `\ufeff${normalizedText}` : normalizedText;
+  const blob = new Blob([withBom], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+  link.click();
+  URL.revokeObjectURL(url);
+};
+
+const exportLeaderboardCsv = async () => {
+  const seasonId = String(els.seasonSelect?.value || state.selectedSeasonId || '').trim();
+  state.selectedSeasonId = seasonId;
+  if (!seasonId) {
+    setStatus('CSV 내보내기 전에 시즌을 선택하세요.', 'error');
+    return;
+  }
+  setStatus('리더보드 CSV를 생성하는 중...');
+  try {
+    const season = getSeasonById(seasonId);
+    const seasonName = String(season?.name || seasonId);
+    const seasonStatus = getSeasonLifecycleStatus(season);
+    const sections = (state.loadedLeaderboardSeasonId === seasonId && state.leaderboardSections.length)
+      ? state.leaderboardSections
+      : await fetchLeaderboardSections(seasonId);
+    state.leaderboardSections = sections;
+    state.loadedLeaderboardSeasonId = seasonId;
+    renderLeaderboard();
+
+    const csvText = buildLeaderboardCsv(seasonId, seasonName, seasonStatus.label, sections);
+    const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+    const fileName = `classroom-leaderboard-${seasonId}-${stamp}.csv`;
+    downloadTextFile(fileName, csvText, 'text/csv;charset=utf-8;');
+    setStatus(`리더보드 CSV 저장 완료 · 시즌 ${seasonId} · 부문 ${sections.length}개`);
+  } catch (error) {
+    console.error('[ClassroomPage] export leaderboard csv failed', error);
+    setStatus('리더보드 CSV 생성에 실패했습니다.', 'error');
+  }
+};
+
 const reloadData = async () => {
   setStatus('학급 데이터를 불러오는 중...');
   try {
@@ -384,6 +486,7 @@ const reloadData = async () => {
       }
     });
     state.leaderboardSections = [];
+    state.loadedLeaderboardSeasonId = '';
     renderStudents();
     renderSeasons();
     renderLeaderboard();
@@ -489,22 +592,16 @@ const loadLeaderboard = async () => {
   state.selectedSeasonId = seasonId;
   if (!seasonId) {
     state.leaderboardSections = [];
+    state.loadedLeaderboardSeasonId = '';
     renderLeaderboard();
     setStatus('명예의 전당 시즌을 선택하세요.', 'error');
     return;
   }
-  const season = getSeasonById(seasonId);
-  const categories = getEnabledSeasonCategories(season?.scorePolicies);
   setStatus('명예의 전당을 불러오는 중...');
   try {
-    const sectionRows = await Promise.all(
-      categories.map(async (category) => ({
-        category,
-        label: CATEGORY_LABELS[category] || category,
-        rows: await listClassroomSeasonLeaderboard(seasonId, 50, category)
-      }))
-    );
+    const sectionRows = await fetchLeaderboardSections(seasonId);
     state.leaderboardSections = sectionRows;
+    state.loadedLeaderboardSeasonId = seasonId;
     renderLeaderboard();
     const totalRows = sectionRows.reduce((sum, section) => sum + section.rows.length, 0);
     setStatus(`명예의 전당 갱신 완료 · 시즌 ${seasonId} · 부문 ${sectionRows.length}개 · 항목 ${totalRows}개`);
@@ -565,9 +662,13 @@ els.archiveEndedSeasons?.addEventListener('click', () => {
 });
 els.seasonSelect?.addEventListener('change', () => {
   state.selectedSeasonId = String(els.seasonSelect.value || '').trim();
+  state.loadedLeaderboardSeasonId = '';
 });
 els.loadLeaderboard?.addEventListener('click', () => {
   loadLeaderboard();
+});
+els.exportLeaderboardCsv?.addEventListener('click', () => {
+  exportLeaderboardCsv();
 });
 els.addManualScore?.addEventListener('click', () => {
   addManualScore();
