@@ -1,6 +1,7 @@
 import {
   listRecentQuizSessions,
   listRecentJumpmapSessions,
+  listRecentBattleshipSessions,
   listPlayerRecords,
   listWrongAnswers
 } from '../../shared/local-game-records.js';
@@ -18,6 +19,7 @@ const els = {
   players: document.getElementById('players-list'),
   jumpmapSessions: document.getElementById('jumpmap-sessions'),
   quizSessions: document.getElementById('quiz-sessions'),
+  battleshipSessions: document.getElementById('battleship-sessions'),
   wrongs: document.getElementById('wrongs-list')
 };
 
@@ -26,6 +28,7 @@ const state = {
     players: [],
     jumpmapSessions: [],
     quizSessions: [],
+    battleshipSessions: [],
     wrongs: []
   },
   selectedStudentNo: null,
@@ -159,7 +162,7 @@ const downloadTextFile = (fileName, text, mimeType) => {
   URL.revokeObjectURL(url);
 };
 
-const buildRecordsCsv = ({ players, jumpmapSessions, quizSessions, wrongs }) => {
+const buildRecordsCsv = ({ players, jumpmapSessions, quizSessions, battleshipSessions, wrongs }) => {
   const selectedStudent = state.selectedStudentNo ? getStudentLabel(state.selectedStudentNo) : '전체';
   const selectedPeriod = getPeriodLabel(state.selectedPeriodDays);
   const criteria = `학생:${selectedStudent} / 기간:${selectedPeriod}`;
@@ -235,6 +238,26 @@ const buildRecordsCsv = ({ players, jumpmapSessions, quizSessions, wrongs }) => 
     });
   });
 
+  (Array.isArray(battleshipSessions) ? battleshipSessions : []).forEach((session) => {
+    const playersInSession = Array.isArray(session?.players) ? session.players : [];
+    playersInSession.forEach((player) => {
+      const studentNo = normalizeStudentNo(player?.tag);
+      const summary = player?.summary || {};
+      rows.push([
+        criteria,
+        '거북선 디펜스 세션',
+        session?.createdAt || '',
+        studentNo || '',
+        player?.name || player?.id || '',
+        `격파:${Number(summary?.kills) || 0}`,
+        `퀴즈정답:${Number(summary?.quizSolved) || 0}`,
+        `생존:${Number(session?.settingsSummary?.survivedSec) || 0}초`,
+        `웨이브:${Number(session?.settingsSummary?.maxWaveLevel) || 0}`,
+        `선박HP:${Number(summary?.shipHp) || 0}`
+      ]);
+    });
+  });
+
   (Array.isArray(wrongs) ? wrongs : []).forEach((wrong) => {
     const studentNo = normalizeStudentNo(wrong?.playerTag);
     rows.push([
@@ -288,10 +311,12 @@ const populateStudentFilter = (players) => {
   els.studentFilter.value = selected ? String(selected) : '';
 };
 
-const applyFilters = ({ players, jumpmapSessions, quizSessions, wrongs }, studentNo, periodDays) => {
+const applyFilters = ({ players, jumpmapSessions, quizSessions, battleshipSessions, wrongs }, studentNo, periodDays) => {
   const normalizedJumpmapSessions = (Array.isArray(jumpmapSessions) ? jumpmapSessions : [])
     .filter((session) => isWithinSelectedPeriod(session?.createdAt, periodDays));
   const normalizedQuizSessions = (Array.isArray(quizSessions) ? quizSessions : [])
+    .filter((session) => isWithinSelectedPeriod(session?.createdAt, periodDays));
+  const normalizedBattleshipSessions = (Array.isArray(battleshipSessions) ? battleshipSessions : [])
     .filter((session) => isWithinSelectedPeriod(session?.createdAt, periodDays));
   const normalizedWrongs = (Array.isArray(wrongs) ? wrongs : [])
     .filter((wrong) => isWithinSelectedPeriod(wrong?.createdAt, periodDays));
@@ -301,6 +326,7 @@ const applyFilters = ({ players, jumpmapSessions, quizSessions, wrongs }, studen
       players,
       jumpmapSessions: normalizedJumpmapSessions,
       quizSessions: normalizedQuizSessions,
+      battleshipSessions: normalizedBattleshipSessions,
       wrongs: normalizedWrongs
     };
   }
@@ -311,6 +337,9 @@ const applyFilters = ({ players, jumpmapSessions, quizSessions, wrongs }, studen
       .filter((session) => (Array.isArray(session?.players) ? session.players : [])
         .some((player) => matchesStudentNo(player?.tag, studentNo))),
     quizSessions: normalizedQuizSessions
+      .filter((session) => (Array.isArray(session?.players) ? session.players : [])
+        .some((player) => matchesStudentNo(player?.tag, studentNo))),
+    battleshipSessions: normalizedBattleshipSessions
       .filter((session) => (Array.isArray(session?.players) ? session.players : [])
         .some((player) => matchesStudentNo(player?.tag, studentNo))),
     wrongs: normalizedWrongs
@@ -331,10 +360,11 @@ const updateFilterHint = () => {
   els.filterHint.textContent = `${studentText}을 ${periodText} 기준으로 표시 중입니다.`;
 };
 
-const renderSummary = ({ players, jumpmapSessions, quizSessions, wrongs }) => {
+const renderSummary = ({ players, jumpmapSessions, quizSessions, battleshipSessions, wrongs }) => {
   clearNode(els.summary);
   const totalQuizRuns = quizSessions.length;
   const totalJumpmapRuns = jumpmapSessions.length;
+  const totalBattleshipRuns = battleshipSessions.length;
   const totalPlayers = players.length;
   const totalWrongs = wrongs.length;
   const bestJumpmapHeightPx = players.reduce((max, player) => {
@@ -349,6 +379,7 @@ const renderSummary = ({ players, jumpmapSessions, quizSessions, wrongs }) => {
     ['플레이어 수', `${totalPlayers}명`],
     ['최근 점프맵 기록', `${totalJumpmapRuns}건`],
     ['최근 퀴즈 기록', `${totalQuizRuns}건`],
+    ['최근 거북선 기록', `${totalBattleshipRuns}건`],
     ['오답문항(표시 범위)', `${totalWrongs}건`],
     ['최고 높이(누적 기록 기준)', pxToMeterText(bestJumpmapHeightPx)],
     ['누적 퀴즈 정답률', `${overallAccuracy.toFixed(1)}%`]
@@ -403,15 +434,55 @@ const renderPlayers = (players) => {
 
     const quizStats = player?.stats || {};
     const jumpmapStats = player?.jumpmapStats || {};
+    const battleshipStats = player?.battleshipStats || {};
     const meta = document.createElement('div');
     meta.className = 'meta';
     meta.innerHTML = [
       `퀴즈: ${Number(quizStats.quizRuns) || 0}판 · 정답률 ${Number(quizStats.accuracy) || 0}% · 누적점수 ${Number(quizStats.totalScore) || 0}`,
-      `점프맵: ${Number(jumpmapStats.runs) || 0}판 · 최고높이 ${pxToMeterText(jumpmapStats.bestHeightPx)} · 점프 ${Number(jumpmapStats.totalJumps) || 0}/${Number(jumpmapStats.totalDoubleJumps) || 0}(더블)`
+      `점프맵: ${Number(jumpmapStats.runs) || 0}판 · 최고높이 ${pxToMeterText(jumpmapStats.bestHeightPx)} · 점프 ${Number(jumpmapStats.totalJumps) || 0}/${Number(jumpmapStats.totalDoubleJumps) || 0}(더블)`,
+      `거북선: ${Number(battleshipStats.runs) || 0}판 · 최고 ${Number(battleshipStats.bestScore) || 0}킬 · 누적 ${Number(battleshipStats.totalKills) || 0}킬`
     ].join('<br>');
 
     item.append(row, meta);
     els.players.appendChild(item);
+  });
+};
+
+const renderBattleshipSessions = (sessions) => {
+  clearNode(els.battleshipSessions);
+  if (!sessions.length) {
+    appendEmpty(els.battleshipSessions, '거북선 디펜스 기록이 없습니다.');
+    return;
+  }
+  sessions.forEach((session) => {
+    const item = createItem();
+    const row = document.createElement('div');
+    row.className = 'row';
+    const title = document.createElement('div');
+    title.className = 'name';
+    title.textContent = `거북선 디펜스 · ${session.playerCount || 1}인`;
+    const time = document.createElement('div');
+    time.className = 'meta';
+    time.textContent = formatTime(session.createdAt);
+    row.append(title, time);
+
+    const players = Array.isArray(session.players) ? session.players : [];
+    const topPlayer = players.reduce((best, player) => {
+      const kills = Number(player?.summary?.kills) || 0;
+      if (!best || kills > (Number(best?.summary?.kills) || 0)) return player;
+      return best;
+    }, null);
+
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    meta.innerHTML = [
+      `최고 플레이어: ${topPlayer?.name || '-'} (${Number(topPlayer?.summary?.kills) || 0}킬)`,
+      `생존 시간: ${Number(session?.settingsSummary?.survivedSec) || 0}초 · 최고 웨이브: Lv.${Number(session?.settingsSummary?.maxWaveLevel) || 0}`,
+      `퀴즈 정답 반영: ${Number(topPlayer?.summary?.quizSolved) || 0}개`
+    ].join('<br>');
+
+    item.append(row, meta);
+    els.battleshipSessions.appendChild(item);
   });
 };
 
@@ -544,6 +615,7 @@ const renderFilteredView = () => {
   renderPlayers(filtered.players);
   renderJumpmapSessions(filtered.jumpmapSessions);
   renderQuizSessions(filtered.quizSessions);
+  renderBattleshipSessions(filtered.battleshipSessions);
   renderWrongs(filtered.wrongs);
   updateFilterHint();
   syncTopNavigationLinks();
@@ -554,15 +626,16 @@ const renderFilteredView = () => {
     ? ` · 기간필터 ${getPeriodLabel(state.selectedPeriodDays)}`
     : '';
   els.status.textContent =
-    `불러오기 완료 · 점프맵 ${filtered.jumpmapSessions.length}건 · 퀴즈 ${filtered.quizSessions.length}건 · 플레이어 ${filtered.players.length}명 · 오답 ${filtered.wrongs.length}건${studentText}${periodText}`;
+    `불러오기 완료 · 점프맵 ${filtered.jumpmapSessions.length}건 · 퀴즈 ${filtered.quizSessions.length}건 · 거북선 ${filtered.battleshipSessions.length}건 · 플레이어 ${filtered.players.length}명 · 오답 ${filtered.wrongs.length}건${studentText}${periodText}`;
 };
 
 const loadAndRender = async () => {
   try {
     els.status.textContent = '로컬 기록을 불러오는 중...';
-    const [jumpmapSessions, quizSessions, players, wrongs] = await Promise.all([
+    const [jumpmapSessions, quizSessions, battleshipSessions, players, wrongs] = await Promise.all([
       listRecentJumpmapSessions(20),
       listRecentQuizSessions(20),
+      listRecentBattleshipSessions(20),
       listPlayerRecords(60),
       listWrongAnswers(120)
     ]);
@@ -571,6 +644,7 @@ const loadAndRender = async () => {
       players: Array.isArray(players) ? players : [],
       jumpmapSessions: Array.isArray(jumpmapSessions) ? jumpmapSessions : [],
       quizSessions: Array.isArray(quizSessions) ? quizSessions : [],
+      battleshipSessions: Array.isArray(battleshipSessions) ? battleshipSessions : [],
       wrongs: Array.isArray(wrongs) ? wrongs : []
     };
     populateStudentFilter(state.raw.players);

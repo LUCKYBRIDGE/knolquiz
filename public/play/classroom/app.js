@@ -264,6 +264,7 @@ const formatDateTime = (raw) => {
 const formatModeLabel = (rawMode, rawSource) => {
   if (rawMode === 'basic-quiz') return '기본퀴즈';
   if (rawMode === 'jumpmap') return '점프맵';
+  if (rawMode === 'battleship-defense') return '거북선 디펜스';
   if (rawSource === 'manual-classroom-page') return '수동기록';
   return rawMode || rawSource || '기타';
 };

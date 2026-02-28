@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>거북선 디펜스</title>
+    <style>
+      :root {
+        --ink: #1b2a4b;
+        --line: rgba(24, 41, 75, 0.24);
+        --panel: rgba(252, 248, 238, 0.95);
+        --accent: #e1b53f;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; }
+      body {
+        font-family: "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+        color: var(--ink);
+        background: linear-gradient(180deg, #f1e7cf 0%, #ddd0b2 100%);
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 320px;
+        gap: 10px;
+        width: min(1320px, 100% - 16px);
+        margin: 8px auto;
+        height: calc(100% - 16px);
+      }
+      .stage-wrap {
+        border: 2px solid var(--line);
+        border-radius: 14px;
+        overflow: hidden;
+        background: #edf4ff;
+        box-shadow: 0 8px 24px rgba(24, 41, 75, 0.16);
+        min-height: 0;
+      }
+      #game-canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+        touch-action: none;
+      }
+      .side {
+        display: grid;
+        gap: 8px;
+        align-content: start;
+        min-height: 0;
+        overflow: auto;
+      }
+      .card {
+        border: 2px solid var(--line);
+        border-radius: 12px;
+        background: var(--panel);
+        padding: 10px;
+      }
+      .card h2 {
+        margin: 0 0 8px;
+        font-size: 16px;
+      }
+      .stat-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .stat {
+        border: 1px solid rgba(24, 41, 75, 0.15);
+        border-radius: 10px;
+        padding: 8px;
+        background: rgba(255,255,255,0.78);
+      }
+      .stat .k { font-size: 12px; color: #51607f; font-weight: 700; }
+      .stat .v { margin-top: 2px; font-size: 18px; font-weight: 900; }
+      .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      .btn {
+        border: 2px solid #2b2e34;
+        border-radius: 10px;
+        background: #fff;
+        min-height: 42px;
+        font: inherit;
+        font-weight: 900;
+        cursor: pointer;
+      }
+      .btn.primary {
+        background: linear-gradient(180deg, #fae296 0%, var(--accent) 100%);
+      }
+      .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+      .hint { font-size: 12px; color: #5d4d40; line-height: 1.4; }
+      .status { font-size: 13px; font-weight: 700; color: #2b426f; min-height: 18px; }
+      .quiz-layer {
+        position: fixed;
+        inset: 0;
+        display: none;
+        place-items: center;
+        background: rgba(6, 10, 23, 0.62);
+        z-index: 30;
+        padding: 12px;
+      }
+      .quiz-layer.show { display: grid; }
+      .quiz-panel {
+        width: min(860px, 100%);
+        max-height: calc(100vh - 24px);
+        overflow: auto;
+        border: 2px solid #162440;
+        border-radius: 14px;
+        background: rgba(255, 252, 244, 0.98);
+        padding: 14px;
+        display: grid;
+        gap: 10px;
+      }
+      .quiz-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .quiz-head h3 {
+        margin: 0;
+        font-size: 22px;
+      }
+      .quiz-question {
+        border: 1px solid rgba(24, 41, 75, 0.16);
+        border-radius: 10px;
+        background: rgba(255,255,255,0.82);
+        padding: 10px;
+        display: grid;
+        gap: 8px;
+      }
+      .quiz-prompt {
+        font-size: 16px;
+        font-weight: 800;
+        color: #223965;
+      }
+      .quiz-asset {
+        max-width: 100%;
+        max-height: 260px;
+        object-fit: contain;
+        border: 1px solid rgba(24, 41, 75, 0.14);
+        border-radius: 8px;
+        background: rgba(255,255,255,0.9);
+      }
+      .quiz-choices {
+        display: grid;
+        gap: 8px;
+      }
+      .quiz-choice {
+        border: 2px solid rgba(24, 41, 75, 0.24);
+        border-radius: 10px;
+        background: rgba(255,255,255,0.9);
+        min-height: 42px;
+        font: inherit;
+        font-weight: 800;
+        color: #233f71;
+        cursor: pointer;
+        text-align: left;
+        padding: 8px 10px;
+      }
+      .quiz-choice:hover { border-color: rgba(33, 79, 178, 0.66); }
+      .quiz-choice img {
+        max-height: 120px;
+        max-width: 100%;
+        object-fit: contain;
+      }
+      .quiz-result {
+        min-height: 20px;
+        font-size: 14px;
+        font-weight: 800;
+      }
+      .quiz-result.ok { color: #166534; }
+      .quiz-result.no { color: #b91c1c; }
+      .gameover {
+        position: fixed;
+        inset: 0;
+        display: none;
+        place-items: center;
+        background: rgba(7, 11, 25, 0.62);
+        z-index: 20;
+      }
+      .gameover.show { display: grid; }
+      .gameover-panel {
+        width: min(420px, calc(100% - 24px));
+        border: 2px solid #12203f;
+        border-radius: 14px;
+        background: rgba(255, 252, 244, 0.98);
+        padding: 16px;
+      }
+      .gameover-panel h3 { margin: 0 0 8px; font-size: 24px; }
+      .gameover-panel p { margin: 6px 0; font-weight: 700; }
+      @media (max-width: 980px) {
+        .layout { grid-template-columns: 1fr; height: auto; min-height: calc(100% - 16px); }
+        .stage-wrap { min-height: 58vh; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="layout">
+      <section class="stage-wrap">
+        <canvas id="game-canvas" width="960" height="540"></canvas>
+      </section>
+      <aside class="side">
+        <section class="card">
+          <h2>거북선 디펜스</h2>
+          <div class="stat-grid">
+            <div class="stat"><div class="k">거북선 HP</div><div class="v" id="ship-hp">0 / 0</div></div>
+            <div class="stat"><div class="k">격파 수(점수)</div><div class="v" id="kill-score">0</div></div>
+            <div class="stat"><div class="k">골드</div><div class="v" id="gold-value">0</div></div>
+            <div class="stat"><div class="k">EXP</div><div class="v" id="exp-value">0</div></div>
+          </div>
+          <p class="status" id="status-text">전투 시작</p>
+        </section>
+
+        <section class="card">
+          <h2>아이템 구매</h2>
+          <div class="row">
+            <button class="btn" id="buy-heal-btn" type="button">체력 회복</button>
+            <button class="btn" id="open-quiz-btn" type="button">퀴즈 열기</button>
+          </div>
+          <p class="hint">체력 회복은 골드를 사용합니다. 퀴즈 정답 시 자동으로 EXP/골드가 반영됩니다.</p>
+        </section>
+
+        <section class="card">
+          <h2>레벨 업</h2>
+          <div class="row">
+            <button class="btn" id="upgrade-speed-btn" type="button">공격속도 업</button>
+            <button class="btn" id="upgrade-power-btn" type="button">공격력 업</button>
+          </div>
+          <div class="row">
+            <button class="btn" id="upgrade-bullet-btn" type="button">총알 개수 업</button>
+            <a class="btn" href="../" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;color:inherit;">메인화면</a>
+          </div>
+          <p class="hint">시간이 지날수록 01→10 단계 적이 열리고, 이후 붉은 특수효과 적이 01부터 순차 해금됩니다.</p>
+        </section>
+      </aside>
+    </main>
+
+    <div class="quiz-layer" id="quiz-layer">
+      <div class="quiz-panel">
+        <div class="quiz-head">
+          <h3>전투 퀴즈</h3>
+          <button class="btn" id="quiz-close-btn" type="button">닫기</button>
+        </div>
+        <div class="quiz-question">
+          <div class="quiz-prompt" id="quiz-prompt">문제를 불러오는 중...</div>
+          <img class="quiz-asset" id="quiz-question-asset" alt="문제 이미지" style="display:none;" />
+          <div class="quiz-choices" id="quiz-choices"></div>
+          <div class="quiz-result" id="quiz-result"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gameover" id="gameover-layer">
+      <div class="gameover-panel">
+        <h3>게임 종료</h3>
+        <p id="gameover-score">점수: 0</p>
+        <p id="gameover-time">생존 시간: 0초</p>
+        <div class="row" style="margin-top:10px;">
+          <button class="btn primary" id="restart-btn" type="button">다시 시작</button>
+          <a class="btn" href="../" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;color:inherit;">메인화면</a>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

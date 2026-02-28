@@ -200,6 +200,25 @@ const buildJumpmapPlayerSummaryPatch = (existing, player, createdAt) => {
   };
 };
 
+const buildBattleshipPlayerSummaryPatch = (existing, player, createdAt) => {
+  const prev = existing?.battleshipStats || {};
+  const kills = Math.max(0, Number(player?.kills) || 0);
+  const quizSolved = Math.max(0, Number(player?.quizSolved) || 0);
+  const bestScore = Math.max(Number(prev.bestScore) || 0, kills);
+  return {
+    ...(existing || {}),
+    updatedAt: createdAt,
+    battleshipStats: {
+      runs: (Number(prev.runs) || 0) + 1,
+      totalKills: (Number(prev.totalKills) || 0) + kills,
+      bestScore,
+      totalQuizSolved: (Number(prev.totalQuizSolved) || 0) + quizSolved,
+      lastScore: kills,
+      lastPlayedAt: createdAt
+    }
+  };
+};
+
 const putSessionRecord = async (db, sessionRecord) => {
   const tx = db.transaction([STORE_SESSIONS], 'readwrite');
   tx.objectStore(STORE_SESSIONS).put(sessionRecord);
@@ -224,6 +243,19 @@ const upsertJumpmapPlayerRecord = async (db, playerRecordId, playerName, playerT
   const store = tx.objectStore(STORE_PLAYERS);
   const existing = await requestToPromise(store.get(playerRecordId));
   const next = buildJumpmapPlayerSummaryPatch(existing, playerRecord, createdAt);
+  next.id = playerRecordId;
+  next.name = playerName;
+  if (playerTag) next.tag = playerTag;
+  if (!next.createdAt) next.createdAt = createdAt;
+  store.put(next);
+  await txDone(tx);
+};
+
+const upsertBattleshipPlayerRecord = async (db, playerRecordId, playerName, playerTag, playerRecord, createdAt) => {
+  const tx = db.transaction([STORE_PLAYERS], 'readwrite');
+  const store = tx.objectStore(STORE_PLAYERS);
+  const existing = await requestToPromise(store.get(playerRecordId));
+  const next = buildBattleshipPlayerSummaryPatch(existing, playerRecord, createdAt);
   next.id = playerRecordId;
   next.name = playerName;
   if (playerTag) next.tag = playerTag;
@@ -686,6 +718,69 @@ export const listRecentJumpmapSessions = async (limit = 20) => {
   const all = await getAllFromStore(db, STORE_SESSIONS);
   return all
     .filter((item) => item?.mode === 'jumpmap')
+    .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
+    .slice(0, Math.max(1, Math.min(200, Number(limit) || 20)));
+};
+
+export const saveBattleshipSessionRecord = async ({ settings = {}, players = [], source = 'battleship-play' }) => {
+  const db = await openDb();
+  const createdAt = new Date().toISOString();
+  const sessionId = `battleship-session:${safeIdSuffix()}`;
+  const normalizedPlayers = Array.isArray(players) ? players : [];
+
+  const sessionRecord = {
+    id: sessionId,
+    mode: 'battleship-defense',
+    source,
+    createdAt,
+    playerCount: normalizedPlayers.length,
+    launcherQuizPresetId: settings?.launcherQuizPresetId || null,
+    settingsSummary: {
+      playerCount: Number(settings?.playerCount) || normalizedPlayers.length || 1,
+      shipMaxHp: Math.max(0, Number(settings?.shipMaxHp) || 0),
+      survivedSec: Math.max(0, Number(settings?.survivedSec) || 0),
+      maxWaveLevel: Math.max(0, Number(settings?.maxWaveLevel) || 0)
+    },
+    players: normalizedPlayers.map((player, index) => {
+      const name = normalizeName(player?.name, `사용자${index + 1}`);
+      const tag = typeof player?.tag === 'string' ? player.tag.trim() : '';
+      return {
+        id: playerIdFromNameAndTag(name, tag),
+        name,
+        tag,
+        summary: {
+          kills: Math.max(0, Number(player?.kills) || 0),
+          quizSolved: Math.max(0, Number(player?.quizSolved) || 0),
+          shipHp: Math.max(0, Number(player?.shipHp) || 0),
+          expSpent: Math.max(0, Number(player?.expSpent) || 0),
+          goldSpent: Math.max(0, Number(player?.goldSpent) || 0)
+        }
+      };
+    })
+  };
+
+  await putSessionRecord(db, sessionRecord);
+
+  for (let i = 0; i < normalizedPlayers.length; i += 1) {
+    const player = normalizedPlayers[i];
+    const playerName = normalizeName(player?.name, `사용자${i + 1}`);
+    const playerTag = typeof player?.tag === 'string' ? player.tag.trim() : '';
+    const playerId = playerIdFromNameAndTag(playerName, playerTag);
+    await upsertBattleshipPlayerRecord(db, playerId, playerName, playerTag, player, createdAt);
+  }
+
+  return {
+    sessionId,
+    createdAt,
+    playerCount: normalizedPlayers.length
+  };
+};
+
+export const listRecentBattleshipSessions = async (limit = 20) => {
+  const db = await openDb();
+  const all = await getAllFromStore(db, STORE_SESSIONS);
+  return all
+    .filter((item) => item?.mode === 'battleship-defense')
     .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
     .slice(0, Math.max(1, Math.min(200, Number(limit) || 20)));
 };

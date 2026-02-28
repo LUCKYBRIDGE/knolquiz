@@ -3,7 +3,8 @@ const LEGACY_QUIZ_APP_URL = 'https://luckybridge.github.io/math-net-master-quiz/
 
 const GAME_LABELS = {
   jumpmap: '점프맵',
-  'basic-quiz': '기본 모드(퀴즈)'
+  'basic-quiz': '기본 모드(퀴즈)',
+  'battleship-defense': '거북선 디펜스'
 };
 
 const QUIZ_PRESET_LABELS = {
@@ -108,6 +109,12 @@ const getStartTargetUrl = (setup) => {
   }
   if (setup.gameMode === 'basic-quiz') {
     const url = new URL(LEGACY_QUIZ_APP_URL);
+    url.searchParams.set('launchMode', 'play');
+    url.searchParams.set('fromLauncher', '1');
+    return url;
+  }
+  if (setup.gameMode === 'battleship-defense') {
+    const url = new URL('../battleship-play/', window.location.href);
     url.searchParams.set('launchMode', 'play');
     url.searchParams.set('fromLauncher', '1');
     return url;
