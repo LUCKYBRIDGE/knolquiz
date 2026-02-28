@@ -8,9 +8,9 @@ const SHIP_IMAGE_SRC = '../quiz_battleship/battleship-ship.png';
 const ELITE_UNLOCK_TIME_SEC = 240;
 const ENEMY_TIER_UNLOCK_STEP_SEC = 24;
 const ELITE_TIER_UNLOCK_STEP_SEC = 30;
-const SPAWN_START_COOLDOWN_MS = 1260;
-const SPAWN_MIN_COOLDOWN_MS = 430;
-const SPAWN_DECAY_PER_SEC = 4.7;
+const SPAWN_START_COOLDOWN_MS = 2000;
+const SPAWN_MIN_COOLDOWN_MS = 620;
+const SPAWN_DECAY_PER_SEC = 3.1;
 const HP_GROWTH_STEP_SEC = 30;
 const HP_GROWTH_PER_STEP = 0.14;
 const SPEED_GROWTH_STEP_SEC = 45;
@@ -21,6 +21,12 @@ const SIZE_GROWTH_STEP_SEC = 75;
 const ELITE_CHANCE_BASE = 0.08;
 const ELITE_CHANCE_MAX = 0.55;
 const ELITE_CHANCE_GROWTH_WINDOW_SEC = 280;
+const EARLY_ONE_SHOT_WINDOW_SEC = 55;
+const EARLY_ONE_SHOT_MAX_TIER = 4;
+const EARLY_EASE_WINDOW_SEC = 120;
+const EARLY_SOFTCAP_T1 = 7;
+const EARLY_SOFTCAP_T2 = 11;
+const EARLY_SOFTCAP_T3 = 16;
 const ENEMY_DEFINITIONS = Object.freeze([
   { tier: 1, code: '01', name: '도깨비불', file: 'battleship-01ddokaebibul.png', baseHp: 34, baseSpeed: 58, baseTouchDamage: 8, baseSize: 56 },
   { tier: 2, code: '02', name: '물귀신', file: 'battleship-02mulguisin.png', baseHp: 46, baseSpeed: 62, baseTouchDamage: 9, baseSize: 58 },
@@ -124,7 +130,7 @@ const state = {
   startAtMs: performance.now(),
   lastFrameMs: performance.now(),
   spawnCooldownMs: SPAWN_START_COOLDOWN_MS,
-  nextSpawnMs: 650,
+  nextSpawnMs: 1100,
   nextShotMs: 0,
   ship: {
     x: canvas.width / 2,
@@ -406,19 +412,19 @@ const createEnemyFromDefinition = (def, elapsedSec, elite = false) => {
   const tierFactor = 1 + (def.tier - 1) * 0.18;
   const eliteStrengthStep = def.tier - 1;
 
-  const hp = elite
+  let hp = elite
     ? Math.round(Math.max(
       normalHp * (2.3 + eliteStrengthStep * 0.15),
       normalTier10Hp * (1.18 + eliteStrengthStep * 0.14)
     ))
     : normalHp;
-  const speed = elite
+  let speed = elite
     ? Math.max(
       normalSpeed * (1.14 + eliteStrengthStep * 0.03),
       normalTier10Speed * (1.02 + eliteStrengthStep * 0.03)
     )
     : normalSpeed;
-  const touchDamage = elite
+  let touchDamage = elite
     ? Math.round(Math.max(
       normalTouchDamage * (1.45 + eliteStrengthStep * 0.1),
       normalTier10Touch * (1.08 + eliteStrengthStep * 0.11)
@@ -429,6 +435,18 @@ const createEnemyFromDefinition = (def, elapsedSec, elite = false) => {
     : normalSize;
   const radius = Math.max(14, Math.round(renderSize * (elite ? 0.33 : 0.3) * tierFactor * 0.82));
   const spawnPoint = getEnemySpawnPoint(radius);
+
+  if (!elite) {
+    const earlyProgress = clamp(elapsedSec / EARLY_EASE_WINDOW_SEC, 0, 1);
+    const oneShotTargetHp = Math.max(1, Math.round(state.ship.attackPower * (0.7 + def.tier * 0.06)));
+    hp = Math.max(1, Math.round(hp * earlyProgress + oneShotTargetHp * (1 - earlyProgress)));
+    speed *= (0.7 + 0.3 * earlyProgress);
+    touchDamage = Math.max(1, Math.round(touchDamage * (0.65 + 0.35 * earlyProgress)));
+
+    if (elapsedSec <= EARLY_ONE_SHOT_WINDOW_SEC && def.tier <= EARLY_ONE_SHOT_MAX_TIER) {
+      hp = Math.min(hp, Math.max(1, state.ship.attackPower - 1));
+    }
+  }
 
   return {
     id: `enemy-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -450,6 +468,11 @@ const createEnemyFromDefinition = (def, elapsedSec, elite = false) => {
 
 const spawnEnemy = () => {
   const elapsedSec = state.waves.elapsedSec;
+  const softCap = elapsedSec < 60
+    ? EARLY_SOFTCAP_T1
+    : (elapsedSec < 140 ? EARLY_SOFTCAP_T2 : (elapsedSec < 240 ? EARLY_SOFTCAP_T3 : Number.POSITIVE_INFINITY));
+  if (state.enemies.length >= softCap) return;
+
   const unlockedTier = getUnlockedEnemyTier(elapsedSec);
   const eliteTier = getEliteUnlockedTier(elapsedSec);
   const elite = shouldSpawnEliteEnemy(elapsedSec, eliteTier);
