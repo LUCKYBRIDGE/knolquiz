@@ -660,7 +660,7 @@
           </div>
 
           <div class="section" id="mode-settings-section">
-            <div class="section-title">3-2. 종료/진행 설정 (퀴즈+점프맵)</div>
+            <div class="section-title">3-2. 종료/진행 설정</div>
             <div class="mode-settings-stack">
               <div class="mode-settings-block">
                 <div class="mode-settings-title">종료 기준</div>
@@ -672,6 +672,14 @@
                 <div class="field" id="quiz-time-field">
                   <label for="quiz-time-limit-input">총 플레이 시간(초)</label>
                   <input type="number" id="quiz-time-limit-input" min="10" max="3600" value="180" />
+                </div>
+                <div class="field hidden" id="battleship-time-field">
+                  <label for="battleship-time-limit-input">거북선 디펜스 제한 시간(초)</label>
+                  <input type="number" id="battleship-time-limit-input" min="10" max="7200" value="180" />
+                </div>
+                <div class="field hidden" id="battleship-kill-field">
+                  <label for="battleship-kill-limit-input">거북선 디펜스 목표 격파 수</label>
+                  <input type="number" id="battleship-kill-limit-input" min="1" max="9999" value="120" />
                 </div>
                 <div class="note" id="endmode-note">기본 퀴즈 모드에서 적용됩니다.</div>
               </div>
@@ -792,6 +800,11 @@
           { id: 'time', label: '시간 종료 시 종료' },
           { id: 'reach-top', label: '꼭대기 도달 시 종료', jumpmapOnly: true }
         ];
+        const BATTLESHIP_END_MODE_OPTIONS = [
+          { id: 'ship-hp', label: '거북선 체력 0' },
+          { id: 'time', label: '시간 도달 시 종료' },
+          { id: 'kills', label: '목표 격파 수 도달 시 종료' }
+        ];
         const RUNTIME_MAP_CANDIDATES = [
           './shared/maps/jumpmap-01.json',
           '/__jumpmap/runtime-map.json'
@@ -809,6 +822,9 @@
           endMode: 'count',
           quizCountLimit: 30,
           quizTimeLimitSec: 180,
+          battleshipEndMode: 'ship-hp',
+          battleshipTimeLimitSec: 180,
+          battleshipKillLimit: 120,
           customCsvEnabled: false,
           customCsvText: '',
           customCsvFileName: '',
@@ -855,6 +871,10 @@
           quizCountLimitInput: document.getElementById('quiz-count-limit-input'),
           quizTimeField: document.getElementById('quiz-time-field'),
           quizTimeLimitInput: document.getElementById('quiz-time-limit-input'),
+          battleshipTimeField: document.getElementById('battleship-time-field'),
+          battleshipTimeLimitInput: document.getElementById('battleship-time-limit-input'),
+          battleshipKillField: document.getElementById('battleship-kill-field'),
+          battleshipKillLimitInput: document.getElementById('battleship-kill-limit-input'),
           endModeNote: document.getElementById('endmode-note')
         };
 
@@ -952,6 +972,18 @@
           const value = fallback > 0 ? Math.min(fallback, normalized) : normalized;
           state.quizCountLimit = value;
           els.quizCountLimitInput.value = String(value);
+          persistAndRefresh();
+        });
+        els.battleshipTimeLimitInput?.addEventListener('change', () => {
+          const value = Math.max(10, Math.min(7200, Math.round(Number(els.battleshipTimeLimitInput.value) || 180)));
+          state.battleshipTimeLimitSec = value;
+          els.battleshipTimeLimitInput.value = String(value);
+          persistAndRefresh();
+        });
+        els.battleshipKillLimitInput?.addEventListener('change', () => {
+          const value = Math.max(1, Math.min(9999, Math.round(Number(els.battleshipKillLimitInput.value) || 120)));
+          state.battleshipKillLimit = value;
+          els.battleshipKillLimitInput.value = String(value);
           persistAndRefresh();
         });
 
@@ -1271,6 +1303,12 @@
           return mode;
         }
 
+        function normalizeBattleshipEndMode(rawMode) {
+          const value = String(rawMode || '').trim().toLowerCase();
+          if (value === 'ship-hp' || value === 'time' || value === 'kills') return value;
+          return 'ship-hp';
+        }
+
         function buildPersistableSetup(setup) {
           const source = setup && typeof setup === 'object' ? setup : {};
           const savedCsvFallback = supportsIndexedDb() ? [] : normalizeSavedCsvItems(source.savedCsvItems);
@@ -1292,6 +1330,9 @@
             quizEndMode,
             quizCountLimit: Math.max(1, Math.min(500, Math.round(Number(source.quizCountLimit) || 30))),
             quizTimeLimitSec: Math.max(10, Math.min(3600, Math.round(Number(source.quizTimeLimitSec) || 180))),
+            battleshipEndMode: normalizeBattleshipEndMode(source.battleshipEndMode),
+            battleshipTimeLimitSec: Math.max(10, Math.min(7200, Math.round(Number(source.battleshipTimeLimitSec) || 180))),
+            battleshipKillLimit: Math.max(1, Math.min(9999, Math.round(Number(source.battleshipKillLimit) || 120))),
             customCsvEnabled: source.customCsvEnabled === true,
             customCsvText: typeof source.customCsvText === 'string' ? source.customCsvText : '',
             customCsvFileName: typeof source.customCsvFileName === 'string' ? source.customCsvFileName : '',
@@ -1405,6 +1446,9 @@
           target.jumpmapStartPointId = typeof target.jumpmapStartPointId === 'string' ? target.jumpmapStartPointId : '';
           target.endMode = normalizeEndModeWithFallback(target.endMode, target.gameMode, target);
           target.quizTimeLimitSec = Math.max(10, Math.min(3600, Math.round(Number(target.quizTimeLimitSec) || 180)));
+          target.battleshipEndMode = normalizeBattleshipEndMode(target.battleshipEndMode);
+          target.battleshipTimeLimitSec = Math.max(10, Math.min(7200, Math.round(Number(target.battleshipTimeLimitSec) || 180)));
+          target.battleshipKillLimit = Math.max(1, Math.min(9999, Math.round(Number(target.battleshipKillLimit) || 120)));
           target.customCsvEnabled = target.customCsvEnabled === true;
           target.customCsvText = typeof target.customCsvText === 'string' ? target.customCsvText : '';
           target.customCsvFileName = typeof target.customCsvFileName === 'string' ? target.customCsvFileName : '';
@@ -1820,18 +1864,29 @@
 
         function renderEndModeControls() {
           if (!els.endModeButtons) return;
-          const availableModes = state.gameMode === 'jumpmap'
-            ? END_MODE_OPTIONS
-            : END_MODE_OPTIONS.filter((mode) => !mode.jumpmapOnly);
+          const isBattleship = state.gameMode === 'battleship-defense';
+          const availableModes = isBattleship
+            ? BATTLESHIP_END_MODE_OPTIONS
+            : (state.gameMode === 'jumpmap'
+              ? END_MODE_OPTIONS
+              : END_MODE_OPTIONS.filter((mode) => !mode.jumpmapOnly));
           state.endMode = normalizeEndModeWithFallback(state.endMode, state.gameMode, state);
+          state.battleshipEndMode = normalizeBattleshipEndMode(state.battleshipEndMode);
           els.endModeButtons.innerHTML = '';
           availableModes.forEach((mode) => {
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = `endmode-btn${state.endMode === mode.id ? ' is-active' : ''}`;
+            const isActive = isBattleship
+              ? state.battleshipEndMode === mode.id
+              : state.endMode === mode.id;
+            btn.className = `endmode-btn${isActive ? ' is-active' : ''}`;
             btn.textContent = mode.label;
             btn.addEventListener('click', () => {
-              state.endMode = mode.id;
+              if (isBattleship) {
+                state.battleshipEndMode = mode.id;
+              } else {
+                state.endMode = mode.id;
+              }
               persistAndRefresh();
             });
             els.endModeButtons.appendChild(btn);
@@ -1846,14 +1901,32 @@
             els.quizTimeLimitInput.value = String(state.quizTimeLimitSec);
           }
           if (els.quizCountField) {
-            els.quizCountField.classList.toggle('hidden', state.endMode !== 'count');
+            els.quizCountField.classList.toggle('hidden', isBattleship || state.endMode !== 'count');
           }
           if (els.quizTimeField) {
-            els.quizTimeField.classList.toggle('hidden', state.endMode !== 'time');
+            els.quizTimeField.classList.toggle('hidden', isBattleship || state.endMode !== 'time');
+          }
+          if (els.battleshipTimeLimitInput) {
+            els.battleshipTimeLimitInput.value = String(state.battleshipTimeLimitSec);
+          }
+          if (els.battleshipKillLimitInput) {
+            els.battleshipKillLimitInput.value = String(state.battleshipKillLimit);
+          }
+          if (els.battleshipTimeField) {
+            els.battleshipTimeField.classList.toggle('hidden', !isBattleship || state.battleshipEndMode !== 'time');
+          }
+          if (els.battleshipKillField) {
+            els.battleshipKillField.classList.toggle('hidden', !isBattleship || state.battleshipEndMode !== 'kills');
           }
           if (els.endModeNote) {
-            if (state.gameMode === 'battleship-defense') {
-              els.endModeNote.textContent = '거북선 디펜스는 거북선 HP가 0이 되면 종료됩니다. (위 종료 기준은 전투 모드에서 사용하지 않음)';
+            if (isBattleship) {
+              if (state.battleshipEndMode === 'time') {
+                els.endModeNote.textContent = `거북선 체력 0이면 즉시 종료되며, ${state.battleshipTimeLimitSec}초 도달 시에도 종료됩니다.`;
+              } else if (state.battleshipEndMode === 'kills') {
+                els.endModeNote.textContent = `거북선 체력 0이면 즉시 종료되며, ${state.battleshipKillLimit}킬 도달 시에도 종료됩니다.`;
+              } else {
+                els.endModeNote.textContent = '거북선 체력이 0이 되는 순간 종료됩니다.';
+              }
             } else if (state.endMode === 'reach-top') {
               els.endModeNote.textContent = '점프맵에서만 사용 가능하며, 맨 위 오브젝트에 닿으면 종료됩니다.';
             } else if (state.endMode === 'time') {
@@ -1876,7 +1949,12 @@
             return;
           }
           if (state.gameMode === 'battleship-defense') {
-            els.modeSettingsNote.textContent = `현재 선택 게임: ${currentGame.label} · 거북선 체력이 0이 되면 종료됩니다. 퀴즈 정답 보상은 전투 화면에서 경험치/골드로 사용합니다.`;
+            const battleshipSummary = state.battleshipEndMode === 'time'
+              ? `제한 시간 ${state.battleshipTimeLimitSec}초`
+              : (state.battleshipEndMode === 'kills'
+                ? `목표 격파 수 ${state.battleshipKillLimit}킬`
+                : '거북선 체력 0');
+            els.modeSettingsNote.textContent = `현재 선택 게임: ${currentGame.label} · 종료 기준(${battleshipSummary})을 적용합니다. 거북선 체력 0은 항상 즉시 종료 조건입니다.`;
             return;
           }
           els.modeSettingsNote.textContent = `현재 선택 게임: ${currentGame.label} · 종료 기준(문제 수/시간)이 기본 퀴즈 종료 조건으로 적용됩니다.`;
@@ -2072,11 +2150,7 @@
 
         function renderGameConditional() {
           const isJumpmap = state.gameMode === 'jumpmap';
-          const isBattleship = state.gameMode === 'battleship-defense';
           els.characterSection.classList.toggle('hidden', !isJumpmap);
-          if (els.modeSettingsSection) {
-            els.modeSettingsSection.classList.toggle('hidden', isBattleship);
-          }
           if (els.characterSelect) {
             const existingValues = new Set(Array.from(els.characterSelect.options).map((opt) => opt.value));
             CHARACTER_OPTIONS.forEach((option) => {
@@ -2193,8 +2267,18 @@
                 ? `시간 종료 (${state.quizTimeLimitSec}초)`
                 : `몇 문제 풀면 종료 (${appliedCount}문제 / 전체 ${availableCount})`
             );
+          const battleshipEndSummary = state.battleshipEndMode === 'time'
+            ? `시간 도달 시 종료 (${state.battleshipTimeLimitSec}초)`
+            : (state.battleshipEndMode === 'kills'
+              ? `목표 격파 수 도달 시 종료 (${state.battleshipKillLimit}킬)`
+              : '거북선 체력 0 시 종료');
+          const endModePillLabel = state.gameMode === 'battleship-defense'
+            ? (state.battleshipEndMode === 'time'
+              ? '시간'
+              : (state.battleshipEndMode === 'kills' ? '격파 수' : '체력'))
+            : (state.endMode === 'reach-top' ? '꼭대기' : (state.endMode === 'time' ? '시간' : '문제 수'));
           const endModeSummaryLabel = state.gameMode === 'battleship-defense'
-            ? '거북선 HP가 0이 되면 종료'
+            ? battleshipEndSummary
             : endModeSummary;
           const sourceSummary = state.customCsvEnabled && state.customCsvText.trim()
             ? '업로드 문제'
@@ -2214,7 +2298,7 @@
               </div>
               <div class="summary-pill">
                 <span class="summary-pill-k">종료 기준</span>
-                <span class="summary-pill-v">${state.endMode === 'reach-top' ? '꼭대기' : (state.endMode === 'time' ? '시간' : '문제 수')}</span>
+                <span class="summary-pill-v">${endModePillLabel}</span>
               </div>
             </div>
             <div class="summary-list">

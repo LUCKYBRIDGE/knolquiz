@@ -120,13 +120,20 @@ const setup = (() => {
   const source = readSetup() || {};
   const names = Array.isArray(source.playerNames) ? source.playerNames : ['사용자1'];
   const tags = Array.isArray(source.playerTags) ? source.playerTags : [''];
+  const rawBattleshipEndMode = String(source.battleshipEndMode || '').trim().toLowerCase();
+  const battleshipEndMode = (rawBattleshipEndMode === 'ship-hp' || rawBattleshipEndMode === 'time' || rawBattleshipEndMode === 'kills')
+    ? rawBattleshipEndMode
+    : 'ship-hp';
   return {
     playerName: String(names[0] || '사용자1').trim() || '사용자1',
     playerTag: String(tags[0] || '').trim(),
     launcherQuizPresetId: typeof source.quizPresetId === 'string' ? source.quizPresetId : 'jumpmap-net-30',
     customCsvEnabled: source.customCsvEnabled === true,
     customCsvText: typeof source.customCsvText === 'string' ? source.customCsvText : '',
-    customCsvFileName: typeof source.customCsvFileName === 'string' ? source.customCsvFileName : ''
+    customCsvFileName: typeof source.customCsvFileName === 'string' ? source.customCsvFileName : '',
+    battleshipEndMode,
+    battleshipTimeLimitSec: Math.max(10, Math.min(7200, Math.round(Number(source.battleshipTimeLimitSec) || 180))),
+    battleshipKillLimit: Math.max(1, Math.min(9999, Math.round(Number(source.battleshipKillLimit) || 120)))
   };
 })();
 
@@ -178,6 +185,7 @@ const state = {
     hardenedBonus: 0
   },
   activeSpawnCooldownMs: SPAWN_START_COOLDOWN_MS,
+  endReason: '',
   enemyImages: new Map(),
   eliteAnnouncedTier: 0,
   quiz: {
@@ -297,6 +305,26 @@ const getFlowState = (elapsedSec) => {
     spawnCooldownMul: clamp(flow.spawnCooldownMul * (1 - pulse * 0.45), 0.55, 1.55),
     speedMul: clamp(flow.speedMul * (1 + pulse), 0.82, 1.3)
   };
+};
+
+const getEndCriteriaLabel = () => {
+  if (setup.battleshipEndMode === 'time') {
+    return `시간 도달 (${setup.battleshipTimeLimitSec}초)`;
+  }
+  if (setup.battleshipEndMode === 'kills') {
+    return `목표 격파 (${setup.battleshipKillLimit}킬)`;
+  }
+  return '거북선 체력 0';
+};
+
+const resolveBattleshipGoalReason = () => {
+  if (setup.battleshipEndMode === 'time' && state.waves.elapsedSec >= setup.battleshipTimeLimitSec) {
+    return `시간 도달 (${setup.battleshipTimeLimitSec}초)`;
+  }
+  if (setup.battleshipEndMode === 'kills' && state.score.kills >= setup.battleshipKillLimit) {
+    return `목표 격파 수 도달 (${setup.battleshipKillLimit}킬)`;
+  }
+  return '';
 };
 
 const resolveQuizAssetPath = (rawPath) => {
@@ -838,8 +866,19 @@ const updateGame = (dtSec, nowMs) => {
     state.enemies.splice(i, 1);
     setStatus(`거북선 피격! HP -${enemy.touchDamage}`);
     if (state.ship.hp <= 0) {
+      state.endReason = '거북선 체력 0';
       state.running = false;
       state.gameover = true;
+    }
+  }
+
+  if (!state.gameover) {
+    const goalReason = resolveBattleshipGoalReason();
+    if (goalReason) {
+      state.endReason = goalReason;
+      state.running = false;
+      state.gameover = true;
+      setStatus(`게임 종료: ${goalReason}`);
     }
   }
 };
@@ -1052,7 +1091,11 @@ const saveSessionRecord = async () => {
         launcherQuizPresetId: setup.launcherQuizPresetId,
         shipMaxHp: state.ship.maxHp,
         survivedSec: Math.max(0, Math.round(state.waves.elapsedSec)),
-        maxWaveLevel: state.waves.level
+        maxWaveLevel: state.waves.level,
+        battleshipEndMode: setup.battleshipEndMode,
+        battleshipTimeLimitSec: setup.battleshipTimeLimitSec,
+        battleshipKillLimit: setup.battleshipKillLimit,
+        endReason: state.endReason || ''
       },
       players: [{
         name: setup.playerName,
@@ -1073,7 +1116,8 @@ const saveSessionRecord = async () => {
 const showGameover = async () => {
   await saveSessionRecord();
   els.gameoverScore.textContent = `점수(격파 수): ${state.score.kills}`;
-  els.gameoverTime.textContent = `생존 시간: ${Math.max(0, Math.round(state.waves.elapsedSec))}초`;
+  const reasonLabel = state.endReason || '종료';
+  els.gameoverTime.textContent = `생존 시간: ${Math.max(0, Math.round(state.waves.elapsedSec))}초 · 기준: ${reasonLabel}`;
   els.gameoverLayer.classList.add('show');
 };
 
@@ -1155,7 +1199,7 @@ els.quizLayer.addEventListener('click', (event) => {
 
 els.restartBtn.addEventListener('click', restart);
 
-setStatus('적이 거북선에 닿기 전에 최대한 많이 격파하세요.');
+setStatus(`적이 거북선에 닿기 전에 최대한 많이 격파하세요. 종료 기준: ${getEndCriteriaLabel()}`);
 refreshHud();
 preloadEnemyImages();
 loadQuizBank();

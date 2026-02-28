@@ -48,6 +48,12 @@ const normalizeLauncherEndMode = (setup, gameMode) => {
   return mode || 'count';
 };
 
+const normalizeBattleshipEndMode = (rawMode) => {
+  const value = String(rawMode || '').trim().toLowerCase();
+  if (value === 'ship-hp' || value === 'time' || value === 'kills') return value;
+  return 'ship-hp';
+};
+
 const normalizeSetup = (setup) => {
   if (!setup || typeof setup !== 'object') return null;
   const players = Math.max(1, Math.min(6, Math.round(Number(setup.players) || 1)));
@@ -64,6 +70,9 @@ const normalizeSetup = (setup) => {
   const quizEndMode = endMode === 'time' ? 'time' : 'count';
   const quizCountLimit = Math.max(1, Math.min(500, Math.round(Number(setup.quizCountLimit) || 30)));
   const quizTimeLimitSec = Math.max(10, Math.min(3600, Math.round(Number(setup.quizTimeLimitSec) || 180)));
+  const battleshipEndMode = normalizeBattleshipEndMode(setup.battleshipEndMode);
+  const battleshipTimeLimitSec = Math.max(10, Math.min(7200, Math.round(Number(setup.battleshipTimeLimitSec) || 180)));
+  const battleshipKillLimit = Math.max(1, Math.min(9999, Math.round(Number(setup.battleshipKillLimit) || 120)));
   const playerNames = Array.isArray(setup.playerNames) ? setup.playerNames.slice(0, 6) : [];
   const playerTags = Array.isArray(setup.playerTags) ? setup.playerTags.slice(0, 6) : [];
   const playerCharacterIds = Array.isArray(setup.playerCharacterIds) ? setup.playerCharacterIds.slice(0, 6) : [];
@@ -90,6 +99,9 @@ const normalizeSetup = (setup) => {
     quizEndMode,
     quizCountLimit,
     quizTimeLimitSec,
+    battleshipEndMode,
+    battleshipTimeLimitSec,
+    battleshipKillLimit,
     playerNames: normalizedNames,
     playerTags: normalizedTags,
     playerCharacterIds: playerCharacterIds.slice(0, players).map((id) => {
@@ -134,11 +146,17 @@ const renderSummary = (box, setup) => {
     ['퀴즈', quizLabel],
     [
       '종료 기준',
-      setup.endMode === 'reach-top'
-        ? '꼭대기 도달 시 종료'
-        : (setup.endMode === 'time'
-          ? `시간 종료 (${setup.quizTimeLimitSec}초)`
-          : `몇 문제 풀면 종료 (${setup.quizCountLimit}문제)`)
+      setup.gameMode === 'battleship-defense'
+        ? (setup.battleshipEndMode === 'time'
+          ? `시간 도달 시 종료 (${setup.battleshipTimeLimitSec}초)`
+          : (setup.battleshipEndMode === 'kills'
+            ? `목표 격파 수 도달 시 종료 (${setup.battleshipKillLimit}킬)`
+            : '거북선 체력 0 시 종료'))
+        : (setup.endMode === 'reach-top'
+          ? '꼭대기 도달 시 종료'
+          : (setup.endMode === 'time'
+            ? `시간 종료 (${setup.quizTimeLimitSec}초)`
+            : `몇 문제 풀면 종료 (${setup.quizCountLimit}문제)`))
     ],
     [
       '문제 소스',
