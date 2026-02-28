@@ -605,6 +605,9 @@
         const CSV_LIBRARY_DB_NAME = 'knolquiz-launcher-storage';
         const CSV_LIBRARY_DB_VERSION = 1;
         const CSV_LIBRARY_STORE = 'savedCsvItems';
+        const RECORDS_DB_NAME = 'math-net-master-local-records';
+        const RECORDS_DB_VERSION = 2;
+        const RECORDS_CLASSROOM_STUDENTS_STORE = 'classroomStudents';
         const PLAYER_COLORS = ['#ffe3e3', '#e0ebff', '#e5f8e9', '#fff4c8', '#f2e5ff', '#dff7f8'];
         const PLAYER_TEXT_COLORS = ['#b91c1c', '#1d4ed8', '#15803d', '#a16207', '#7e22ce', '#0f766e'];
         const PLAYER_OPTIONS = [1, 2, 3, 4, 5, 6];
@@ -685,6 +688,7 @@
           source: '',
           savePoints: []
         };
+        state.classroomStudentsByTag = {};
         normalizeState(state);
 
         const els = {
@@ -720,6 +724,7 @@
 
         renderAll();
         bootstrapSavedCsvItems();
+        bootstrapClassroomStudents();
         loadRuntimeMapStartPoints();
 
         els.startBtn.addEventListener('click', () => {
@@ -964,6 +969,110 @@
           persistAndRefresh();
         }
 
+        async function loadClassroomStudentsByTag() {
+          if (!supportsIndexedDb()) return {};
+          const db = await new Promise((resolve, reject) => {
+            const request = window.indexedDB.open(RECORDS_DB_NAME, RECORDS_DB_VERSION);
+            request.onupgradeneeded = () => {
+              const upgradeDb = request.result;
+              if (!upgradeDb.objectStoreNames.contains('sessions')) {
+                const sessions = upgradeDb.createObjectStore('sessions', { keyPath: 'id' });
+                sessions.createIndex('byCreatedAt', 'createdAt');
+                sessions.createIndex('byMode', 'mode');
+              }
+              if (!upgradeDb.objectStoreNames.contains('players')) {
+                const players = upgradeDb.createObjectStore('players', { keyPath: 'id' });
+                players.createIndex('byUpdatedAt', 'updatedAt');
+                players.createIndex('byName', 'name');
+              }
+              if (!upgradeDb.objectStoreNames.contains('wrongAnswers')) {
+                const wrongs = upgradeDb.createObjectStore('wrongAnswers', { keyPath: 'id' });
+                wrongs.createIndex('byCreatedAt', 'createdAt');
+                wrongs.createIndex('byPlayerId', 'playerId');
+                wrongs.createIndex('byQuestionId', 'questionId');
+              }
+              if (!upgradeDb.objectStoreNames.contains(RECORDS_CLASSROOM_STUDENTS_STORE)) {
+                const students = upgradeDb.createObjectStore(RECORDS_CLASSROOM_STUDENTS_STORE, { keyPath: 'id' });
+                students.createIndex('byStudentNo', 'studentNo', { unique: true });
+                students.createIndex('byUpdatedAt', 'updatedAt');
+              }
+              if (!upgradeDb.objectStoreNames.contains('classroomAttendance')) {
+                const attendance = upgradeDb.createObjectStore('classroomAttendance', { keyPath: 'id' });
+                attendance.createIndex('byDate', 'date', { unique: true });
+                attendance.createIndex('byUpdatedAt', 'updatedAt');
+              }
+              if (!upgradeDb.objectStoreNames.contains('classroomSeasons')) {
+                const seasons = upgradeDb.createObjectStore('classroomSeasons', { keyPath: 'id' });
+                seasons.createIndex('byUpdatedAt', 'updatedAt');
+                seasons.createIndex('byActive', 'active');
+              }
+              if (!upgradeDb.objectStoreNames.contains('classroomSeasonResults')) {
+                const seasonResults = upgradeDb.createObjectStore('classroomSeasonResults', { keyPath: 'id' });
+                seasonResults.createIndex('bySeasonId', 'seasonId');
+                seasonResults.createIndex('byStudentNo', 'studentNo');
+                seasonResults.createIndex('byUpdatedAt', 'updatedAt');
+              }
+            };
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error || new Error('indexeddb open failed'));
+          });
+          if (!db.objectStoreNames.contains(RECORDS_CLASSROOM_STUDENTS_STORE)) {
+            return {};
+          }
+          const tx = db.transaction([RECORDS_CLASSROOM_STUDENTS_STORE], 'readonly');
+          const store = tx.objectStore(RECORDS_CLASSROOM_STUDENTS_STORE);
+          const rows = await idbRequestToPromise(store.getAll());
+          await idbTxDone(tx);
+          const map = {};
+          (Array.isArray(rows) ? rows : []).forEach((row) => {
+            const tag = normalizeStudentTag(row?.studentNo);
+            const name = typeof row?.name === 'string' ? row.name.trim() : '';
+            if (!tag || !name) return;
+            map[tag] = {
+              name,
+              active: row?.active !== false
+            };
+          });
+          return map;
+        }
+
+        function applyClassroomNamesByTag(target) {
+          if (!target || typeof target !== 'object') return;
+          const map = target.classroomStudentsByTag && typeof target.classroomStudentsByTag === 'object'
+            ? target.classroomStudentsByTag
+            : {};
+          for (let i = 0; i < target.players; i += 1) {
+            const tag = normalizeStudentTag(target.playerTags?.[i]);
+            if (!tag) continue;
+            const student = map[tag];
+            const classroomName = typeof student?.name === 'string' ? student.name.trim() : '';
+            if (!classroomName) continue;
+            const currentName = typeof target.playerNames?.[i] === 'string' ? target.playerNames[i].trim() : '';
+            const defaultName = `사용자${i + 1}`;
+            if (!currentName || currentName === defaultName || currentName === classroomName) {
+              target.playerNames[i] = classroomName;
+            }
+          }
+        }
+
+        async function bootstrapClassroomStudents() {
+          try {
+            const map = await loadClassroomStudentsByTag();
+            state.classroomStudentsByTag = map;
+            const before = JSON.stringify(state.playerNames || []);
+            applyClassroomNamesByTag(state);
+            const after = JSON.stringify(state.playerNames || []);
+            if (before !== after) {
+              persistAndRefresh();
+            } else {
+              renderNameInputs();
+              renderSummary();
+            }
+          } catch (error) {
+            console.warn('[Launcher] failed to load classroom students', error);
+          }
+        }
+
         function upsertSavedCsvItem(input) {
           const text = typeof input?.text === 'string' ? input.text : '';
           const nameRaw = typeof input?.name === 'string' ? input.name : '';
@@ -1087,6 +1196,7 @@
             return trimmed || `사용자${idx + 1}`;
           });
           target.playerTags = normalizePlayerTags(target.playerTags, target.players);
+          applyClassroomNamesByTag(target);
           target.jumpmapStartPointId = typeof target.jumpmapStartPointId === 'string' ? target.jumpmapStartPointId : '';
           target.jumpmapEndMode = target.jumpmapEndMode === 'reach-top' ? 'reach-top' : 'none';
           target.quizEndMode = target.quizEndMode === 'time' ? 'time' : 'count';
