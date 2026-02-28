@@ -87,6 +87,7 @@ const customCsvFileInput = $('#custom-csv-file');
 const customCsvClearBtn = $('#custom-csv-clear');
 const customCsvStatusEl = $('#custom-csv-status');
 const customCsvTemplateBtn = $('#custom-csv-template');
+const customPackExportBtn = $('#custom-pack-export');
 const confirmTypeCountsBtn = $('#confirm-type-counts');
 const confirmStatusEl = $('#count-confirm-status');
 
@@ -96,6 +97,7 @@ const restartBtn = $('#restart-btn');
 const copyLogBtn = $('#copy-log-btn');
 const downloadLogBtn = $('#download-log-btn');
 const downloadReportCsvBtn = $('#download-report-csv-btn');
+const resultDownloadNoteEl = $('#result-download-note');
 const resultRecordsLink = $('#result-records-link');
 const resultClassroomLink = $('#result-classroom-link');
 const LAUNCHER_SETUP_STORAGE_KEY = 'jumpmap.launcher.setup.v1';
@@ -242,6 +244,14 @@ const downloadCsvTextFile = (fileName, text) => {
   URL.revokeObjectURL(url);
 };
 
+const setResultDownloadNote = (message, tone = '') => {
+  if (!resultDownloadNoteEl) return;
+  resultDownloadNoteEl.textContent = message || '';
+  resultDownloadNoteEl.classList.remove('is-success', 'is-warn');
+  if (tone === 'success') resultDownloadNoteEl.classList.add('is-success');
+  if (tone === 'warn') resultDownloadNoteEl.classList.add('is-warn');
+};
+
 const buildQuizResultReportCsv = (payload) => {
   const rows = [[
     '리포트유형',
@@ -322,10 +332,18 @@ const downloadQuizResultReportCsv = () => {
       payload = null;
     }
   }
-  if (!payload || !Array.isArray(payload?.players) || !payload.players.length) return;
+  if (!payload || !Array.isArray(payload?.players) || !payload.players.length) {
+    setResultDownloadNote('저장할 결과 데이터가 없습니다. 먼저 퀴즈를 완료해 주세요.', 'warn');
+    return false;
+  }
   const csvText = buildQuizResultReportCsv(payload);
   const fileName = `quiz-result-report-${Date.now()}.csv`;
   downloadCsvTextFile(fileName, csvText);
+  setResultDownloadNote(
+    `CSV 저장 요청 완료 (${fileName}) · Android에서 바로 열기 앱이 안 뜨면 파일 앱(내 파일) > Download 폴더를 확인해 주세요.`,
+    'success'
+  );
+  return true;
 };
 const syncRepeatSetting = () => {
   if (!settingsInputs.mode || !settingsInputs.repeat) return;
@@ -1062,18 +1080,16 @@ const buildCsvBankFromLauncherSetup = (launcher) => {
   if (!enabled || !text.trim()) {
     return { bank: null, message: '' };
   }
-  const parsed = parseCsvQuestionBank(text);
-  if (!parsed.valid || !parsed.bank) {
-    const error = parsed.errors?.[0] || 'CSV 파싱 실패';
-    return { bank: null, message: `런처 CSV 무시: ${error}` };
+  const parsed = parseUploadedQuestionBankText(text, {
+    fileName: typeof launcher?.customCsvFileName === 'string' ? launcher.customCsvFileName : ''
+  });
+  if (!parsed.bank) {
+    return { bank: null, message: `런처 업로드 문제 무시: ${parsed.error || '파싱 실패'}` };
   }
-  const validation = validateQuestionBank(parsed.bank);
-  if (!validation.valid) {
-    return { bank: null, message: `런처 CSV 무시: ${validation.errors[0]}` };
-  }
+  const formatLabel = parsed.format === 'json' ? '문제팩(JSON)' : 'CSV';
   return {
     bank: parsed.bank,
-    message: `런처 CSV 문제 ${parsed.bank.questions.length}개를 사용합니다.`
+    message: `런처 ${formatLabel} 문제 ${parsed.bank.questions.length}개를 사용합니다.`
   };
 };
 
@@ -1087,7 +1103,7 @@ const hydrateCsvBankFromLauncherStorage = () => {
   uploadedCsvQuestionBank = launcherCsv.bank;
   if (settingsInputs.customEnabled) settingsInputs.customEnabled.value = 'true';
   if (settingsInputs.customCsvEnabled) settingsInputs.customCsvEnabled.value = 'true';
-  setCustomCsvStatus(launcherCsv.message || `런처 CSV 문제 ${launcherCsv.bank.questions.length}개 로드 완료`, 'success');
+  setCustomCsvStatus(launcherCsv.message || `런처 업로드 문제 ${launcherCsv.bank.questions.length}개 로드 완료`, 'success');
 };
 
 const buildLauncherBasicQuizSettings = () => {
@@ -1201,7 +1217,7 @@ const maybeAutoStartQuizFromLauncher = () => {
     settings.questionCount = settings.quizEndMode === 'time'
       ? availableCount
       : Math.max(1, Math.min(availableCount, launcherQuizCountLimit || availableCount));
-    setLoadStatus(launcherCsv.message || '런처 CSV 문제를 불러왔습니다.', 'success');
+    setLoadStatus(launcherCsv.message || '런처 업로드 문제를 불러왔습니다.', 'success');
   } else if (launcherCsv?.message) {
     uploadedCsvQuestionBank = null;
     setLoadStatus(launcherCsv.message, 'fail');
@@ -1249,6 +1265,88 @@ const setCustomCsvStatus = (message, type) => {
   if (type) customCsvStatusEl.classList.add(type);
 };
 
+const resolveQuestionBankFromJsonPayload = (payload) => {
+  if (!payload) return null;
+  if (Array.isArray(payload)) {
+    return { version: 1, questions: payload };
+  }
+  if (typeof payload !== 'object') return null;
+  if (Array.isArray(payload.questions)) return payload;
+  if (payload.bank && typeof payload.bank === 'object' && Array.isArray(payload.bank.questions)) {
+    return payload.bank;
+  }
+  if (payload.questionBank && typeof payload.questionBank === 'object' && Array.isArray(payload.questionBank.questions)) {
+    return payload.questionBank;
+  }
+  return null;
+};
+
+const cloneQuestionBank = (bank) => JSON.parse(JSON.stringify(bank));
+
+const parseUploadedQuestionBankText = (text, { fileName = '' } = {}) => {
+  const sourceText = String(text || '');
+  const trimmed = sourceText.trim();
+  if (!trimmed) {
+    return { bank: null, format: '', error: '업로드 파일이 비어 있습니다.' };
+  }
+
+  const normalizedName = String(fileName || '').trim().toLowerCase();
+  const forceJson = normalizedName.endsWith('.json');
+  const forceCsv = normalizedName.endsWith('.csv');
+  const tryJsonFirst = forceJson || (!forceCsv && /^[\[{]/.test(trimmed));
+
+  const tryParseJson = () => {
+    try {
+      const payload = JSON.parse(trimmed);
+      const bankCandidate = resolveQuestionBankFromJsonPayload(payload);
+      if (!bankCandidate?.questions?.length) {
+        return { bank: null, format: 'json', error: 'JSON 문제팩에서 questions 목록을 찾지 못했습니다.' };
+      }
+      const validation = validateQuestionBank(bankCandidate);
+      if (!validation.valid) {
+        return { bank: null, format: 'json', error: `문제 형식 오류: ${validation.errors[0]}` };
+      }
+      return { bank: cloneQuestionBank(bankCandidate), format: 'json', warnings: [] };
+    } catch (error) {
+      return { bank: null, format: 'json', error: `JSON 파싱 실패: ${error?.message || 'invalid json'}` };
+    }
+  };
+
+  const tryParseCsv = () => {
+    const parsed = parseCsvQuestionBank(sourceText);
+    if (!parsed.valid || !parsed.bank) {
+      const firstError = parsed.errors?.[0] || 'CSV 파싱 실패';
+      return { bank: null, format: 'csv', error: firstError };
+    }
+    const validation = validateQuestionBank(parsed.bank);
+    if (!validation.valid) {
+      return { bank: null, format: 'csv', error: `문제 형식 오류: ${validation.errors[0]}` };
+    }
+    return {
+      bank: parsed.bank,
+      format: 'csv',
+      warnings: Array.isArray(parsed.warnings) ? parsed.warnings : []
+    };
+  };
+
+  if (tryJsonFirst) {
+    const jsonResult = tryParseJson();
+    if (jsonResult.bank || forceJson) return jsonResult;
+    if (!forceCsv) {
+      const csvResult = tryParseCsv();
+      if (csvResult.bank) return csvResult;
+      return { bank: null, format: '', error: `${jsonResult.error} / ${csvResult.error}` };
+    }
+    return jsonResult;
+  }
+
+  const csvResult = tryParseCsv();
+  if (csvResult.bank || forceCsv) return csvResult;
+  const jsonResult = tryParseJson();
+  if (jsonResult.bank) return jsonResult;
+  return { bank: null, format: '', error: `${csvResult.error} / ${jsonResult.error}` };
+};
+
 const clearCsvQuestionBank = ({ silent = false } = {}) => {
   uploadedCsvQuestionBank = null;
   if (settingsInputs.customCsvEnabled) {
@@ -1258,7 +1356,7 @@ const clearCsvQuestionBank = ({ silent = false } = {}) => {
     customCsvFileInput.value = '';
   }
   if (!silent) {
-    setCustomCsvStatus('업로드된 CSV 문제를 해제했습니다.', 'warn');
+    setCustomCsvStatus('업로드된 문제 파일을 해제했습니다.', 'warn');
   }
   applyQuestionModeUI();
 };
@@ -1282,24 +1380,18 @@ const buildCsvTemplate = () => [
 
 const loadCsvQuestionBankFromFile = async (file) => {
   if (!file) {
-    setCustomCsvStatus('CSV 파일을 선택해 주세요.', 'fail');
+    setCustomCsvStatus('CSV 또는 JSON 문제 파일을 선택해 주세요.', 'fail');
     return;
   }
   const name = String(file.name || '').toLowerCase();
-  if (!name.endsWith('.csv')) {
-    setCustomCsvStatus('CSV 확장자 파일만 업로드할 수 있습니다.', 'fail');
+  if (!name.endsWith('.csv') && !name.endsWith('.json')) {
+    setCustomCsvStatus('CSV(.csv) 또는 JSON(.json) 파일만 업로드할 수 있습니다.', 'fail');
     return;
   }
   const text = await file.text();
-  const parsed = parseCsvQuestionBank(text);
-  if (!parsed.valid || !parsed.bank) {
-    const firstError = parsed.errors?.[0] || 'CSV 파싱 실패';
-    setCustomCsvStatus(firstError, 'fail');
-    return;
-  }
-  const validation = validateQuestionBank(parsed.bank);
-  if (!validation.valid) {
-    setCustomCsvStatus(`문제 형식 오류: ${validation.errors[0]}`, 'fail');
+  const parsed = parseUploadedQuestionBankText(text, { fileName: file.name || '' });
+  if (!parsed.bank) {
+    setCustomCsvStatus(parsed.error || '문제 파일 파싱 실패', 'fail');
     return;
   }
 
@@ -1309,11 +1401,74 @@ const loadCsvQuestionBankFromFile = async (file) => {
   applyQuestionModeUI();
 
   const warning = parsed.warnings?.[0] ? ` · 참고: ${parsed.warnings[0]}` : '';
+  const formatLabel = parsed.format === 'json' ? 'JSON 문제팩' : 'CSV 문제';
   setCustomCsvStatus(
-    `CSV 문제 ${uploadedCsvQuestionBank.questions.length}개 로드 완료${warning}`,
+    `${formatLabel} ${uploadedCsvQuestionBank.questions.length}개 로드 완료${warning}`,
     'success'
   );
-  setLoadStatus(`CSV 문제 ${uploadedCsvQuestionBank.questions.length}개를 사용할 준비가 되었습니다.`, 'success');
+  setLoadStatus(`업로드 문제 ${uploadedCsvQuestionBank.questions.length}개를 사용할 준비가 되었습니다.`, 'success');
+};
+
+const buildQuestionBankForPackExport = () => {
+  const settings = readSettings();
+  if (settings.customCsvMode && uploadedCsvQuestionBank?.questions?.length) {
+    return {
+      bank: cloneQuestionBank(uploadedCsvQuestionBank),
+      source: 'upload'
+    };
+  }
+  if (settings.customQuestionMode && settings.customQuestionIds?.length) {
+    const customBank = buildCustomQuestionBank(settings.customQuestionIds);
+    if (!customBank?.questions?.length) {
+      return { bank: null, error: '선택한 문제 ID를 찾지 못했습니다.' };
+    }
+    return {
+      bank: cloneQuestionBank(customBank),
+      source: 'custom-ids'
+    };
+  }
+  const generated = buildWeightedQuestionBank(banks, settings);
+  if (!generated?.questions?.length) {
+    return { bank: null, error: '현재 설정으로 문제를 구성하지 못했습니다.' };
+  }
+  return {
+    bank: cloneQuestionBank(generated),
+    source: 'weighted'
+  };
+};
+
+const exportQuestionPackJson = () => {
+  const built = buildQuestionBankForPackExport();
+  if (!built.bank) {
+    const message = built.error || '문제팩 생성 실패';
+    setCustomCsvStatus(message, 'fail');
+    setLoadStatus(message, 'fail');
+    return;
+  }
+  const payload = {
+    kind: 'knolquiz-question-pack',
+    version: 1,
+    title: 'math-net 문제팩',
+    createdAt: new Date().toISOString(),
+    source: {
+      app: window.location.host.includes('math-net-master-quiz')
+        ? 'math-net-master-quiz/quiz'
+        : 'knolquiz/quiz',
+      mode: built.source
+    },
+    bank: built.bank
+  };
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const fileName = `knolquiz-question-pack-${stamp}.json`;
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+  link.click();
+  URL.revokeObjectURL(url);
+  setCustomCsvStatus(`문제팩(JSON) ${payload.bank.questions.length}문항 저장 완료`, 'success');
+  setLoadStatus('문제팩(JSON) 저장 완료. 런처에서 업로드해 사용할 수 있습니다.', 'success');
 };
 
 const getTotalTypeCount = () => {
@@ -1476,7 +1631,7 @@ const updateCustomPanelVisibility = () => {
   }
   customPanelEl.classList.toggle('csv-loaded', Boolean(csvMode));
   if (csvMode && customCsvStatusEl && !customCsvStatusEl.textContent.trim()) {
-    setCustomCsvStatus(`CSV 문제 ${uploadedCsvQuestionBank.questions.length}개가 적용됩니다.`, 'success');
+    setCustomCsvStatus(`업로드 문제 ${uploadedCsvQuestionBank.questions.length}개가 적용됩니다.`, 'success');
   }
 };
 
@@ -1493,12 +1648,12 @@ const applyQuestionModeUI = () => {
   if (modeHelp) {
     if (csvToolMode) {
       modeHelp.textContent = csvMode
-        ? `현재: CSV 업로드 문제 사용 중 (${uploadedCsvQuestionBank.questions.length}문항)`
-        : '현재: CSV 업로드 대기 중';
+        ? `현재: 업로드 문제 사용 중 (${uploadedCsvQuestionBank.questions.length}문항)`
+        : '현재: 업로드 파일 대기 중';
     } else if (!isCustom) {
       modeHelp.textContent = '현재: 전개도 문제 세트 사용 중 (교사 커스텀 문제는 반영되지 않음)';
     } else if (csvMode) {
-      modeHelp.textContent = `현재: CSV 업로드 문제 사용 중 (${uploadedCsvQuestionBank.questions.length}문항)`;
+      modeHelp.textContent = `현재: 업로드 문제 사용 중 (${uploadedCsvQuestionBank.questions.length}문항)`;
     } else {
       modeHelp.textContent = '현재: 교사 커스텀 문제 사용 중 (전개도 문제 세트는 반영되지 않음)';
     }
@@ -1521,10 +1676,10 @@ const applyCsvToolModeUI = () => {
   if (!csvToolMode) return;
   document.body.classList.add('csv-tool-mode');
   if (quizAppTitleEl) {
-    quizAppTitleEl.textContent = 'CSV 문제 생성 퀴즈';
+    quizAppTitleEl.textContent = '업로드 문제 생성 퀴즈';
   }
   if (appModeBannerEl) {
-    appModeBannerEl.textContent = 'CSV 문제 생성 전용 모드입니다. 기존 문제은행 선택 기능은 숨김 처리됩니다.';
+    appModeBannerEl.textContent = '업로드 문제(CSV/JSON) 전용 모드입니다. 기존 문제은행 선택 기능은 숨김 처리됩니다.';
     appModeBannerEl.classList.remove('hidden');
   }
   if (advancedSettings) {
@@ -1541,7 +1696,7 @@ const applyCsvToolModeUI = () => {
   }
   applyQuestionModeUI();
   if (!uploadedCsvQuestionBank?.questions?.length) {
-    setLoadStatus('CSV 문제 생성 모드입니다. 문제양식 업로드 후 시작하세요.', null);
+    setLoadStatus('업로드 문제 생성 모드입니다. 문제양식(CSV/JSON) 업로드 후 시작하세요.', null);
   }
 };
 
@@ -1863,7 +2018,7 @@ const openPresetModal = (preset) => {
       : '없음';
     const totalCount = typeCounts.reduce((sum, item) => sum + item.count, 0);
     const customSummary = merged.customCsvMode
-      ? `CSV 업로드 문제 사용: ${uploadedCsvQuestionBank?.questions?.length || 0}개`
+      ? `업로드 문제 사용: ${uploadedCsvQuestionBank?.questions?.length || 0}개`
       : (merged.customQuestionMode
         ? `문제 직접 선택 및 출제: ${merged.customQuestionIds?.length || 0}개`
         : '문제 직접 선택 및 출제: 사용 안 함');
@@ -2994,7 +3149,7 @@ const startQuizWithSettings = (settings, faceToFace, customBank) => {
     : null;
   if (csvCustomBank) {
     questionBank = csvCustomBank;
-    setLoadStatus(`CSV 업로드 문제로 시작합니다. (${questionBank.questions.length}문항)`, 'success');
+    setLoadStatus(`업로드 문제로 시작합니다. (${questionBank.questions.length}문항)`, 'success');
   } else if (settings.customQuestionMode && settings.customQuestionIds?.length && customBankFromIds?.questions?.length) {
     questionBank = customBankFromIds;
     setLoadStatus('커스텀 문제로 시작합니다.', 'success');
@@ -3090,7 +3245,7 @@ const startQuizWithSettings = (settings, faceToFace, customBank) => {
 
 const startQuiz = () => {
   if (csvToolMode && !(uploadedCsvQuestionBank?.questions?.length > 0)) {
-    setLoadStatus('CSV 문제를 먼저 업로드해 주세요.', 'fail');
+    setLoadStatus('문제 파일(CSV/JSON)을 먼저 업로드해 주세요.', 'fail');
     return;
   }
   const settings = readSettings();
@@ -3182,7 +3337,7 @@ const init = async () => {
       await loadCsvQuestionBankFromFile(file);
     } catch (error) {
       console.error(error);
-      setCustomCsvStatus('CSV 파일을 읽는 중 오류가 발생했습니다.', 'fail');
+      setCustomCsvStatus('업로드 파일을 읽는 중 오류가 발생했습니다.', 'fail');
     }
   });
   customCsvClearBtn?.addEventListener('click', () => clearCsvQuestionBank());
@@ -3196,6 +3351,10 @@ const init = async () => {
     link.download = 'knolquiz-question-template.csv';
     link.click();
     URL.revokeObjectURL(url);
+  });
+  customPackExportBtn?.addEventListener('click', (event) => {
+    event.preventDefault();
+    exportQuestionPackJson();
   });
   updateCustomPanelVisibility();
 

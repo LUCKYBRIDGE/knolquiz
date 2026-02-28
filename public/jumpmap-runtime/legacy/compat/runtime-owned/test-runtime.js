@@ -220,6 +220,7 @@
       sessions: new Map(),
       launcherCsvCache: {
         source: '',
+        fileName: '',
         bank: null,
         message: '',
         loaded: false
@@ -236,6 +237,8 @@
       reached: false,
       winnerIndex: -1,
       mode: 'none',
+      quizCountLimit: 30,
+      quizTimeLimitSec: 180,
       topObstacleRef: null,
       topObstacle: null
     };
@@ -628,23 +631,58 @@
       );
       return result;
     };
-    const normalizeVirtualControlsLayout = (layout) => resolveVirtualControlsLayoutSeparation({
-      dpad: {
-        x: clampVirtualControlPos(layout?.dpad?.x, DEFAULT_VIRTUAL_CONTROLS_LAYOUT.dpad.x),
-        y: clampVirtualControlPos(layout?.dpad?.y, DEFAULT_VIRTUAL_CONTROLS_LAYOUT.dpad.y),
-        scale: clampVirtualControlScale(layout?.dpad?.scale, DEFAULT_VIRTUAL_CONTROLS_LAYOUT.dpad.scale)
-      },
-      jump: {
-        x: clampVirtualControlPos(layout?.jump?.x, DEFAULT_VIRTUAL_CONTROLS_LAYOUT.jump.x),
-        y: clampVirtualControlPos(layout?.jump?.y, DEFAULT_VIRTUAL_CONTROLS_LAYOUT.jump.y),
-        scale: clampVirtualControlScale(layout?.jump?.scale, DEFAULT_VIRTUAL_CONTROLS_LAYOUT.jump.scale)
-      },
-      quiz: {
-        x: clampVirtualControlPos(layout?.quiz?.x, DEFAULT_VIRTUAL_CONTROLS_LAYOUT.quiz.x),
-        y: clampVirtualControlPos(layout?.quiz?.y, DEFAULT_VIRTUAL_CONTROLS_LAYOUT.quiz.y),
-        scale: clampVirtualControlScale(layout?.quiz?.scale, DEFAULT_VIRTUAL_CONTROLS_LAYOUT.quiz.scale)
-      }
-    });
+    const normalizeVirtualControlsLayoutBasic = (layout, options = {}) => {
+      const viewportWidth = Math.max(280, Number(options.viewportWidth) || getVirtualControlViewportSize().width);
+      const viewportHeight = Math.max(220, Number(options.viewportHeight) || getVirtualControlViewportSize().height);
+      const dpadScale = clampVirtualControlScale(layout?.dpad?.scale, DEFAULT_VIRTUAL_CONTROLS_LAYOUT.dpad.scale);
+      const jumpScale = clampVirtualControlScale(layout?.jump?.scale, DEFAULT_VIRTUAL_CONTROLS_LAYOUT.jump.scale);
+      const quizScale = clampVirtualControlScale(layout?.quiz?.scale, DEFAULT_VIRTUAL_CONTROLS_LAYOUT.quiz.scale);
+      const dpadWidth = Math.max(
+        1,
+        (Number(options.dpadSizePx?.width) || ESTIMATED_VIRTUAL_CONTROL_BOX_SIZE_PX.dpad.width) * dpadScale
+      );
+      const dpadHeight = Math.max(
+        1,
+        (Number(options.dpadSizePx?.height) || ESTIMATED_VIRTUAL_CONTROL_BOX_SIZE_PX.dpad.height) * dpadScale
+      );
+      const jumpWidth = Math.max(
+        1,
+        (Number(options.jumpSizePx?.width) || ESTIMATED_VIRTUAL_CONTROL_BOX_SIZE_PX.jump.width) * jumpScale
+      );
+      const jumpHeight = Math.max(
+        1,
+        (Number(options.jumpSizePx?.height) || ESTIMATED_VIRTUAL_CONTROL_BOX_SIZE_PX.jump.height) * jumpScale
+      );
+      const quizWidth = Math.max(
+        1,
+        (Number(options.quizSizePx?.width) || ESTIMATED_VIRTUAL_CONTROL_BOX_SIZE_PX.quiz.width) * quizScale
+      );
+      const quizHeight = Math.max(
+        1,
+        (Number(options.quizSizePx?.height) || ESTIMATED_VIRTUAL_CONTROL_BOX_SIZE_PX.quiz.height) * quizScale
+      );
+      return {
+        dpad: {
+          x: clampVirtualControlPosBySize(layout?.dpad?.x, DEFAULT_VIRTUAL_CONTROLS_LAYOUT.dpad.x, dpadWidth, viewportWidth),
+          y: clampVirtualControlPosBySize(layout?.dpad?.y, DEFAULT_VIRTUAL_CONTROLS_LAYOUT.dpad.y, dpadHeight, viewportHeight),
+          scale: dpadScale
+        },
+        jump: {
+          x: clampVirtualControlPosBySize(layout?.jump?.x, DEFAULT_VIRTUAL_CONTROLS_LAYOUT.jump.x, jumpWidth, viewportWidth),
+          y: clampVirtualControlPosBySize(layout?.jump?.y, DEFAULT_VIRTUAL_CONTROLS_LAYOUT.jump.y, jumpHeight, viewportHeight),
+          scale: jumpScale
+        },
+        quiz: {
+          x: clampVirtualControlPosBySize(layout?.quiz?.x, DEFAULT_VIRTUAL_CONTROLS_LAYOUT.quiz.x, quizWidth, viewportWidth),
+          y: clampVirtualControlPosBySize(layout?.quiz?.y, DEFAULT_VIRTUAL_CONTROLS_LAYOUT.quiz.y, quizHeight, viewportHeight),
+          scale: quizScale
+        }
+      };
+    };
+    const normalizeVirtualControlsLayout = (layout, options = {}) => resolveVirtualControlsLayoutSeparation(
+      normalizeVirtualControlsLayoutBasic(layout, options),
+      options
+    );
     const isLayoutCloseToPreset = (layout, preset, tolerance = 0.0005) => {
       if (!layout || !preset) return false;
       const keys = ['dpad', 'jump', 'quiz'];
@@ -719,11 +757,29 @@
       const fromLauncher = ['1', 'true', 'yes', 'on'].includes(fromLauncherRaw);
       return launchMode === 'play' && fromLauncher;
     };
-    const getJumpmapEndMode = () => {
+    const getJumpmapEndConfig = () => {
       const setup = getLauncherSetup();
-      const raw = String(setup?.jumpmapEndMode || '').trim().toLowerCase();
-      if (raw === 'reach-top') return 'reach-top';
-      return 'none';
+      const quizCountLimit = Math.max(1, Math.min(500, Math.round(Number(setup?.quizCountLimit) || 30)));
+      const quizTimeLimitSec = Math.max(10, Math.min(3600, Math.round(Number(setup?.quizTimeLimitSec) || 180)));
+      if (!setup || typeof setup !== 'object') {
+        return { mode: 'none', quizCountLimit, quizTimeLimitSec };
+      }
+      const direct = String(setup.endMode || '').trim().toLowerCase();
+      if (direct === 'count' || direct === 'time' || direct === 'reach-top') {
+        return { mode: direct, quizCountLimit, quizTimeLimitSec };
+      }
+      const legacyJumpmap = String(setup.jumpmapEndMode || '').trim().toLowerCase();
+      if (legacyJumpmap === 'reach-top') {
+        return { mode: 'reach-top', quizCountLimit, quizTimeLimitSec };
+      }
+      const legacyQuizMode = String(setup.quizEndMode || '').trim().toLowerCase();
+      if (legacyQuizMode === 'time') {
+        return { mode: 'time', quizCountLimit, quizTimeLimitSec };
+      }
+      if (legacyQuizMode === 'count') {
+        return { mode: 'count', quizCountLimit, quizTimeLimitSec };
+      }
+      return { mode: 'none', quizCountLimit, quizTimeLimitSec };
     };
     const resolveTopGoalObstacle = (obstacleContext) => {
       const list = Array.isArray(obstacleContext?.list) ? obstacleContext.list : [];
@@ -955,11 +1011,86 @@
       const csvText = typeof launcherSetup.customCsvText === 'string' ? launcherSetup.customCsvText : '';
       return csvText.trim().length > 0;
     };
+    const resolveQuestionBankFromJsonPayload = (payload) => {
+      if (!payload) return null;
+      if (Array.isArray(payload)) {
+        return { version: 1, questions: payload };
+      }
+      if (typeof payload !== 'object') return null;
+      if (Array.isArray(payload.questions)) return payload;
+      if (payload.bank && typeof payload.bank === 'object' && Array.isArray(payload.bank.questions)) {
+        return payload.bank;
+      }
+      if (payload.questionBank && typeof payload.questionBank === 'object' && Array.isArray(payload.questionBank.questions)) {
+        return payload.questionBank;
+      }
+      return null;
+    };
+    const parseLauncherQuestionBankPayload = (resources, rawText, fileName) => {
+      const sourceText = String(rawText || '');
+      const trimmed = sourceText.trim();
+      if (!trimmed) {
+        return { bank: null, message: '업로드 파일이 비어 있습니다.' };
+      }
+      const normalizedName = String(fileName || '').trim().toLowerCase();
+      const forceJson = normalizedName.endsWith('.json');
+      const forceCsv = normalizedName.endsWith('.csv');
+      const tryJsonFirst = forceJson || (!forceCsv && /^[\[{]/.test(trimmed));
+      const validateBank = (bank, label) => {
+        const validation = resources.validateQuestionBank
+          ? resources.validateQuestionBank(bank)
+          : { valid: true, errors: [] };
+        if (!validation?.valid) {
+          return { bank: null, message: `${label} 검증 실패: ${validation?.errors?.[0] || 'invalid bank'}` };
+        }
+        return { bank, message: `${label} ${bank.questions.length}문항 적용` };
+      };
+      const parseJson = () => {
+        try {
+          const payload = JSON.parse(trimmed);
+          const bank = resolveQuestionBankFromJsonPayload(payload);
+          if (!bank?.questions?.length) {
+            return { bank: null, message: 'JSON 문제팩에서 questions 목록을 찾지 못했습니다.' };
+          }
+          return validateBank(bank, '문제팩(JSON)');
+        } catch (error) {
+          return { bank: null, message: `JSON 파싱 실패: ${error?.message || 'invalid json'}` };
+        }
+      };
+      const parseCsv = () => {
+        const parsed = resources.parseCsvQuestionBank
+          ? resources.parseCsvQuestionBank(sourceText)
+          : { valid: false, errors: ['csv parser unavailable'], bank: null };
+        if (!parsed?.valid || !parsed?.bank) {
+          return { bank: null, message: parsed?.errors?.[0] || 'CSV 파싱 실패' };
+        }
+        const validated = validateBank(parsed.bank, 'CSV');
+        if (!validated.bank) return validated;
+        const warning = parsed?.warnings?.[0] ? ` · ${parsed.warnings[0]}` : '';
+        return { bank: validated.bank, message: `CSV ${parsed.bank.questions.length}문항 적용${warning}` };
+      };
+      if (tryJsonFirst) {
+        const jsonResult = parseJson();
+        if (jsonResult.bank || forceJson) return jsonResult;
+        if (!forceCsv) {
+          const csvResult = parseCsv();
+          if (csvResult.bank) return csvResult;
+          return { bank: null, message: `${jsonResult.message} / ${csvResult.message}` };
+        }
+        return jsonResult;
+      }
+      const csvResult = parseCsv();
+      if (csvResult.bank || forceCsv) return csvResult;
+      const jsonResult = parseJson();
+      if (jsonResult.bank) return jsonResult;
+      return { bank: null, message: `${csvResult.message} / ${jsonResult.message}` };
+    };
     const resolveLauncherCsvQuestionBank = (resources) => {
       const launcherSetup = getLauncherSetup();
       if (!shouldUseLauncherCsvBank(launcherSetup)) {
         quizRuntimeState.launcherCsvCache = {
           source: '',
+          fileName: '',
           bank: null,
           message: '',
           loaded: true
@@ -967,47 +1098,33 @@
         return { bank: null, message: '' };
       }
       const csvText = String(launcherSetup.customCsvText || '');
+      const fileName = typeof launcherSetup.customCsvFileName === 'string' ? launcherSetup.customCsvFileName : '';
       const cache = quizRuntimeState.launcherCsvCache || {};
-      if (cache.loaded && cache.source === csvText) {
+      if (cache.loaded && cache.source === csvText && cache.fileName === fileName) {
         return { bank: cache.bank || null, message: cache.message || '' };
       }
-      const parsed = resources.parseCsvQuestionBank
-        ? resources.parseCsvQuestionBank(csvText)
-        : { valid: false, errors: ['csv parser unavailable'], bank: null };
-      if (!parsed?.valid || !parsed?.bank) {
-        const message = parsed?.errors?.[0] || 'CSV 파싱 실패';
-        console.warn('[JumpmapTestRuntime] launcher CSV parse failed', { message });
+      const parsed = parseLauncherQuestionBankPayload(resources, csvText, fileName);
+      if (!parsed?.bank) {
+        const message = parsed?.message || '업로드 문제 파싱 실패';
+        console.warn('[JumpmapTestRuntime] launcher upload parse failed', { message });
         quizRuntimeState.launcherCsvCache = {
           source: csvText,
+          fileName,
           bank: null,
           message,
           loaded: true
         };
         return { bank: null, message };
       }
-      const validation = resources.validateQuestionBank
-        ? resources.validateQuestionBank(parsed.bank)
-        : { valid: true, errors: [] };
-      if (!validation?.valid) {
-        const message = validation?.errors?.[0] || 'CSV 문제 검증 실패';
-        console.warn('[JumpmapTestRuntime] launcher CSV validate failed', { message });
-        quizRuntimeState.launcherCsvCache = {
-          source: csvText,
-          bank: null,
-          message,
-          loaded: true
-        };
-        return { bank: null, message };
-      }
-      const warningMessage = parsed?.warnings?.[0] ? ` · ${parsed.warnings[0]}` : '';
-      const message = `CSV ${parsed.bank.questions.length}문항 적용${warningMessage}`;
+      const message = parsed.message || `업로드 문제 ${parsed.bank.questions.length}문항 적용`;
       quizRuntimeState.launcherCsvCache = {
         source: csvText,
+        fileName,
         bank: parsed.bank,
         message,
         loaded: true
       };
-      console.log('[JumpmapTestRuntime] launcher CSV loaded', {
+      console.log('[JumpmapTestRuntime] launcher upload loaded', {
         count: parsed.bank.questions.length
       });
       return { bank: parsed.bank, message };
@@ -1346,6 +1463,8 @@
       const reason = String(rawReason || '').trim();
       if (!reason) return '종료';
       if (reason === 'reach_top_finish') return '꼭대기 도달 종료';
+      if (reason === 'count_limit_finish') return '문제 수 도달 종료';
+      if (reason === 'time_limit_finish') return '시간 종료';
       if (reason === 'test_exit') return '수동 종료';
       if (reason === 'test_restart') return '재시작';
       if (reason === 'test_rebuild') return '재구성';
@@ -1601,6 +1720,25 @@
     };
 
     const getViews = () => els.testViews._views || [];
+    const buildVirtualControlsLayoutOptions = (controls) => {
+      const controlsRect = controls?.getBoundingClientRect?.();
+      return {
+        viewportWidth: Math.max(1, Number(controlsRect?.width) || controls?.clientWidth || 0),
+        viewportHeight: Math.max(1, Number(controlsRect?.height) || controls?.clientHeight || 0),
+        dpadSizePx: {
+          width: controls?._dpadBox?.offsetWidth,
+          height: controls?._dpadBox?.offsetHeight
+        },
+        jumpSizePx: {
+          width: controls?._jumpBox?.offsetWidth,
+          height: controls?._jumpBox?.offsetHeight
+        },
+        quizSizePx: {
+          width: controls?._quizBox?.offsetWidth,
+          height: controls?._quizBox?.offsetHeight
+        }
+      };
+    };
     const applyVirtualControlsLayoutToView = (playerView) => {
       const controls = playerView?.controls;
       if (!controls) return;
@@ -1609,39 +1747,10 @@
         controls._editToggle.textContent = controlsLayoutState.editMode ? '조작 편집 완료' : '조작 편집';
         controls._editToggle.classList.toggle('is-active', !!controlsLayoutState.editMode);
       }
-      const controlsRect = controls.getBoundingClientRect();
-      const effective = resolveVirtualControlsLayoutSeparation({
-        dpad: {
-          x: clampVirtualControlPos(controlsLayoutState.layout?.dpad?.x, DEFAULT_VIRTUAL_CONTROLS_LAYOUT.dpad.x),
-          y: clampVirtualControlPos(controlsLayoutState.layout?.dpad?.y, DEFAULT_VIRTUAL_CONTROLS_LAYOUT.dpad.y),
-          scale: clampVirtualControlScale(controlsLayoutState.layout?.dpad?.scale, DEFAULT_VIRTUAL_CONTROLS_LAYOUT.dpad.scale)
-        },
-        jump: {
-          x: clampVirtualControlPos(controlsLayoutState.layout?.jump?.x, DEFAULT_VIRTUAL_CONTROLS_LAYOUT.jump.x),
-          y: clampVirtualControlPos(controlsLayoutState.layout?.jump?.y, DEFAULT_VIRTUAL_CONTROLS_LAYOUT.jump.y),
-          scale: clampVirtualControlScale(controlsLayoutState.layout?.jump?.scale, DEFAULT_VIRTUAL_CONTROLS_LAYOUT.jump.scale)
-        },
-        quiz: {
-          x: clampVirtualControlPos(controlsLayoutState.layout?.quiz?.x, DEFAULT_VIRTUAL_CONTROLS_LAYOUT.quiz.x),
-          y: clampVirtualControlPos(controlsLayoutState.layout?.quiz?.y, DEFAULT_VIRTUAL_CONTROLS_LAYOUT.quiz.y),
-          scale: clampVirtualControlScale(controlsLayoutState.layout?.quiz?.scale, DEFAULT_VIRTUAL_CONTROLS_LAYOUT.quiz.scale)
-        }
-      }, {
-        viewportWidth: Math.max(1, Number(controlsRect?.width) || controls.clientWidth || 0),
-        viewportHeight: Math.max(1, Number(controlsRect?.height) || controls.clientHeight || 0),
-        dpadSizePx: {
-          width: controls._dpadBox?.offsetWidth,
-          height: controls._dpadBox?.offsetHeight
-        },
-        jumpSizePx: {
-          width: controls._jumpBox?.offsetWidth,
-          height: controls._jumpBox?.offsetHeight
-        },
-        quizSizePx: {
-          width: controls._quizBox?.offsetWidth,
-          height: controls._quizBox?.offsetHeight
-        }
-      });
+      const layoutOptions = buildVirtualControlsLayoutOptions(controls);
+      const effective = controlsLayoutState.editMode
+        ? normalizeVirtualControlsLayoutBasic(controlsLayoutState.layout, layoutOptions)
+        : normalizeVirtualControlsLayout(controlsLayoutState.layout, layoutOptions);
       const applyBox = (box, conf) => {
         if (!box) return;
         box.style.left = `${(Math.max(0, Math.min(0.9, conf.x)) * 100).toFixed(3)}%`;
@@ -1663,7 +1772,8 @@
       if (!bounds.width || !bounds.height) return;
       const startX = e.clientX;
       const startY = e.clientY;
-      const start = normalizeVirtualControlsLayout(controlsLayoutState.layout)[key];
+      const getLayoutOptions = () => buildVirtualControlsLayoutOptions(wrap);
+      const start = normalizeVirtualControlsLayoutBasic(controlsLayoutState.layout, getLayoutOptions())[key];
       const captureTarget = typeof e.currentTarget?.setPointerCapture === 'function' ? e.currentTarget : null;
       const pointerId = Number.isFinite(Number(e.pointerId)) ? Number(e.pointerId) : null;
       if (captureTarget && pointerId != null) {
@@ -1686,7 +1796,7 @@
           controlsLayoutState.layout[key].x = clampVirtualControlPos(nextX, start.x);
           controlsLayoutState.layout[key].y = clampVirtualControlPos(nextY, start.y);
         }
-        controlsLayoutState.layout = normalizeVirtualControlsLayout(controlsLayoutState.layout);
+        controlsLayoutState.layout = normalizeVirtualControlsLayoutBasic(controlsLayoutState.layout, getLayoutOptions());
         syncVirtualControlsLayoutViews();
       };
       const finish = () => {
@@ -1700,8 +1810,9 @@
             // ignore capture failures
           }
         }
-        controlsLayoutState.layout = normalizeVirtualControlsLayout(controlsLayoutState.layout);
+        controlsLayoutState.layout = normalizeVirtualControlsLayout(controlsLayoutState.layout, getLayoutOptions());
         saveVirtualControlsLayout();
+        syncVirtualControlsLayoutViews();
       };
       window.addEventListener('pointermove', onMove, { passive: false });
       window.addEventListener('pointerup', finish, { passive: true });
@@ -1946,6 +2057,10 @@
 
       editToggle.addEventListener('click', () => {
         controlsLayoutState.editMode = !controlsLayoutState.editMode;
+        if (!controlsLayoutState.editMode) {
+          controlsLayoutState.layout = normalizeVirtualControlsLayout(controlsLayoutState.layout);
+          saveVirtualControlsLayout();
+        }
         syncVirtualControlsLayoutViews();
       });
       resetBtn.addEventListener('click', () => {
@@ -2712,7 +2827,10 @@
       sceneWarmupState.promise = null;
       jumpmapGoalState.reached = false;
       jumpmapGoalState.winnerIndex = -1;
-      jumpmapGoalState.mode = getJumpmapEndMode();
+      const endConfig = getJumpmapEndConfig();
+      jumpmapGoalState.mode = endConfig.mode;
+      jumpmapGoalState.quizCountLimit = endConfig.quizCountLimit;
+      jumpmapGoalState.quizTimeLimitSec = endConfig.quizTimeLimitSec;
       jumpmapGoalState.topObstacleRef = null;
       jumpmapGoalState.topObstacle = null;
       els.testViews.innerHTML = '';
@@ -2835,25 +2953,39 @@
       beginRecordSession();
     };
 
-    const finishByTopReach = (views, winnerIndex) => {
+    const finishJumpmapByReason = ({
+      views,
+      reason,
+      winnerIndex = -1,
+      titleText = '점프맵 종료',
+      iconText = '🏁',
+      line1Text = '',
+      restartReason = 'test_restart',
+      emitEvent = 'test:finish',
+      emitPayload = {}
+    }) => {
       if (jumpmapGoalState.reached) return;
       jumpmapGoalState.reached = true;
-      jumpmapGoalState.winnerIndex = winnerIndex;
-      const winnerName = getPlayerDisplayName(winnerIndex);
-      const snapshot = collectJumpmapSessionRecord('reach_top_finish');
+      const resolvedWinnerIndex = Number.isInteger(winnerIndex) && winnerIndex >= 0 ? winnerIndex : -1;
+      jumpmapGoalState.winnerIndex = resolvedWinnerIndex;
+      const winnerName = resolvedWinnerIndex >= 0 ? getPlayerDisplayName(resolvedWinnerIndex) : '';
+      const snapshot = collectJumpmapSessionRecord(reason);
       const rankingRows = buildTopReachRanking(views);
       clearAllInputs();
       views.forEach((playerView) => {
-        closeQuizPanel(playerView, { reason: 'reach_top_finish' });
+        closeQuizPanel(playerView, { reason });
         const guide = buildTopReachFinishGuide({
           winnerName,
+          titleText,
+          iconText,
+          line1Text,
           line2Text: snapshot
-            ? buildSessionSummaryLineText(snapshot, 'reach_top_finish')
+            ? buildSessionSummaryLineText(snapshot, reason)
             : '결과를 확인한 뒤 다시 시작하거나 기록/학급관리 화면으로 이동할 수 있습니다.',
           rankingRows,
           snapshot,
           onRestart: () => {
-            rebuildActiveTestViews('reach_top_retry');
+            rebuildActiveTestViews(restartReason);
           },
           onClose: () => {
             exitTestMode(true);
@@ -2861,13 +2993,59 @@
         });
         playerView.view.appendChild(guide);
       });
-      saveCurrentJumpmapSessionRecord('reach_top_finish');
+      saveCurrentJumpmapSessionRecord(reason);
       stopTestLoop();
-      integration.emit('test:reach_top_finish', {
-        winnerIndex,
+      integration.emit(emitEvent, {
+        reason,
+        winnerIndex: resolvedWinnerIndex,
         winnerName,
         source: 'jumpmap-test-runtime',
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        ...emitPayload
+      });
+    };
+
+    const finishByTopReach = (views, winnerIndex) => {
+      const winnerName = getPlayerDisplayName(winnerIndex);
+      finishJumpmapByReason({
+        views,
+        reason: 'reach_top_finish',
+        winnerIndex,
+        titleText: '점프맵 종료',
+        iconText: '🏁',
+        line1Text: winnerName ? `${winnerName} 님이 꼭대기에 도달했습니다.` : '',
+        restartReason: 'reach_top_retry',
+        emitEvent: 'test:reach_top_finish'
+      });
+    };
+
+    const finishByCountLimit = (views, solvedCount, requiredCount) => {
+      const solved = Math.max(0, Math.round(Number(solvedCount) || 0));
+      const required = Math.max(1, Math.round(Number(requiredCount) || 1));
+      finishJumpmapByReason({
+        views,
+        reason: 'count_limit_finish',
+        titleText: '점프맵 종료',
+        iconText: '✅',
+        line1Text: `${required}문제를 달성했습니다. (최대 ${solved}문제)`,
+        restartReason: 'count_limit_retry',
+        emitEvent: 'test:count_limit_finish',
+        emitPayload: { solvedCount: solved, requiredCount: required }
+      });
+    };
+
+    const finishByTimeLimit = (views, elapsedSec, timeLimitSec) => {
+      const elapsed = Math.max(0, Math.round(Number(elapsedSec) || 0));
+      const limit = Math.max(10, Math.round(Number(timeLimitSec) || 10));
+      finishJumpmapByReason({
+        views,
+        reason: 'time_limit_finish',
+        titleText: '점프맵 종료',
+        iconText: '⏱️',
+        line1Text: `플레이 시간이 종료되었습니다. (${elapsed}/${limit}초)`,
+        restartReason: 'time_limit_retry',
+        emitEvent: 'test:time_limit_finish',
+        emitPayload: { elapsedSec: elapsed, timeLimitSec: limit }
       });
     };
 
@@ -2889,10 +3067,10 @@
         if (!obstacleCache) {
           obstacleCache = collectObstacleBounds({ objects: state.objects, localPointToWorld });
         }
+        const goalFinishEnabled = isLauncherJumpmapPlayMode() && !jumpmapGoalState.reached;
         const topFinishEnabled = (
-          jumpmapGoalState.mode === 'reach-top' &&
-          isLauncherJumpmapPlayMode() &&
-          !jumpmapGoalState.reached
+          goalFinishEnabled &&
+          jumpmapGoalState.mode === 'reach-top'
         );
         if (topFinishEnabled && jumpmapGoalState.topObstacleRef !== obstacleCache) {
           jumpmapGoalState.topObstacleRef = obstacleCache;
@@ -3003,6 +3181,29 @@
         if (reachedTopPlayerIndex >= 0) {
           finishByTopReach(views, reachedTopPlayerIndex);
           return;
+        }
+
+        if (goalFinishEnabled && jumpmapGoalState.mode === 'count') {
+          const requiredCount = Math.max(1, Math.round(Number(jumpmapGoalState.quizCountLimit) || 1));
+          const solvedCount = views.reduce((maxValue, playerView) => (
+            Math.max(maxValue, Math.max(0, Math.round(Number(playerView?.sessionStats?.quizAttempts) || 0)))
+          ), 0);
+          if (solvedCount >= requiredCount) {
+            finishByCountLimit(views, solvedCount, requiredCount);
+            return;
+          }
+        }
+
+        if (goalFinishEnabled && jumpmapGoalState.mode === 'time') {
+          const timeLimitSec = Math.max(10, Math.round(Number(jumpmapGoalState.quizTimeLimitSec) || 180));
+          const startedAt = Number(recordRuntimeState.sessionStartedAt) || 0;
+          if (startedAt > 0) {
+            const elapsedSec = Math.max(0, Math.ceil((frameNow - startedAt) / 1000));
+            if (elapsedSec >= timeLimitSec) {
+              finishByTimeLimit(views, elapsedSec, timeLimitSec);
+              return;
+            }
+          }
         }
 
         views.forEach((playerView, viewIndex) => {
