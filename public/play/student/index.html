@@ -98,6 +98,12 @@
         padding: 8px 10px;
         background: #fff;
       }
+      .toolbar-note {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.4;
+      }
       .grid {
         display: grid;
         grid-template-columns: 1.1fr 1fr 1fr;
@@ -198,6 +204,15 @@
           <label for="student-select">학생 번호</label>
           <select id="student-select"></select>
         </div>
+        <div class="toolbar-field">
+          <label for="period-select">조회 기간</label>
+          <select id="period-select">
+            <option value="all">전체</option>
+            <option value="30">최근 30일</option>
+            <option value="7">최근 7일</option>
+          </select>
+        </div>
+        <div class="toolbar-note" id="period-note">선택한 기간 기준으로 퀴즈/점프맵/오답/시즌 기록을 필터링합니다.</div>
       </div>
       <div class="grid">
         <section class="card">

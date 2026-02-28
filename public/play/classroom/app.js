@@ -390,6 +390,12 @@ const renderLeaderboard = () => {
       const name = document.createElement('div');
       name.className = 'name';
       name.textContent = `${row.rank}위 · ${row.studentName}(${row.studentNo}번)`;
+      const detail = document.createElement('a');
+      detail.className = 'detail-link';
+      detail.href = `../student/?studentNo=${row.studentNo}`;
+      detail.textContent = '상세';
+      detail.title = `${row.studentNo}번 상세 기록 보기`;
+      name.appendChild(detail);
       const meta = document.createElement('div');
       meta.className = 'meta';
       meta.textContent = `최고 ${row.bestScore}점 · 평균 ${row.averageScore}점 · 시도 ${row.attemptCount}회 · 최근 ${row.lastScore}점 (${formatModeLabel(row.lastMode, row.lastSource)}, ${formatDateTime(row.lastPlayedAt)})`;

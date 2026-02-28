@@ -12,6 +12,8 @@ const els = {
   status: document.getElementById('status-box'),
   refresh: document.getElementById('refresh-btn'),
   studentSelect: document.getElementById('student-select'),
+  periodSelect: document.getElementById('period-select'),
+  periodNote: document.getElementById('period-note'),
   summary: document.getElementById('summary-grid'),
   quizList: document.getElementById('quiz-list'),
   jumpmapList: document.getElementById('jumpmap-list'),
@@ -21,6 +23,7 @@ const els = {
 
 const state = {
   selectedStudentNo: null,
+  selectedPeriodDays: null,
   studentsByNo: new Map(),
   attendanceByNo: new Map(),
   playerStatsByNo: new Map(),
@@ -44,6 +47,12 @@ const normalizeStudentNo = (raw) => {
 };
 
 const getStudentLabel = (studentNo) => `${studentNo}번`;
+
+const PERIOD_LABELS = {
+  all: '전체',
+  30: '최근 30일',
+  7: '최근 7일'
+};
 
 const setStatus = (message, type = 'normal') => {
   if (!els.status) return;
@@ -72,20 +81,42 @@ const appendEmpty = (node, text) => {
   node.appendChild(empty);
 };
 
-const readStudentNoFromQuery = () => {
+const normalizePeriodDays = (raw) => {
+  if (raw == null) return null;
+  const value = String(raw).trim().toLowerCase();
+  if (!value || value === 'all') return null;
+  const parsed = Math.round(Number(value));
+  if (parsed === 7 || parsed === 30) return parsed;
+  return null;
+};
+
+const getSelectedPeriodLabel = () => {
+  if (!state.selectedPeriodDays) return PERIOD_LABELS.all;
+  return PERIOD_LABELS[state.selectedPeriodDays] || `${state.selectedPeriodDays}일`;
+};
+
+const readFiltersFromQuery = () => {
   try {
     const params = new URLSearchParams(window.location.search);
-    return normalizeStudentNo(params.get('studentNo'));
+    return {
+      studentNo: normalizeStudentNo(params.get('studentNo')),
+      periodDays: normalizePeriodDays(params.get('periodDays'))
+    };
   } catch (_error) {
-    return null;
+    return {
+      studentNo: null,
+      periodDays: null
+    };
   }
 };
 
-const writeStudentNoToQuery = (studentNo) => {
+const writeFiltersToQuery = (studentNo, periodDays) => {
   try {
     const params = new URLSearchParams(window.location.search);
     if (studentNo) params.set('studentNo', String(studentNo));
     else params.delete('studentNo');
+    if (periodDays) params.set('periodDays', String(periodDays));
+    else params.delete('periodDays');
     const nextQuery = params.toString();
     const nextUrl = `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ''}${window.location.hash || ''}`;
     window.history.replaceState(null, '', nextUrl);
@@ -95,6 +126,16 @@ const writeStudentNoToQuery = (studentNo) => {
 };
 
 const matchesStudentNoByTag = (tag, studentNo) => normalizeStudentNo(tag) === studentNo;
+
+const isWithinSelectedPeriod = (iso, periodDays) => {
+  if (!periodDays) return true;
+  const targetDate = new Date(iso || '');
+  if (Number.isNaN(targetDate.getTime())) return false;
+  const now = new Date();
+  const diffMs = now.getTime() - targetDate.getTime();
+  if (diffMs < 0) return true;
+  return diffMs <= (periodDays * 24 * 60 * 60 * 1000);
+};
 
 const getSeasonLifecycleStatus = (season) => {
   const now = new Date();
@@ -146,6 +187,16 @@ const buildStudentSelect = () => {
   els.studentSelect.value = String(state.selectedStudentNo);
 };
 
+const buildPeriodSelect = () => {
+  if (!els.periodSelect) return;
+  const normalized = normalizePeriodDays(els.periodSelect.value);
+  state.selectedPeriodDays = normalized;
+  els.periodSelect.value = normalized ? String(normalized) : 'all';
+  if (els.periodNote) {
+    els.periodNote.textContent = `${getSelectedPeriodLabel()} 기준으로 퀴즈/점프맵/오답/시즌 기록을 필터링합니다.`;
+  }
+};
+
 const renderSummary = () => {
   clearNode(els.summary);
   const no = state.selectedStudentNo;
@@ -158,6 +209,7 @@ const renderSummary = () => {
   const rows = [
     ['학생번호', getStudentLabel(no)],
     ['이름', student?.name || `${getStudentLabel(no)} 이름없음`],
+    ['조회 기간', getSelectedPeriodLabel()],
     ['활성 상태', student?.active === false ? '비활성' : '활성'],
     ['출석일', `${attendanceDays}일`],
     ['퀴즈 누적', `${Number(quizStats.quizRuns) || 0}판 · 정답률 ${Number(quizStats.accuracy) || 0}%`],
@@ -263,7 +315,8 @@ const renderSeasonRows = () => {
 
 const rebuildFilteredRows = async () => {
   const studentNo = state.selectedStudentNo;
-  writeStudentNoToQuery(studentNo);
+  const periodDays = state.selectedPeriodDays;
+  writeFiltersToQuery(studentNo, periodDays);
 
   state.quizRows = [];
   state.jumpmapRows = [];
@@ -271,6 +324,7 @@ const rebuildFilteredRows = async () => {
   state.seasonRows = [];
 
   const filteredQuizSessions = state._quizSessions
+    .filter((session) => isWithinSelectedPeriod(session?.createdAt, periodDays))
     .filter((session) => (Array.isArray(session?.players) ? session.players : [])
       .some((player) => matchesStudentNoByTag(player?.tag, studentNo)));
   filteredQuizSessions.forEach((session) => {
@@ -294,6 +348,7 @@ const rebuildFilteredRows = async () => {
   });
 
   const filteredJumpmapSessions = state._jumpmapSessions
+    .filter((session) => isWithinSelectedPeriod(session?.createdAt, periodDays))
     .filter((session) => (Array.isArray(session?.players) ? session.players : [])
       .some((player) => matchesStudentNoByTag(player?.tag, studentNo)));
   filteredJumpmapSessions.forEach((session) => {
@@ -310,7 +365,9 @@ const rebuildFilteredRows = async () => {
     });
   });
 
-  state.wrongRows = state._wrongs.filter((wrong) => matchesStudentNoByTag(wrong?.playerTag, studentNo));
+  state.wrongRows = state._wrongs
+    .filter((wrong) => isWithinSelectedPeriod(wrong?.createdAt, periodDays))
+    .filter((wrong) => matchesStudentNoByTag(wrong?.playerTag, studentNo));
 
   const seasonRows = [];
   const seasonList = Array.isArray(state._seasons) ? state._seasons : [];
@@ -322,6 +379,7 @@ const rebuildFilteredRows = async () => {
       const leaderboard = await listClassroomSeasonLeaderboard(String(season?.seasonId || ''), 50, category);
       const found = leaderboard.find((row) => Number(row?.studentNo) === studentNo);
       if (!found) continue;
+      if (!isWithinSelectedPeriod(found?.lastPlayedAt, periodDays)) continue;
       seasonRows.push({
         seasonName: String(season?.name || season?.seasonId || '-'),
         lifecycle: getSeasonLifecycleStatus(season),
@@ -346,7 +404,7 @@ const rebuildFilteredRows = async () => {
   const student = state.studentsByNo.get(studentNo);
   const studentName = student?.name || getStudentLabel(studentNo);
   setStatus(
-    `${studentName}(${studentNo}번) · 퀴즈 ${state.quizRows.length}건 · 점프맵 ${state.jumpmapRows.length}건 · 오답 ${state.wrongRows.length}건 · 시즌 ${state.seasonRows.length}개`
+    `${studentName}(${studentNo}번) · 기간 ${getSelectedPeriodLabel()} · 퀴즈 ${state.quizRows.length}건 · 점프맵 ${state.jumpmapRows.length}건 · 오답 ${state.wrongRows.length}건 · 시즌 ${state.seasonRows.length}개`
   );
 };
 
@@ -429,10 +487,15 @@ const loadAll = async () => {
     state._jumpmapSessions = Array.isArray(jumpmapSessions) ? jumpmapSessions : [];
     state._wrongs = Array.isArray(wrongs) ? wrongs : [];
 
-    const fromQuery = readStudentNoFromQuery();
+    const queryFilters = readFiltersFromQuery();
     const fallbackNo = normalizeStudentNo(els.studentSelect?.value) || 1;
-    state.selectedStudentNo = fromQuery || fallbackNo;
+    state.selectedStudentNo = queryFilters.studentNo || fallbackNo;
+    state.selectedPeriodDays = queryFilters.periodDays;
     buildStudentSelect();
+    if (els.periodSelect) {
+      els.periodSelect.value = state.selectedPeriodDays ? String(state.selectedPeriodDays) : 'all';
+    }
+    buildPeriodSelect();
     await rebuildFilteredRows();
   } catch (error) {
     console.error('[StudentRecordsPage] load failed', error);
@@ -447,6 +510,12 @@ els.refresh?.addEventListener('click', () => {
 
 els.studentSelect?.addEventListener('change', async () => {
   state.selectedStudentNo = normalizeStudentNo(els.studentSelect.value) || 1;
+  await rebuildFilteredRows();
+});
+
+els.periodSelect?.addEventListener('change', async () => {
+  state.selectedPeriodDays = normalizePeriodDays(els.periodSelect.value);
+  buildPeriodSelect();
   await rebuildFilteredRows();
 });
 
