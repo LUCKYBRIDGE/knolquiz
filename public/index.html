@@ -1108,6 +1108,29 @@
               state.quizPresetId = CSV_UPLOAD_PRESET_ID;
               persistAndRefresh();
             });
+            const renameBtn = document.createElement('button');
+            renameBtn.type = 'button';
+            renameBtn.className = 'csv-saved-btn';
+            renameBtn.textContent = '이름 변경';
+            renameBtn.addEventListener('click', () => {
+              const promptValue = window.prompt('퀴즈 이름을 입력하세요.', item.name || '');
+              if (promptValue == null) return;
+              const nextName = promptValue.trim();
+              if (!nextName) {
+                window.alert('퀴즈 이름은 비워둘 수 없습니다.');
+                return;
+              }
+              if (nextName === item.name) return;
+              state.savedCsvItems = normalizeSavedCsvItems(
+                state.savedCsvItems.map((entry) => (
+                  entry?.id === item.id ? { ...entry, name: nextName } : entry
+                ))
+              );
+              if (state.customCsvText === item.text) {
+                state.customCsvFileName = nextName;
+              }
+              persistAndRefresh();
+            });
             const delBtn = document.createElement('button');
             delBtn.type = 'button';
             delBtn.className = 'csv-saved-btn';
@@ -1124,7 +1147,7 @@
               }
               persistAndRefresh();
             });
-            actions.append(useBtn, delBtn);
+            actions.append(useBtn, renameBtn, delBtn);
             row.append(meta, actions);
             els.csvSavedList.appendChild(row);
           });
