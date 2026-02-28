@@ -9,6 +9,7 @@ const els = {
   status: document.getElementById('status-box'),
   refresh: document.getElementById('refresh-btn'),
   studentFilter: document.getElementById('student-filter'),
+  periodFilter: document.getElementById('period-filter'),
   clearStudentFilter: document.getElementById('clear-student-filter'),
   filterHint: document.getElementById('filter-hint'),
   summary: document.getElementById('summary-grid'),
@@ -25,7 +26,8 @@ const state = {
     quizSessions: [],
     wrongs: []
   },
-  selectedStudentNo: null
+  selectedStudentNo: null,
+  selectedPeriodDays: null
 };
 
 const normalizeStudentNo = (raw) => {
@@ -36,22 +38,56 @@ const normalizeStudentNo = (raw) => {
 
 const getStudentLabel = (studentNo) => `${studentNo}번`;
 
-const readStudentFilterFromQuery = () => {
+const normalizePeriodDays = (raw) => {
+  const value = String(raw ?? '').trim().toLowerCase();
+  if (!value || value === 'all') return null;
+  const parsed = Math.round(Number(value));
+  if (parsed === 7 || parsed === 30) return parsed;
+  return null;
+};
+
+const getPeriodLabel = (periodDays) => {
+  if (!periodDays) return '전체';
+  return `최근 ${periodDays}일`;
+};
+
+const isWithinSelectedPeriod = (iso, periodDays) => {
+  if (!periodDays) return true;
+  const targetDate = new Date(iso || '');
+  if (Number.isNaN(targetDate.getTime())) return false;
+  const now = new Date();
+  const diffMs = now.getTime() - targetDate.getTime();
+  if (diffMs < 0) return true;
+  return diffMs <= (periodDays * 24 * 60 * 60 * 1000);
+};
+
+const readFiltersFromQuery = () => {
   try {
     const params = new URLSearchParams(window.location.search);
-    return normalizeStudentNo(params.get('studentNo'));
+    return {
+      studentNo: normalizeStudentNo(params.get('studentNo')),
+      periodDays: normalizePeriodDays(params.get('periodDays'))
+    };
   } catch (_error) {
-    return null;
+    return {
+      studentNo: null,
+      periodDays: null
+    };
   }
 };
 
-const writeStudentFilterToQuery = (studentNo) => {
+const writeFiltersToQuery = (studentNo, periodDays) => {
   try {
     const params = new URLSearchParams(window.location.search);
     if (studentNo) {
       params.set('studentNo', String(studentNo));
     } else {
       params.delete('studentNo');
+    }
+    if (periodDays) {
+      params.set('periodDays', String(periodDays));
+    } else {
+      params.delete('periodDays');
     }
     const nextQuery = params.toString();
     const nextUrl = `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ''}${window.location.hash || ''}`;
@@ -115,36 +151,47 @@ const populateStudentFilter = (players) => {
   els.studentFilter.value = selected ? String(selected) : '';
 };
 
-const applyStudentFilter = ({ players, jumpmapSessions, quizSessions, wrongs }, studentNo) => {
+const applyFilters = ({ players, jumpmapSessions, quizSessions, wrongs }, studentNo, periodDays) => {
+  const normalizedJumpmapSessions = (Array.isArray(jumpmapSessions) ? jumpmapSessions : [])
+    .filter((session) => isWithinSelectedPeriod(session?.createdAt, periodDays));
+  const normalizedQuizSessions = (Array.isArray(quizSessions) ? quizSessions : [])
+    .filter((session) => isWithinSelectedPeriod(session?.createdAt, periodDays));
+  const normalizedWrongs = (Array.isArray(wrongs) ? wrongs : [])
+    .filter((wrong) => isWithinSelectedPeriod(wrong?.createdAt, periodDays));
+
   if (!studentNo) {
     return {
       players,
-      jumpmapSessions,
-      quizSessions,
-      wrongs
+      jumpmapSessions: normalizedJumpmapSessions,
+      quizSessions: normalizedQuizSessions,
+      wrongs: normalizedWrongs
     };
   }
   return {
     players: (Array.isArray(players) ? players : [])
       .filter((player) => matchesStudentNo(player?.tag, studentNo)),
-    jumpmapSessions: (Array.isArray(jumpmapSessions) ? jumpmapSessions : [])
+    jumpmapSessions: normalizedJumpmapSessions
       .filter((session) => (Array.isArray(session?.players) ? session.players : [])
         .some((player) => matchesStudentNo(player?.tag, studentNo))),
-    quizSessions: (Array.isArray(quizSessions) ? quizSessions : [])
+    quizSessions: normalizedQuizSessions
       .filter((session) => (Array.isArray(session?.players) ? session.players : [])
         .some((player) => matchesStudentNo(player?.tag, studentNo))),
-    wrongs: (Array.isArray(wrongs) ? wrongs : [])
+    wrongs: normalizedWrongs
       .filter((wrong) => matchesStudentNo(wrong?.playerTag, studentNo))
   };
 };
 
 const updateFilterHint = () => {
   if (!els.filterHint) return;
-  if (!state.selectedStudentNo) {
+  const periodText = getPeriodLabel(state.selectedPeriodDays);
+  if (!state.selectedStudentNo && !state.selectedPeriodDays) {
     els.filterHint.textContent = '전체 학생 기록을 표시 중입니다.';
     return;
   }
-  els.filterHint.textContent = `${getStudentLabel(state.selectedStudentNo)} 기록만 표시 중입니다.`;
+  const studentText = state.selectedStudentNo
+    ? `${getStudentLabel(state.selectedStudentNo)} 기록`
+    : '전체 학생 기록';
+  els.filterHint.textContent = `${studentText}을 ${periodText} 기준으로 표시 중입니다.`;
 };
 
 const renderSummary = ({ players, jumpmapSessions, quizSessions, wrongs }) => {
@@ -355,7 +402,7 @@ const renderWrongs = (wrongs) => {
 };
 
 const renderFilteredView = () => {
-  const filtered = applyStudentFilter(state.raw, state.selectedStudentNo);
+  const filtered = applyFilters(state.raw, state.selectedStudentNo, state.selectedPeriodDays);
   renderSummary(filtered);
   renderPlayers(filtered.players);
   renderJumpmapSessions(filtered.jumpmapSessions);
@@ -365,8 +412,11 @@ const renderFilteredView = () => {
   const studentText = state.selectedStudentNo
     ? ` · 학생필터 ${getStudentLabel(state.selectedStudentNo)}`
     : '';
+  const periodText = state.selectedPeriodDays
+    ? ` · 기간필터 ${getPeriodLabel(state.selectedPeriodDays)}`
+    : '';
   els.status.textContent =
-    `불러오기 완료 · 점프맵 ${filtered.jumpmapSessions.length}건 · 퀴즈 ${filtered.quizSessions.length}건 · 플레이어 ${filtered.players.length}명 · 오답 ${filtered.wrongs.length}건${studentText}`;
+    `불러오기 완료 · 점프맵 ${filtered.jumpmapSessions.length}건 · 퀴즈 ${filtered.quizSessions.length}건 · 플레이어 ${filtered.players.length}명 · 오답 ${filtered.wrongs.length}건${studentText}${periodText}`;
 };
 
 const loadAndRender = async () => {
@@ -400,14 +450,25 @@ els.refresh?.addEventListener('click', () => {
 
 els.studentFilter?.addEventListener('change', () => {
   state.selectedStudentNo = normalizeStudentNo(els.studentFilter.value || '');
-  writeStudentFilterToQuery(state.selectedStudentNo);
+  writeFiltersToQuery(state.selectedStudentNo, state.selectedPeriodDays);
+  renderFilteredView();
+});
+
+els.periodFilter?.addEventListener('change', () => {
+  state.selectedPeriodDays = normalizePeriodDays(els.periodFilter.value || '');
+  if (els.periodFilter) {
+    els.periodFilter.value = state.selectedPeriodDays ? String(state.selectedPeriodDays) : 'all';
+  }
+  writeFiltersToQuery(state.selectedStudentNo, state.selectedPeriodDays);
   renderFilteredView();
 });
 
 els.clearStudentFilter?.addEventListener('click', () => {
   state.selectedStudentNo = null;
+  state.selectedPeriodDays = null;
   if (els.studentFilter) els.studentFilter.value = '';
-  writeStudentFilterToQuery(null);
+  if (els.periodFilter) els.periodFilter.value = 'all';
+  writeFiltersToQuery(null, null);
   renderFilteredView();
 });
 
@@ -415,5 +476,10 @@ document.getElementById('print-btn')?.addEventListener('click', () => {
   window.print();
 });
 
-state.selectedStudentNo = readStudentFilterFromQuery();
+const queryFilters = readFiltersFromQuery();
+state.selectedStudentNo = queryFilters.studentNo;
+state.selectedPeriodDays = queryFilters.periodDays;
+if (els.periodFilter) {
+  els.periodFilter.value = state.selectedPeriodDays ? String(state.selectedPeriodDays) : 'all';
+}
 loadAndRender();
