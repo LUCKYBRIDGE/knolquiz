@@ -117,6 +117,7 @@
     const RUNTIME_VERTICAL_SPEED_SCALE = 1 / RUNTIME_AIRTIME_SCALE;
     const BACKGROUND_POSITION_PRECISION_DIGITS = 0;
     const HEIGHT_PX_PER_METER = 200;
+    const TOP_GOAL_CONTACT_EPSILON_PX = 2;
     const PLAY_READY_MESSAGE_SOURCE = 'jumpmap-runtime-play';
     const QUIZ_DEFAULT_SETTINGS = {
       timeLimitSec: 30,
@@ -178,6 +179,13 @@
       activeSessionSeq: 0,
       sessionStartedAt: 0,
       savedSessionSeqs: new Set()
+    };
+    const jumpmapGoalState = {
+      reached: false,
+      winnerIndex: -1,
+      mode: 'none',
+      topObstacleRef: null,
+      topObstacle: null
     };
     const spriteWarmupState = {
       ready: false,
@@ -638,6 +646,66 @@
       }
       launcherSetupCache.value = parsed && typeof parsed === 'object' ? parsed : null;
       return launcherSetupCache.value;
+    };
+    const isLauncherJumpmapPlayMode = () => {
+      const params = new URLSearchParams(window.location.search);
+      const launchMode = String(params.get('launchMode') || '').trim().toLowerCase();
+      const fromLauncherRaw = String(params.get('fromLauncher') || '').trim().toLowerCase();
+      const fromLauncher = ['1', 'true', 'yes', 'on'].includes(fromLauncherRaw);
+      return launchMode === 'play' && fromLauncher;
+    };
+    const getJumpmapEndMode = () => {
+      const setup = getLauncherSetup();
+      const raw = String(setup?.jumpmapEndMode || '').trim().toLowerCase();
+      if (raw === 'reach-top') return 'reach-top';
+      return 'none';
+    };
+    const resolveTopGoalObstacle = (obstacleContext) => {
+      const list = Array.isArray(obstacleContext?.list) ? obstacleContext.list : [];
+      if (!list.length) return null;
+      let minY = Number.POSITIVE_INFINITY;
+      list.forEach((item) => {
+        if (!item) return;
+        const y1 = Number(item.y1);
+        if (!Number.isFinite(y1)) return;
+        if (y1 < minY) minY = y1;
+      });
+      if (!Number.isFinite(minY)) return null;
+      const candidates = list.filter((item) => {
+        if (!item) return false;
+        const y1 = Number(item.y1);
+        return Number.isFinite(y1) && Math.abs(y1 - minY) <= TOP_GOAL_CONTACT_EPSILON_PX;
+      });
+      if (!candidates.length) return null;
+      let best = candidates[0];
+      let bestArea = 0;
+      candidates.forEach((item) => {
+        const width = Math.max(0, (Number(item.x2) || 0) - (Number(item.x1) || 0));
+        const height = Math.max(0, (Number(item.y2) || 0) - (Number(item.y1) || 0));
+        const area = width * height;
+        if (area > bestArea) {
+          bestArea = area;
+          best = item;
+        }
+      });
+      return best;
+    };
+    const isPlayerTouchingTopGoal = (playerState, metrics, obstacle) => {
+      if (!playerState || !metrics || !obstacle) return false;
+      const px1 = Number(playerState.x) || 0;
+      const py1 = Number(playerState.y) || 0;
+      const px2 = px1 + Math.max(1, Number(metrics.width) || 1);
+      const py2 = py1 + Math.max(1, Number(metrics.height) || 1);
+      const ox1 = Number(obstacle.x1) || 0;
+      const oy1 = Number(obstacle.y1) || 0;
+      const ox2 = Number(obstacle.x2) || 0;
+      const oy2 = Number(obstacle.y2) || 0;
+      return (
+        px1 <= ox2 + TOP_GOAL_CONTACT_EPSILON_PX &&
+        px2 >= ox1 - TOP_GOAL_CONTACT_EPSILON_PX &&
+        py1 <= oy2 + TOP_GOAL_CONTACT_EPSILON_PX &&
+        py2 >= oy1 - TOP_GOAL_CONTACT_EPSILON_PX
+      );
     };
     const ensureLocalRecordsModule = async () => {
       if (recordRuntimeState.modulePromise) return recordRuntimeState.modulePromise;
@@ -2302,6 +2370,11 @@
       quizRuntimeState.sessions.clear();
       sceneWarmupState.ready = false;
       sceneWarmupState.promise = null;
+      jumpmapGoalState.reached = false;
+      jumpmapGoalState.winnerIndex = -1;
+      jumpmapGoalState.mode = getJumpmapEndMode();
+      jumpmapGoalState.topObstacleRef = null;
+      jumpmapGoalState.topObstacle = null;
       els.testViews.innerHTML = '';
       els.testViews.style.gridTemplateColumns = `repeat(${count}, 1fr)`;
       els.testViews.dataset.playerCount = String(count);
@@ -2420,6 +2493,44 @@
       beginRecordSession();
     };
 
+    const finishByTopReach = (views, winnerIndex) => {
+      if (jumpmapGoalState.reached) return;
+      jumpmapGoalState.reached = true;
+      jumpmapGoalState.winnerIndex = winnerIndex;
+      const winnerName = getPlayerDisplayName(winnerIndex);
+      clearAllInputs();
+      views.forEach((playerView) => {
+        closeQuizPanel(playerView, { reason: 'reach_top_finish' });
+        const guide = document.createElement('div');
+        guide.className = 'test-start-guide';
+        const title = document.createElement('div');
+        title.className = 'test-start-guide-title';
+        title.textContent = '점프맵 종료';
+        const icon = document.createElement('div');
+        icon.className = 'test-start-guide-count';
+        icon.textContent = '🏁';
+        const line1 = document.createElement('div');
+        line1.className = 'test-start-guide-line';
+        line1.textContent = `${winnerName} 님이 꼭대기에 도달했습니다.`;
+        const line2 = document.createElement('div');
+        line2.className = 'test-start-guide-line';
+        line2.textContent = '다시 시작하려면 새로고침하거나 시작 화면으로 돌아가세요.';
+        guide.appendChild(title);
+        guide.appendChild(icon);
+        guide.appendChild(line1);
+        guide.appendChild(line2);
+        playerView.view.appendChild(guide);
+      });
+      saveCurrentJumpmapSessionRecord('reach_top_finish');
+      stopTestLoop();
+      integration.emit('test:reach_top_finish', {
+        winnerIndex,
+        winnerName,
+        source: 'jumpmap-test-runtime',
+        timestamp: Date.now()
+      });
+    };
+
     const startTestLoop = () => {
       stopTestLoop();
       const LOOP_FPS = 60;
@@ -2438,6 +2549,17 @@
         if (!obstacleCache) {
           obstacleCache = collectObstacleBounds({ objects: state.objects, localPointToWorld });
         }
+        const topFinishEnabled = (
+          jumpmapGoalState.mode === 'reach-top' &&
+          isLauncherJumpmapPlayMode() &&
+          !jumpmapGoalState.reached
+        );
+        if (topFinishEnabled && jumpmapGoalState.topObstacleRef !== obstacleCache) {
+          jumpmapGoalState.topObstacleRef = obstacleCache;
+          jumpmapGoalState.topObstacle = resolveTopGoalObstacle(obstacleCache);
+        }
+        const topGoalObstacle = topFinishEnabled ? jumpmapGoalState.topObstacle : null;
+        let reachedTopPlayerIndex = -1;
         views.forEach((playerView) => {
           const ps = playerView.state;
           const vi = playerView.virtualInput || { left: false, right: false };
@@ -2528,7 +2650,19 @@
           ps.maxHeight = best;
           const groundedForSprite = hasSpriteGroundContact(ps, metrics, obstacleCache, playerHitboxPolygon);
           ps._spriteKey = getSpriteKeyForState(ps, dt, { groundedForSprite });
+          if (
+            reachedTopPlayerIndex < 0 &&
+            topGoalObstacle &&
+            isPlayerTouchingTopGoal(ps, metrics, topGoalObstacle)
+          ) {
+            reachedTopPlayerIndex = playerView.index;
+          }
         });
+
+        if (reachedTopPlayerIndex >= 0) {
+          finishByTopReach(views, reachedTopPlayerIndex);
+          return;
+        }
 
         views.forEach((playerView, viewIndex) => {
           const view = playerView.view;

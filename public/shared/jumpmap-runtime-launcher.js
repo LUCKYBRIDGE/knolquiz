@@ -53,6 +53,7 @@ export const normalizeJumpmapLauncherSetup = (setup) => {
         ? setup.characterId.trim()
         : 'sejong',
     jumpmapStartPointId: typeof setup.jumpmapStartPointId === 'string' ? setup.jumpmapStartPointId : '',
+    jumpmapEndMode: setup.jumpmapEndMode === 'reach-top' ? 'reach-top' : 'none',
     playerNames: names.slice(0, players).map((name, index) => {
       const trimmed = typeof name === 'string' ? name.trim() : '';
       return trimmed || `사용자${index + 1}`;

@@ -40,6 +40,7 @@ const normalizeSetup = (setup) => {
   const jumpmapStartPointId = typeof setup.jumpmapStartPointId === 'string'
     ? setup.jumpmapStartPointId
     : '';
+  const jumpmapEndMode = setup.jumpmapEndMode === 'reach-top' ? 'reach-top' : 'none';
   const quizEndMode = setup.quizEndMode === 'time' ? 'time' : 'count';
   const quizCountLimit = Math.max(1, Math.min(500, Math.round(Number(setup.quizCountLimit) || 30)));
   const quizTimeLimitSec = Math.max(10, Math.min(3600, Math.round(Number(setup.quizTimeLimitSec) || 180)));
@@ -62,6 +63,7 @@ const normalizeSetup = (setup) => {
     quizPresetId,
     characterId,
     jumpmapStartPointId,
+    jumpmapEndMode,
     quizEndMode,
     quizCountLimit,
     quizTimeLimitSec,
@@ -105,6 +107,7 @@ const renderSummary = (box, setup) => {
         : '기본 프리셋'
     ],
     ['캐릭터', setup.gameMode === 'jumpmap' ? (CHARACTER_LABELS[setup.characterId] || setup.characterId) : '사용 안 함'],
+    ['점프맵 종료 기준', setup.gameMode === 'jumpmap' ? (setup.jumpmapEndMode === 'reach-top' ? '꼭대기 도달 시 종료' : '종료 조건 없음') : '해당 없음'],
     ['스타트 후보', setup.gameMode === 'jumpmap' ? (setup.jumpmapStartPointId || '시작지점') : '해당 없음'],
     [
       '플레이어 이름',

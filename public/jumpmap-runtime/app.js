@@ -315,6 +315,7 @@ const renderSetupSummary = (setup) => {
     ['인원', `${setup.players || 1}명`],
     ['퀴즈', setup.quizPresetId || '-'],
     ['캐릭터', setup.characterId || '-'],
+    ['점프맵 종료', setup.jumpmapEndMode === 'reach-top' ? '꼭대기 도달 시 종료' : '종료 조건 없음'],
     ['스타트', setup.jumpmapStartPointId || '시작지점'],
     ['플레이어', Array.isArray(setup.playerNames) ? setup.playerNames.join(', ') : '-']
   ]);

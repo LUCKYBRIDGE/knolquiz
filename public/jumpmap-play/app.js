@@ -31,6 +31,7 @@ const normalizeSetup = (setup) => {
   const jumpmapStartPointId = typeof setup.jumpmapStartPointId === 'string'
     ? setup.jumpmapStartPointId
     : '';
+  const jumpmapEndMode = setup.jumpmapEndMode === 'reach-top' ? 'reach-top' : 'none';
   const names = Array.isArray(setup.playerNames) ? setup.playerNames.slice(0, 6) : [];
   const tags = Array.isArray(setup.playerTags) ? setup.playerTags.slice(0, 6) : [];
   while (names.length < players) names.push(`사용자${names.length + 1}`);
@@ -41,6 +42,7 @@ const normalizeSetup = (setup) => {
     quizPresetId,
     characterId,
     jumpmapStartPointId,
+    jumpmapEndMode,
     playerNames: names.slice(0, players).map((name, index) => {
       const trimmed = typeof name === 'string' ? name.trim() : '';
       return trimmed || `사용자${index + 1}`;
@@ -79,6 +81,7 @@ const renderSummary = (setup) => {
     ['플레이 인원', `${setup.players}명`],
     ['퀴즈 프리셋', setup.quizPresetId],
     ['캐릭터', setup.characterId],
+    ['점프맵 종료 기준', setup.jumpmapEndMode === 'reach-top' ? '꼭대기 도달 시 종료' : '종료 조건 없음'],
     ['스타트 후보', setup.jumpmapStartPointId || '시작지점'],
     [
       '플레이어 이름',

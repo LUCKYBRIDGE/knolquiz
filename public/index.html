@@ -455,6 +455,11 @@
               </div>
             </div>
             <p class="note" id="startpoint-note">운영 맵에서 시작 위치 목록을 불러오는 중입니다.</p>
+            <div class="field" id="jumpmap-endmode-field">
+              <label>점프맵 종료 기준</label>
+              <div class="endmode-row" id="jumpmap-endmode-buttons"></div>
+              <div class="note" id="jumpmap-endmode-note">꼭대기 도달 시 종료는 점프맵에서만 적용됩니다.</div>
+            </div>
           </div>
 
           <div class="section">
@@ -527,6 +532,10 @@
           { id: 'count', label: '몇 문제 다 풀면 종료' },
           { id: 'time', label: '시간 종료 시 종료' }
         ];
+        const JUMPMAP_END_MODE_OPTIONS = [
+          { id: 'none', label: '종료 조건 없음' },
+          { id: 'reach-top', label: '꼭대기 도달 시 종료' }
+        ];
         const RUNTIME_MAP_CANDIDATES = [
           './shared/maps/jumpmap-01.json',
           '/__jumpmap/runtime-map.json'
@@ -539,6 +548,7 @@
           quizPresetId: 'jumpmap-net-30',
           characterId: 'sejong',
           jumpmapStartPointId: '',
+          jumpmapEndMode: 'none',
           quizEndMode: 'count',
           quizCountLimit: 30,
           quizTimeLimitSec: 180,
@@ -568,6 +578,9 @@
           characterSelect: document.getElementById('character-select'),
           startPointSelect: document.getElementById('startpoint-select'),
           startPointNote: document.getElementById('startpoint-note'),
+          jumpmapEndModeField: document.getElementById('jumpmap-endmode-field'),
+          jumpmapEndModeButtons: document.getElementById('jumpmap-endmode-buttons'),
+          jumpmapEndModeNote: document.getElementById('jumpmap-endmode-note'),
           csvTemplateBtn: document.getElementById('csv-template-btn'),
           csvUploadBtn: document.getElementById('csv-upload-btn'),
           csvClearBtn: document.getElementById('csv-clear-btn'),
@@ -727,6 +740,7 @@
             return tag.trim();
           });
           target.jumpmapStartPointId = typeof target.jumpmapStartPointId === 'string' ? target.jumpmapStartPointId : '';
+          target.jumpmapEndMode = target.jumpmapEndMode === 'reach-top' ? 'reach-top' : 'none';
           target.quizEndMode = target.quizEndMode === 'time' ? 'time' : 'count';
           target.quizTimeLimitSec = Math.max(10, Math.min(3600, Math.round(Number(target.quizTimeLimitSec) || 180)));
           target.customCsvEnabled = target.customCsvEnabled === true;
@@ -763,6 +777,7 @@
           renderNameInputs();
           renderCsvTools();
           renderEndModeControls();
+          renderJumpmapEndModeControls();
           renderGameConditional();
           renderSummary();
         }
@@ -966,6 +981,30 @@
             els.endModeNote.textContent = state.quizEndMode === 'time'
               ? '기본 퀴즈 모드에서 적용됩니다.'
               : `기본 퀴즈 모드에서 적용됩니다. 전체 ${availableCount}문제 중 무작위 ${appliedCount}문제를 냅니다.`;
+          }
+        }
+
+        function renderJumpmapEndModeControls() {
+          if (!els.jumpmapEndModeButtons) return;
+          els.jumpmapEndModeButtons.innerHTML = '';
+          JUMPMAP_END_MODE_OPTIONS.forEach((mode) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = `endmode-btn${state.jumpmapEndMode === mode.id ? ' is-active' : ''}`;
+            btn.textContent = mode.label;
+            btn.addEventListener('click', () => {
+              state.jumpmapEndMode = mode.id;
+              persistAndRefresh();
+            });
+            els.jumpmapEndModeButtons.appendChild(btn);
+          });
+          if (els.jumpmapEndModeField) {
+            els.jumpmapEndModeField.classList.toggle('hidden', state.gameMode !== 'jumpmap');
+          }
+          if (els.jumpmapEndModeNote) {
+            els.jumpmapEndModeNote.textContent = state.jumpmapEndMode === 'reach-top'
+              ? '맨 위 오브젝트에 캐릭터가 닿으면 게임이 종료됩니다.'
+              : '자동 종료 없이 계속 플레이합니다.';
           }
         }
 
@@ -1198,6 +1237,9 @@
           const endModeSummary = state.quizEndMode === 'time'
             ? `시간 종료 (${state.quizTimeLimitSec}초)`
             : `몇 문제 다 풀면 종료 (${appliedCount}문제 / 전체 ${availableCount})`;
+          const jumpmapEndModeSummary = state.jumpmapEndMode === 'reach-top'
+            ? '꼭대기 도달 시 종료'
+            : '종료 조건 없음';
           els.summaryBox.innerHTML = `
             <div><strong>인원</strong>: ${state.players}명</div>
             <div><strong>플레이어</strong>: ${names}</div>
@@ -1206,6 +1248,7 @@
             <div><strong>종료 기준</strong>: ${endModeSummary}</div>
             <div><strong>게임</strong>: ${game.label}</div>
             ${state.gameMode === 'jumpmap' ? `<div><strong>캐릭터</strong>: 세종 (기본)</div>` : ''}
+            ${state.gameMode === 'jumpmap' ? `<div><strong>점프맵 종료 기준</strong>: ${jumpmapEndModeSummary}</div>` : ''}
             <div style="margin-top:8px;color:#5a4b3e;">시작 버튼을 누르면 설정이 로컬에 저장되고 게임이 바로 시작됩니다.</div>
           `;
           els.startBtn.textContent = state.gameMode === 'jumpmap' ? '점프맵 바로 시작' : '기본 퀴즈 바로 시작';
