@@ -187,6 +187,7 @@ const state = {
   activeSpawnCooldownMs: SPAWN_START_COOLDOWN_MS,
   endReason: '',
   enemyImages: new Map(),
+  enemyImageReady: new Map(),
   eliteAnnouncedTier: 0,
   quiz: {
     loading: false,
@@ -444,6 +445,13 @@ const loadQuizBank = async () => {
 const preloadEnemyImages = () => {
   ENEMY_DEFINITIONS.forEach((def) => {
     const image = new Image();
+    state.enemyImageReady.set(def.tier, false);
+    image.addEventListener('load', () => {
+      state.enemyImageReady.set(def.tier, image.naturalWidth > 0 && image.naturalHeight > 0);
+    });
+    image.addEventListener('error', () => {
+      state.enemyImageReady.set(def.tier, false);
+    });
     image.src = `../quiz_battleship/${def.file}`;
     state.enemyImages.set(def.tier, image);
   });
@@ -455,7 +463,7 @@ const getUnlockedEnemyTier = (elapsedSec) => {
 };
 
 const pickEnemyDefinition = (maxTier, { preferHigh = false } = {}) => {
-  const defs = ENEMY_DEFINITIONS.filter((def) => def.tier <= maxTier);
+  const defs = ENEMY_DEFINITIONS.filter((def) => def.tier <= maxTier && state.enemyImageReady.get(def.tier));
   if (!defs.length) return ENEMY_DEFINITIONS[0];
   const totalWeight = defs.reduce((sum, def) => {
     const weight = preferHigh
@@ -543,7 +551,6 @@ const createEnemyFromDefinition = (def, elapsedSec, options = {}) => {
   const normalTier10Hp = def10.baseHp * hpScale;
   const normalTier10Speed = def10.baseSpeed * speedScale;
   const normalTier10Touch = def10.baseTouchDamage * touchScale;
-  const tierFactor = 1 + (def.tier - 1) * 0.18;
   const eliteStrengthStep = def.tier - 1;
 
   let hp = elite
@@ -567,7 +574,7 @@ const createEnemyFromDefinition = (def, elapsedSec, options = {}) => {
   const renderSize = elite
     ? Math.round((normalSize + 8) * (1.12 + eliteStrengthStep * 0.03))
     : normalSize;
-  const radius = Math.max(14, Math.round(renderSize * (elite ? 0.33 : 0.3) * tierFactor * 0.82));
+  const radius = Math.max(14, Math.round(renderSize * (elite ? 0.31 : 0.27)));
   const spawnPoint = getEnemySpawnPoint(radius);
 
   if (!elite) {
@@ -605,7 +612,8 @@ const createEnemyFromDefinition = (def, elapsedSec, options = {}) => {
     maxHp: hp,
     touchDamage,
     image: state.enemyImages.get(def.tier) || null,
-    renderSize
+    renderSize,
+    hasBeenVisible: false
   };
 };
 
@@ -622,6 +630,7 @@ const spawnEnemy = (flow) => {
   const elite = shouldSpawnEliteEnemy(elapsedSec, eliteTier);
   const maxTier = elite ? eliteTier : unlockedTier;
   const def = pickEnemyDefinition(maxTier, { preferHigh: elite });
+  if (!def || !state.enemyImageReady.get(def.tier)) return;
   const hardened = !elite && shouldSpawnHardenedEnemy(elapsedSec, flow, def);
   const enemy = createEnemyFromDefinition(def, elapsedSec, {
     elite,
@@ -858,6 +867,17 @@ const updateGame = (dtSec, nowMs) => {
     const angle = Math.atan2(state.ship.y - enemy.y, state.ship.x - enemy.x);
     enemy.x += Math.cos(angle) * enemy.speed * dtSec;
     enemy.y += Math.sin(angle) * enemy.speed * dtSec;
+
+    const viewportMargin = enemy.radius + 6;
+    if (
+      enemy.x >= -viewportMargin
+      && enemy.x <= canvas.width + viewportMargin
+      && enemy.y >= -viewportMargin
+      && enemy.y <= canvas.height + viewportMargin
+    ) {
+      enemy.hasBeenVisible = true;
+    }
+    if (!enemy.hasBeenVisible) continue;
 
     const touched = distance(enemy.x, enemy.y, state.ship.x, state.ship.y) <= enemy.radius + state.ship.radius;
     if (!touched) continue;
