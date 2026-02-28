@@ -619,7 +619,7 @@ const shootAt = (target) => {
       y: state.ship.y + Math.sin(angle) * 34,
       vx: Math.cos(angle) * 430,
       vy: Math.sin(angle) * 430,
-      radius: 5,
+      radius: 6.5,
       damage: state.ship.attackPower
     });
   }
@@ -834,12 +834,13 @@ const drawHpBar = (x, y, width, hp, maxHp, color = '#ef4444') => {
 
 const drawGame = () => {
   const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  gradient.addColorStop(0, '#d9e7ff');
-  gradient.addColorStop(1, '#9ec0ef');
+  gradient.addColorStop(0, '#07102a');
+  gradient.addColorStop(0.5, '#0c1e49');
+  gradient.addColorStop(1, '#132f63');
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  ctx.fillStyle = 'rgba(15, 30, 60, 0.16)';
+  ctx.fillStyle = 'rgba(155, 192, 255, 0.14)';
   for (let i = 0; i < 12; i += 1) {
     const y = i * 52 + 14;
     ctx.fillRect(0, y, canvas.width, 1);
@@ -905,13 +906,24 @@ const drawGame = () => {
 
   for (let i = 0; i < state.projectiles.length; i += 1) {
     const bullet = state.projectiles[i];
+    ctx.save();
+    ctx.shadowColor = 'rgba(255, 229, 130, 0.92)';
+    ctx.shadowBlur = 18;
     ctx.beginPath();
-    ctx.fillStyle = '#facc15';
-    ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255, 203, 88, 0.95)';
+    ctx.arc(bullet.x, bullet.y, bullet.radius + 1.4, 0, Math.PI * 2);
     ctx.fill();
+    ctx.restore();
+    ctx.beginPath();
+    ctx.fillStyle = '#fff7c2';
+    ctx.arc(bullet.x, bullet.y, bullet.radius * 0.74, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.lineWidth = 1.8;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.72)';
+    ctx.stroke();
   }
 
-  ctx.fillStyle = 'rgba(10, 20, 40, 0.75)';
+  ctx.fillStyle = 'rgba(236, 245, 255, 0.92)';
   ctx.font = '700 16px Apple SD Gothic Neo, Malgun Gothic, sans-serif';
   ctx.fillText(`Wave Lv.${state.waves.level}`, 14, 26);
   const unlockedTier = getUnlockedEnemyTier(state.waves.elapsedSec);
