@@ -294,6 +294,69 @@
         color: #6d5b4a;
         font-weight: 800;
       }
+      .csv-saved-list {
+        margin-top: 8px;
+        border: 1px solid #d4c4ab;
+        border-radius: 10px;
+        background: #fffef8;
+        padding: 8px;
+        max-height: 220px;
+        overflow-y: auto;
+      }
+      .csv-saved-empty {
+        font-size: 12px;
+        color: #7b6c5d;
+      }
+      .csv-saved-item {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        align-items: center;
+        border: 1px solid #e2d6c1;
+        border-radius: 8px;
+        padding: 6px 8px;
+        background: #fff;
+      }
+      .csv-saved-item + .csv-saved-item { margin-top: 6px; }
+      .csv-saved-item.is-active {
+        border-color: #2f67da;
+        box-shadow: inset 0 0 0 1px rgba(47, 103, 218, 0.18);
+      }
+      .csv-saved-meta {
+        min-width: 0;
+        font-size: 12px;
+        color: #3d3024;
+      }
+      .csv-saved-title {
+        display: block;
+        font-weight: 800;
+        color: #2a1f17;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .csv-saved-sub {
+        display: block;
+        color: #6e5f50;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .csv-saved-actions {
+        display: inline-flex;
+        gap: 6px;
+      }
+      .csv-saved-btn {
+        border: 1px solid #b8a78e;
+        border-radius: 8px;
+        background: #fffaf0;
+        color: #2f261f;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 5px 8px;
+        cursor: pointer;
+      }
+      .csv-saved-btn:hover { background: #f7e9d1; }
       .endmode-row {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -409,12 +472,15 @@
               </div>
               <div class="csv-tools-row">
                 <button type="button" class="csv-tool-btn" id="csv-clear-btn">업로드 해제</button>
-                <div class="note" style="display:flex;align-items:center;justify-content:center;">CSV 업로드 시 기본 퀴즈에 반영</div>
+                <div class="note" style="display:flex;align-items:center;justify-content:center;">업로드하면 로컬 저장목록(최대 20개)에 보관</div>
               </div>
               <input type="file" id="csv-file-input" class="csv-file-input hidden-input" accept=".csv,text/csv" />
               <div class="csv-status" id="csv-status">현재 업로드된 CSV 없음</div>
               <div class="csv-preview" id="csv-preview">
                 <div class="csv-preview-empty">업로드된 문제 미리보기가 여기에 표시됩니다.</div>
+              </div>
+              <div class="csv-saved-list" id="csv-saved-list">
+                <div class="csv-saved-empty">저장된 CSV가 없습니다.</div>
               </div>
             </div>
           </div>
@@ -555,6 +621,7 @@
           customCsvEnabled: false,
           customCsvText: '',
           customCsvFileName: '',
+          savedCsvItems: [],
           playerNames: ['사용자1'],
           playerTags: ['']
         });
@@ -587,6 +654,7 @@
           csvFileInput: document.getElementById('csv-file-input'),
           csvStatus: document.getElementById('csv-status'),
           csvPreview: document.getElementById('csv-preview'),
+          csvSavedList: document.getElementById('csv-saved-list'),
           endModeButtons: document.getElementById('endmode-buttons'),
           quizCountField: document.getElementById('quiz-count-field'),
           quizCountLimitInput: document.getElementById('quiz-count-limit-input'),
@@ -651,9 +719,13 @@
             updateCsvStatus(headerCheck.message, 'fail');
             return;
           }
+          const savedItem = upsertSavedCsvItem({
+            name: file.name || '',
+            text
+          });
           state.customCsvEnabled = true;
-          state.customCsvText = text;
-          state.customCsvFileName = file.name || '';
+          state.customCsvText = savedItem.text;
+          state.customCsvFileName = savedItem.name;
           state.quizPresetId = CSV_UPLOAD_PRESET_ID;
           persistAndRefresh();
         });
@@ -695,6 +767,64 @@
           const fallbackSafe = Math.max(1, Math.min(500, Math.round(Number(fallback) || 1)));
           if (!Number.isFinite(parsed) || parsed <= 0) return fallbackSafe;
           return Math.max(1, Math.min(500, parsed));
+        }
+
+        function makeSavedCsvId() {
+          return `csv-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        }
+
+        function normalizeSavedCsvItems(list) {
+          if (!Array.isArray(list)) return [];
+          const result = [];
+          const seenIds = new Set();
+          list.forEach((item, index) => {
+            const text = typeof item?.text === 'string' ? item.text : '';
+            if (!text.trim()) return;
+            const headerCheck = hasCsvCoreHeaders(text);
+            if (!headerCheck.ok) return;
+            const rawId = typeof item?.id === 'string' && item.id.trim() ? item.id.trim() : `legacy-${index + 1}`;
+            if (seenIds.has(rawId)) return;
+            seenIds.add(rawId);
+            const name = typeof item?.name === 'string' && item.name.trim()
+              ? item.name.trim()
+              : `CSV ${result.length + 1}`;
+            const savedAt = typeof item?.savedAt === 'string' && item.savedAt.trim()
+              ? item.savedAt
+              : new Date(0).toISOString();
+            result.push({
+              id: rawId,
+              name,
+              text,
+              savedAt
+            });
+          });
+          result.sort((a, b) => String(b.savedAt).localeCompare(String(a.savedAt)));
+          return result.slice(0, 20);
+        }
+
+        function upsertSavedCsvItem(input) {
+          const text = typeof input?.text === 'string' ? input.text : '';
+          const nameRaw = typeof input?.name === 'string' ? input.name : '';
+          const name = nameRaw.trim() || `업로드 CSV ${state.savedCsvItems.length + 1}`;
+          const nowIso = new Date().toISOString();
+          const indexByText = state.savedCsvItems.findIndex((item) => item && item.text === text);
+          if (indexByText >= 0) {
+            const existing = state.savedCsvItems[indexByText];
+            const updated = { ...existing, name, savedAt: nowIso };
+            state.savedCsvItems.splice(indexByText, 1);
+            state.savedCsvItems.unshift(updated);
+            state.savedCsvItems = normalizeSavedCsvItems(state.savedCsvItems);
+            return updated;
+          }
+          const created = {
+            id: makeSavedCsvId(),
+            name,
+            text,
+            savedAt: nowIso
+          };
+          state.savedCsvItems.unshift(created);
+          state.savedCsvItems = normalizeSavedCsvItems(state.savedCsvItems);
+          return created;
         }
 
         function loadSetup() {
@@ -746,9 +876,14 @@
           target.customCsvEnabled = target.customCsvEnabled === true;
           target.customCsvText = typeof target.customCsvText === 'string' ? target.customCsvText : '';
           target.customCsvFileName = typeof target.customCsvFileName === 'string' ? target.customCsvFileName : '';
+          target.savedCsvItems = normalizeSavedCsvItems(target.savedCsvItems);
           if (!target.customCsvText.trim()) {
             target.customCsvEnabled = false;
             target.customCsvFileName = '';
+          }
+          if (target.customCsvEnabled && !target.customCsvFileName) {
+            const matched = target.savedCsvItems.find((item) => item.text === target.customCsvText);
+            if (matched) target.customCsvFileName = matched.name;
           }
           const availablePresetIds = new Set(QUIZ_PRESETS.map((item) => item.id));
           if (target.customCsvEnabled) {
@@ -935,15 +1070,77 @@
           }
         }
 
+        function renderSavedCsvList() {
+          if (!els.csvSavedList) return;
+          els.csvSavedList.innerHTML = '';
+          const list = Array.isArray(state.savedCsvItems) ? state.savedCsvItems : [];
+          if (!list.length) {
+            const empty = document.createElement('div');
+            empty.className = 'csv-saved-empty';
+            empty.textContent = '저장된 CSV가 없습니다.';
+            els.csvSavedList.appendChild(empty);
+            return;
+          }
+          list.forEach((item) => {
+            const preview = buildCsvPreviewModel(item.text || '');
+            const row = document.createElement('div');
+            row.className = `csv-saved-item${state.customCsvEnabled && state.customCsvText === item.text ? ' is-active' : ''}`;
+            const meta = document.createElement('div');
+            meta.className = 'csv-saved-meta';
+            const title = document.createElement('span');
+            title.className = 'csv-saved-title';
+            title.textContent = item.name || 'CSV';
+            const sub = document.createElement('span');
+            sub.className = 'csv-saved-sub';
+            sub.textContent = `${preview.total}문항 · 객관식 ${preview.objective} · 주관식 ${preview.subjective}`;
+            meta.append(title, sub);
+
+            const actions = document.createElement('div');
+            actions.className = 'csv-saved-actions';
+            const useBtn = document.createElement('button');
+            useBtn.type = 'button';
+            useBtn.className = 'csv-saved-btn';
+            useBtn.textContent = '사용';
+            useBtn.addEventListener('click', () => {
+              state.customCsvEnabled = true;
+              state.customCsvText = item.text || '';
+              state.customCsvFileName = item.name || '';
+              state.quizPresetId = CSV_UPLOAD_PRESET_ID;
+              persistAndRefresh();
+            });
+            const delBtn = document.createElement('button');
+            delBtn.type = 'button';
+            delBtn.className = 'csv-saved-btn';
+            delBtn.textContent = '삭제';
+            delBtn.addEventListener('click', () => {
+              state.savedCsvItems = state.savedCsvItems.filter((entry) => entry?.id !== item.id);
+              if (state.customCsvText === item.text) {
+                state.customCsvEnabled = false;
+                state.customCsvText = '';
+                state.customCsvFileName = '';
+                if (state.quizPresetId === CSV_UPLOAD_PRESET_ID) {
+                  state.quizPresetId = QUIZ_PRESETS[0].id;
+                }
+              }
+              persistAndRefresh();
+            });
+            actions.append(useBtn, delBtn);
+            row.append(meta, actions);
+            els.csvSavedList.appendChild(row);
+          });
+        }
+
         function renderCsvTools() {
           if (!els.csvStatus) return;
+          renderSavedCsvList();
           if (state.customCsvEnabled && state.customCsvText.trim()) {
             const fileLabel = state.customCsvFileName ? ` (${state.customCsvFileName})` : '';
             const preview = buildCsvPreviewModel(state.customCsvText);
             updateCsvStatus(`CSV 업로드 완료${fileLabel} · ${preview.total}문항`, 'success');
             renderCsvPreview(preview);
           } else {
-            updateCsvStatus('현재 업로드된 CSV 없음', null);
+            const savedCount = Array.isArray(state.savedCsvItems) ? state.savedCsvItems.length : 0;
+            updateCsvStatus(savedCount > 0 ? `활성 CSV 없음 · 저장된 CSV ${savedCount}개` : '현재 업로드된 CSV 없음', null);
             renderCsvPreview(null);
           }
         }
