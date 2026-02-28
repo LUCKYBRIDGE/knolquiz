@@ -86,6 +86,27 @@
       .btn:disabled { opacity: 0.5; cursor: not-allowed; }
       .hint { font-size: 12px; color: #5d4d40; line-height: 1.4; }
       .status { font-size: 13px; font-weight: 700; color: #2b426f; min-height: 18px; }
+      .meta-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .meta-item {
+        border: 1px solid rgba(24, 41, 75, 0.15);
+        border-radius: 10px;
+        padding: 7px 8px;
+        background: rgba(255, 255, 255, 0.78);
+      }
+      .meta-item .k {
+        font-size: 11px;
+        color: #51607f;
+        font-weight: 700;
+      }
+      .meta-item .v {
+        margin-top: 2px;
+        font-size: 14px;
+        font-weight: 900;
+      }
       .quiz-layer {
         position: fixed;
         inset: 0;
@@ -215,6 +236,21 @@
             <button class="btn" id="open-quiz-btn" type="button">퀴즈 열기</button>
           </div>
           <p class="hint">체력 회복은 골드를 사용합니다. 퀴즈 정답 시 자동으로 EXP/골드가 반영됩니다.</p>
+        </section>
+
+        <section class="card">
+          <h2>전장 정보</h2>
+          <div class="meta-grid">
+            <div class="meta-item"><div class="k">위험도</div><div class="v" id="danger-level">Lv.1</div></div>
+            <div class="meta-item"><div class="k">현재 적 수</div><div class="v" id="alive-enemy-count">0</div></div>
+            <div class="meta-item"><div class="k">일반 해금</div><div class="v" id="normal-tier-state">01~02</div></div>
+            <div class="meta-item"><div class="k">특수 해금</div><div class="v" id="elite-tier-state">대기</div></div>
+            <div class="meta-item"><div class="k">다음 일반 해금</div><div class="v" id="next-normal-tier-time">24초</div></div>
+            <div class="meta-item"><div class="k">다음 특수 해금</div><div class="v" id="next-elite-tier-time">240초</div></div>
+            <div class="meta-item"><div class="k">스폰 간격</div><div class="v" id="spawn-cooldown">1.26초</div></div>
+            <div class="meta-item"><div class="k">다음 스폰</div><div class="v" id="next-spawn-time">0.65초</div></div>
+          </div>
+          <p class="hint">해금/스폰 정보를 보며 업그레이드 타이밍을 잡아보세요.</p>
         </section>
 
         <section class="card">

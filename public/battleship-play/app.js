@@ -55,6 +55,14 @@ const els = {
   upgradeSpeedBtn: document.getElementById('upgrade-speed-btn'),
   upgradePowerBtn: document.getElementById('upgrade-power-btn'),
   upgradeBulletBtn: document.getElementById('upgrade-bullet-btn'),
+  dangerLevel: document.getElementById('danger-level'),
+  aliveEnemyCount: document.getElementById('alive-enemy-count'),
+  normalTierState: document.getElementById('normal-tier-state'),
+  eliteTierState: document.getElementById('elite-tier-state'),
+  nextNormalTierTime: document.getElementById('next-normal-tier-time'),
+  nextEliteTierTime: document.getElementById('next-elite-tier-time'),
+  spawnCooldown: document.getElementById('spawn-cooldown'),
+  nextSpawnTime: document.getElementById('next-spawn-time'),
   quizLayer: document.getElementById('quiz-layer'),
   quizCloseBtn: document.getElementById('quiz-close-btn'),
   quizPrompt: document.getElementById('quiz-prompt'),
@@ -178,6 +186,31 @@ const distance = (ax, ay, bx, by) => {
   const dx = ax - bx;
   const dy = ay - by;
   return Math.hypot(dx, dy);
+};
+
+const formatSecText = (seconds) => `${Math.max(0, Number(seconds) || 0).toFixed(1)}초`;
+
+const getSecondsToNextNormalTier = (elapsedSec) => {
+  const tier = getUnlockedEnemyTier(elapsedSec);
+  if (tier >= 10) return 0;
+  const nextAt = (tier - 1) * ENEMY_TIER_UNLOCK_STEP_SEC;
+  return Math.max(0, nextAt - elapsedSec);
+};
+
+const getSecondsToNextEliteTier = (elapsedSec) => {
+  const eliteTier = getEliteUnlockedTier(elapsedSec);
+  if (eliteTier >= 10) return 0;
+  const nextAt = eliteTier <= 0
+    ? ELITE_UNLOCK_TIME_SEC
+    : ELITE_UNLOCK_TIME_SEC + eliteTier * ELITE_TIER_UNLOCK_STEP_SEC;
+  return Math.max(0, nextAt - elapsedSec);
+};
+
+const getDangerLevel = () => {
+  const elapsedLevel = 1 + Math.floor(state.waves.elapsedSec / 45);
+  const tierBonus = Math.floor(getUnlockedEnemyTier(state.waves.elapsedSec) / 2);
+  const eliteBonus = getEliteUnlockedTier(state.waves.elapsedSec) > 0 ? 2 : 0;
+  return Math.max(1, elapsedLevel + tierBonus + eliteBonus);
 };
 
 const resolveQuizAssetPath = (rawPath) => {
@@ -729,6 +762,30 @@ const refreshHud = () => {
   els.killScore.textContent = String(state.score.kills);
   els.goldValue.textContent = String(state.score.gold);
   els.expValue.textContent = String(state.score.exp);
+
+  const elapsedSec = state.waves.elapsedSec;
+  const normalTier = getUnlockedEnemyTier(elapsedSec);
+  const eliteTier = getEliteUnlockedTier(elapsedSec);
+  const nextNormalSec = getSecondsToNextNormalTier(elapsedSec);
+  const nextEliteSec = getSecondsToNextEliteTier(elapsedSec);
+  const nextSpawnSec = Math.max(0, state.nextSpawnMs / 1000);
+
+  if (els.dangerLevel) els.dangerLevel.textContent = `Lv.${getDangerLevel()}`;
+  if (els.aliveEnemyCount) els.aliveEnemyCount.textContent = String(state.enemies.length);
+  if (els.normalTierState) els.normalTierState.textContent = `01~${String(normalTier).padStart(2, '0')}`;
+  if (els.eliteTierState) {
+    els.eliteTierState.textContent = eliteTier > 0
+      ? `01~${String(eliteTier).padStart(2, '0')}`
+      : '대기';
+  }
+  if (els.nextNormalTierTime) {
+    els.nextNormalTierTime.textContent = normalTier >= 10 ? '최대 단계' : formatSecText(nextNormalSec);
+  }
+  if (els.nextEliteTierTime) {
+    els.nextEliteTierTime.textContent = eliteTier >= 10 ? '최대 단계' : formatSecText(nextEliteSec);
+  }
+  if (els.spawnCooldown) els.spawnCooldown.textContent = formatSecText(state.spawnCooldownMs / 1000);
+  if (els.nextSpawnTime) els.nextSpawnTime.textContent = formatSecText(nextSpawnSec);
 
   const healCost = getHealCost();
   els.buyHealBtn.textContent = `체력 회복 (${healCost}G)`;
