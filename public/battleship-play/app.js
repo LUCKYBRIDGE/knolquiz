@@ -216,6 +216,17 @@ const distance = (ax, ay, bx, by) => {
   return Math.hypot(dx, dy);
 };
 
+const getDrawSizeByLongEdge = (image, longEdge) => {
+  if (!image || !image.naturalWidth || !image.naturalHeight) return null;
+  const base = Math.max(image.naturalWidth, image.naturalHeight);
+  if (!Number.isFinite(base) || base <= 0) return null;
+  const scale = longEdge / base;
+  return {
+    width: image.naturalWidth * scale,
+    height: image.naturalHeight * scale
+  };
+};
+
 const formatSecText = (seconds) => `${Math.max(0, Number(seconds) || 0).toFixed(1)}초`;
 
 const getSecondsToNextNormalTier = (elapsedSec) => {
@@ -834,8 +845,13 @@ const drawGame = () => {
     ctx.fillRect(0, y, canvas.width, 1);
   }
 
-  const shipW = 122;
-  const shipH = 88;
+  let shipW = 122;
+  let shipH = 88;
+  const shipSize = getDrawSizeByLongEdge(shipImage, 150);
+  if (shipSize) {
+    shipW = shipSize.width;
+    shipH = shipSize.height;
+  }
   const shipX = state.ship.x - shipW / 2;
   const shipY = state.ship.y - shipH / 2;
 
@@ -864,9 +880,9 @@ const drawGame = () => {
       ctx.restore();
     }
     if (image && image.complete && image.naturalWidth > 0) {
-      const scale = enemy.renderSize / Math.max(image.naturalWidth, image.naturalHeight);
-      const drawW = image.naturalWidth * scale;
-      const drawH = image.naturalHeight * scale;
+      const enemySize = getDrawSizeByLongEdge(image, enemy.renderSize);
+      const drawW = enemySize ? enemySize.width : enemy.renderSize;
+      const drawH = enemySize ? enemySize.height : enemy.renderSize;
       const drawX = enemy.x - drawW / 2;
       const drawY = enemy.y - drawH / 2;
       ctx.drawImage(image, drawX, drawY, drawW, drawH);
