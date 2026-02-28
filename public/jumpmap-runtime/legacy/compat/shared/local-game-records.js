@@ -222,6 +222,154 @@ const getRecordFromStore = async (db, storeName, id) => {
   return row || null;
 };
 
+const findAutoSeasonForSession = async (db, launcherQuizPresetId = '') => {
+  const all = await getAllFromStore(db, STORE_CLASSROOM_SEASONS);
+  const active = all
+    .filter((item) => item?.active !== false)
+    .sort((a, b) => String(b?.updatedAt || '').localeCompare(String(a?.updatedAt || '')));
+  if (!active.length) return null;
+
+  const normalizedPresetId = typeof launcherQuizPresetId === 'string'
+    ? launcherQuizPresetId.trim()
+    : '';
+  if (!normalizedPresetId) {
+    const noPresetSeason = active.find((season) => {
+      const preset = typeof season?.quizPresetId === 'string' ? season.quizPresetId.trim() : '';
+      return !preset;
+    });
+    return noPresetSeason || null;
+  }
+
+  const exactPresetSeason = active.find((season) => {
+    const preset = typeof season?.quizPresetId === 'string' ? season.quizPresetId.trim() : '';
+    return preset === normalizedPresetId;
+  });
+  if (exactPresetSeason) return exactPresetSeason;
+
+  const noPresetSeason = active.find((season) => {
+    const preset = typeof season?.quizPresetId === 'string' ? season.quizPresetId.trim() : '';
+    return !preset;
+  });
+  return noPresetSeason || null;
+};
+
+const upsertSeasonScoreWithDb = async (db, {
+  seasonId,
+  studentNo,
+  score = 0,
+  payload = {},
+  playedAt = ''
+}) => {
+  const normalizedSeasonId = typeof seasonId === 'string' ? seasonId.trim() : '';
+  const normalizedStudentNo = normalizeStudentNo(studentNo);
+  if (!normalizedSeasonId) throw new Error('invalid_season_id');
+  if (!normalizedStudentNo) throw new Error('invalid_student_no');
+  const seasonKey = `season:${normalizedSeasonId}`;
+  const season = await getRecordFromStore(db, STORE_CLASSROOM_SEASONS, seasonKey);
+  if (!season) throw new Error('season_not_found');
+  const id = `seasonResult:${normalizedSeasonId}:${String(normalizedStudentNo).padStart(2, '0')}`;
+  const nowIso = new Date().toISOString();
+  const numericScore = Number(score) || 0;
+  const tx = db.transaction([STORE_CLASSROOM_SEASON_RESULTS], 'readwrite');
+  const store = tx.objectStore(STORE_CLASSROOM_SEASON_RESULTS);
+  const existing = await requestToPromise(store.get(id));
+  const attemptCount = (Number(existing?.attemptCount) || 0) + 1;
+  const totalScore = (Number(existing?.totalScore) || 0) + numericScore;
+  const bestScore = Math.max(Number(existing?.bestScore) || 0, numericScore);
+  const averageScore = attemptCount > 0
+    ? Math.round((totalScore / attemptCount) * 100) / 100
+    : 0;
+  const next = {
+    ...(existing || {}),
+    id,
+    seasonId: normalizedSeasonId,
+    studentNo: normalizedStudentNo,
+    attemptCount,
+    totalScore,
+    bestScore,
+    averageScore,
+    lastScore: numericScore,
+    lastPlayedAt: playedAt ? new Date(playedAt).toISOString() : nowIso,
+    lastPayload: (payload && typeof payload === 'object') ? { ...payload } : {},
+    updatedAt: nowIso
+  };
+  if (!next.createdAt) next.createdAt = nowIso;
+  store.put(next);
+  await txDone(tx);
+  return next;
+};
+
+const recordSeasonScoresFromQuizSession = async (db, {
+  seasonId,
+  sessionId,
+  launcherQuizPresetId,
+  createdAt,
+  players
+}) => {
+  let recordedCount = 0;
+  const normalizedSeasonId = typeof seasonId === 'string' ? seasonId.trim() : '';
+  if (!normalizedSeasonId) return { seasonId: '', recordedCount };
+  const normalizedPlayers = Array.isArray(players) ? players : [];
+  for (let i = 0; i < normalizedPlayers.length; i += 1) {
+    const playerLog = normalizedPlayers[i];
+    const studentNo = normalizeStudentNo(playerLog?.settings?.studentId);
+    if (!studentNo) continue;
+    const score = Number(playerLog?.summary?.totalScore) || 0;
+    await upsertSeasonScoreWithDb(db, {
+      seasonId: normalizedSeasonId,
+      studentNo,
+      score,
+      playedAt: createdAt,
+      payload: {
+        mode: 'basic-quiz',
+        sessionId,
+        launcherQuizPresetId: launcherQuizPresetId || null,
+        playerName: normalizeName(playerLog?.groupName, `${studentNo}번`),
+        correctCount: Number(playerLog?.summary?.correctCount) || 0,
+        totalCount: Number(playerLog?.summary?.totalCount) || 0
+      }
+    });
+    recordedCount += 1;
+  }
+  return { seasonId: normalizedSeasonId, recordedCount };
+};
+
+const recordSeasonScoresFromJumpmapSession = async (db, {
+  seasonId,
+  sessionId,
+  launcherQuizPresetId,
+  createdAt,
+  players
+}) => {
+  let recordedCount = 0;
+  const normalizedSeasonId = typeof seasonId === 'string' ? seasonId.trim() : '';
+  if (!normalizedSeasonId) return { seasonId: '', recordedCount };
+  const normalizedPlayers = Array.isArray(players) ? players : [];
+  for (let i = 0; i < normalizedPlayers.length; i += 1) {
+    const player = normalizedPlayers[i];
+    const studentNo = normalizeStudentNo(player?.tag);
+    if (!studentNo) continue;
+    const score = Math.max(0, Number(player?.bestHeightPx) || 0);
+    await upsertSeasonScoreWithDb(db, {
+      seasonId: normalizedSeasonId,
+      studentNo,
+      score,
+      playedAt: createdAt,
+      payload: {
+        mode: 'jumpmap',
+        sessionId,
+        launcherQuizPresetId: launcherQuizPresetId || null,
+        playerName: normalizeName(player?.name, `${studentNo}번`),
+        bestHeightPx: score,
+        quizAttempts: Math.max(0, Number(player?.quizAttempts) || 0),
+        quizCorrect: Math.max(0, Number(player?.quizCorrect) || 0)
+      }
+    });
+    recordedCount += 1;
+  }
+  return { seasonId: normalizedSeasonId, recordedCount };
+};
+
 const insertWrongAnswers = async (db, sessionId, players, createdAt) => {
   const wrongEntries = [];
   (players || []).forEach((log, playerIndex) => {
@@ -326,12 +474,29 @@ export const saveQuizSessionRecord = async ({ settings, players, source = 'quiz-
   }
 
   const wrongCount = await insertWrongAnswers(db, sessionId, normalizedPlayers, createdAt);
+  let seasonSummary = { seasonId: '', recordedCount: 0 };
+  try {
+    const activeSeason = await findAutoSeasonForSession(db, settings?.launcherQuizPresetId);
+    if (activeSeason?.seasonId) {
+      seasonSummary = await recordSeasonScoresFromQuizSession(db, {
+        seasonId: activeSeason.seasonId,
+        sessionId,
+        launcherQuizPresetId: settings?.launcherQuizPresetId || '',
+        createdAt,
+        players: normalizedPlayers
+      });
+    }
+  } catch (error) {
+    console.warn('[LocalRecords] failed to record classroom season score (quiz)', error);
+  }
 
   return {
     sessionId,
     createdAt,
     playerCount: normalizedPlayers.length,
-    wrongCount
+    wrongCount,
+    seasonId: seasonSummary.seasonId || null,
+    seasonScoreCount: Number(seasonSummary.recordedCount) || 0
   };
 };
 
@@ -406,10 +571,28 @@ export const saveJumpmapSessionRecord = async ({ settings = {}, players = [], so
     await upsertJumpmapPlayerRecord(db, playerId, playerName, playerTag, player, createdAt);
   }
 
+  let seasonSummary = { seasonId: '', recordedCount: 0 };
+  try {
+    const activeSeason = await findAutoSeasonForSession(db, settings?.launcherQuizPresetId);
+    if (activeSeason?.seasonId) {
+      seasonSummary = await recordSeasonScoresFromJumpmapSession(db, {
+        seasonId: activeSeason.seasonId,
+        sessionId,
+        launcherQuizPresetId: settings?.launcherQuizPresetId || '',
+        createdAt,
+        players: normalizedPlayers
+      });
+    }
+  } catch (error) {
+    console.warn('[LocalRecords] failed to record classroom season score (jumpmap)', error);
+  }
+
   return {
     sessionId,
     createdAt,
-    playerCount: normalizedPlayers.length
+    playerCount: normalizedPlayers.length,
+    seasonId: seasonSummary.seasonId || null,
+    seasonScoreCount: Number(seasonSummary.recordedCount) || 0
   };
 };
 
@@ -600,44 +783,14 @@ export const recordClassroomSeasonScore = async ({
   payload = {},
   playedAt = ''
 }) => {
-  const normalizedSeasonId = typeof seasonId === 'string' ? seasonId.trim() : '';
-  const normalizedStudentNo = normalizeStudentNo(studentNo);
-  if (!normalizedSeasonId) throw new Error('invalid_season_id');
-  if (!normalizedStudentNo) throw new Error('invalid_student_no');
   const db = await openDb();
-  const seasonKey = `season:${normalizedSeasonId}`;
-  const season = await getRecordFromStore(db, STORE_CLASSROOM_SEASONS, seasonKey);
-  if (!season) throw new Error('season_not_found');
-  const id = `seasonResult:${normalizedSeasonId}:${String(normalizedStudentNo).padStart(2, '0')}`;
-  const nowIso = new Date().toISOString();
-  const numericScore = Number(score) || 0;
-  const tx = db.transaction([STORE_CLASSROOM_SEASON_RESULTS], 'readwrite');
-  const store = tx.objectStore(STORE_CLASSROOM_SEASON_RESULTS);
-  const existing = await requestToPromise(store.get(id));
-  const attemptCount = (Number(existing?.attemptCount) || 0) + 1;
-  const totalScore = (Number(existing?.totalScore) || 0) + numericScore;
-  const bestScore = Math.max(Number(existing?.bestScore) || 0, numericScore);
-  const averageScore = attemptCount > 0
-    ? Math.round((totalScore / attemptCount) * 100) / 100
-    : 0;
-  const next = {
-    ...(existing || {}),
-    id,
-    seasonId: normalizedSeasonId,
-    studentNo: normalizedStudentNo,
-    attemptCount,
-    totalScore,
-    bestScore,
-    averageScore,
-    lastScore: numericScore,
-    lastPlayedAt: playedAt ? new Date(playedAt).toISOString() : nowIso,
-    lastPayload: (payload && typeof payload === 'object') ? { ...payload } : {},
-    updatedAt: nowIso
-  };
-  if (!next.createdAt) next.createdAt = nowIso;
-  store.put(next);
-  await txDone(tx);
-  return next;
+  return upsertSeasonScoreWithDb(db, {
+    seasonId,
+    studentNo,
+    score,
+    payload,
+    playedAt
+  });
 };
 
 export const listClassroomSeasonLeaderboard = async (seasonId, limit = 50) => {
