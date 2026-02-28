@@ -245,6 +245,26 @@
                 <label for="season-name-input">시즌 이름</label>
                 <input id="season-name-input" type="text" placeholder="예: 2026 봄 1차" />
               </div>
+              <div class="row2">
+                <div class="field">
+                  <label for="season-preset-select">연결 프리셋(선택)</label>
+                  <select id="season-preset-select">
+                    <option value="">공통(모든 프리셋)</option>
+                    <option value="jumpmap-net-30">전개도 학습 30문제</option>
+                    <option value="jumpmap-net-12">전개도 학습 12문제</option>
+                    <option value="cube-only-24">정육면체 중심 24문제</option>
+                    <option value="cuboid-only-24">직육면체 중심 24문제</option>
+                    <option value="csv-upload">업로드 CSV 문제</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="season-active-input">시즌 상태</label>
+                  <select id="season-active-input">
+                    <option value="true">활성</option>
+                    <option value="false">비활성</option>
+                  </select>
+                </div>
+              </div>
               <button class="btn primary" id="save-season-btn" type="button">시즌 저장/갱신</button>
             </div>
             <div class="season-list" id="season-list"></div>
@@ -267,7 +287,7 @@
               <button class="btn" id="add-manual-score-btn" type="button">수동점수 기록(테스트용)</button>
             </div>
             <div class="leaderboard-list" id="leaderboard-list"></div>
-            <div class="note">수동점수는 시즌 점수 집계 API 검증용 도구입니다. 실제 플레이 연동은 다음 단계에서 붙입니다.</div>
+            <div class="note">수동점수는 테스트용이며, 실제 플레이(점프맵/기본퀴즈) 결과도 활성 시즌에 자동 누적됩니다.</div>
           </div>
         </section>
       </div>

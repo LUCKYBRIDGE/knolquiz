@@ -16,6 +16,8 @@ const els = {
   studentList: document.getElementById('student-list'),
   seasonIdInput: document.getElementById('season-id-input'),
   seasonNameInput: document.getElementById('season-name-input'),
+  seasonPresetSelect: document.getElementById('season-preset-select'),
+  seasonActiveInput: document.getElementById('season-active-input'),
   saveSeason: document.getElementById('save-season-btn'),
   seasonList: document.getElementById('season-list'),
   seasonSelect: document.getElementById('season-select'),
@@ -43,6 +45,39 @@ const normalizeStudentNo = (raw) => {
   const parsed = Math.round(Number(raw));
   if (!Number.isFinite(parsed) || parsed < 1 || parsed > 50) return null;
   return parsed;
+};
+
+const normalizeSeasonPresetId = (raw) => {
+  const value = typeof raw === 'string' ? raw.trim() : '';
+  return value;
+};
+
+const setSeasonPresetSelectValue = (value) => {
+  if (!els.seasonPresetSelect) return;
+  const normalized = normalizeSeasonPresetId(value);
+  const hasOption = Array.from(els.seasonPresetSelect.options)
+    .some((opt) => String(opt.value || '') === normalized);
+  if (!hasOption && normalized) {
+    const option = document.createElement('option');
+    option.value = normalized;
+    option.textContent = `${normalized} (사용자 지정)`;
+    els.seasonPresetSelect.appendChild(option);
+  }
+  els.seasonPresetSelect.value = normalized;
+};
+
+const fillSeasonForm = (season = null) => {
+  if (!season) {
+    if (els.seasonIdInput) els.seasonIdInput.value = '';
+    if (els.seasonNameInput) els.seasonNameInput.value = '';
+    setSeasonPresetSelectValue('');
+    if (els.seasonActiveInput) els.seasonActiveInput.value = 'true';
+    return;
+  }
+  if (els.seasonIdInput) els.seasonIdInput.value = String(season.seasonId || '').trim();
+  if (els.seasonNameInput) els.seasonNameInput.value = String(season.name || '').trim();
+  setSeasonPresetSelectValue(season.quizPresetId || '');
+  if (els.seasonActiveInput) els.seasonActiveInput.value = season.active === false ? 'false' : 'true';
 };
 
 const buildDraftStudents = (loadedStudents = []) => {
@@ -128,6 +163,8 @@ const renderSeasons = () => {
       state.seasons.forEach((season) => {
         const item = document.createElement('div');
         item.className = 'item';
+        item.style.cursor = 'pointer';
+        item.title = '클릭해서 시즌 편집 폼으로 불러오기';
         const name = document.createElement('div');
         name.className = 'name';
         name.textContent = `${season.name || season.seasonId}${season.active === false ? ' (비활성)' : ''}`;
@@ -135,6 +172,10 @@ const renderSeasons = () => {
         meta.className = 'meta';
         meta.textContent = `ID: ${season.seasonId} · 프리셋: ${season.quizPresetId || '-'} · 시작: ${season.startDate || '-'}`;
         item.append(name, meta);
+        item.addEventListener('click', () => {
+          fillSeasonForm(season);
+          setStatus(`시즌 편집 로드: ${season.seasonId}`);
+        });
         els.seasonList.appendChild(item);
       });
     }
@@ -230,6 +271,8 @@ const saveStudents = async ({ initializeDefaults = false } = {}) => {
 const saveSeason = async () => {
   const seasonId = String(els.seasonIdInput?.value || '').trim();
   const name = String(els.seasonNameInput?.value || '').trim();
+  const quizPresetId = normalizeSeasonPresetId(els.seasonPresetSelect?.value || '');
+  const active = String(els.seasonActiveInput?.value || 'true') !== 'false';
   if (!seasonId) {
     setStatus('시즌 ID를 입력하세요.', 'error');
     return;
@@ -239,11 +282,11 @@ const saveSeason = async () => {
     await upsertClassroomSeason({
       seasonId,
       name: name || seasonId,
-      active: true
+      active,
+      quizPresetId
     });
     await reloadData();
-    if (els.seasonIdInput) els.seasonIdInput.value = '';
-    if (els.seasonNameInput) els.seasonNameInput.value = '';
+    fillSeasonForm(null);
     setStatus('시즌 정보를 저장했습니다.');
   } catch (error) {
     console.error('[ClassroomPage] save season failed', error);
@@ -322,3 +365,4 @@ els.addManualScore?.addEventListener('click', () => {
 });
 
 reloadData();
+fillSeasonForm(null);
