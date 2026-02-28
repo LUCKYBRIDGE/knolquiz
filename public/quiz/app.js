@@ -95,6 +95,8 @@ const resetBtn = $('#reset-btn');
 const restartBtn = $('#restart-btn');
 const copyLogBtn = $('#copy-log-btn');
 const downloadLogBtn = $('#download-log-btn');
+const resultRecordsLink = $('#result-records-link');
+const resultClassroomLink = $('#result-classroom-link');
 const LAUNCHER_SETUP_STORAGE_KEY = 'jumpmap.launcher.setup.v1';
 
 const settingsInputs = {
@@ -168,6 +170,59 @@ const QUIZ_STORE_KEY_STUDENT_NAMES = 'studentNames';
 const QUIZ_STORE_KEY_GROUP_NAMES = 'groupNames';
 let quizStorageDbPromise = null;
 let cachedCustomPresets = [];
+
+const normalizeStudentNo = (raw) => {
+  const parsed = Math.round(Number(raw));
+  if (!Number.isFinite(parsed) || parsed < 1 || parsed > 50) return null;
+  return parsed;
+};
+
+const normalizePeriodDays = (raw) => {
+  const value = String(raw ?? '').trim().toLowerCase();
+  if (!value || value === 'all') return null;
+  const parsed = Math.round(Number(value));
+  if (parsed === 7 || parsed === 30) return parsed;
+  return null;
+};
+
+const buildPlayPageHrefWithFilters = (basePath, filters = {}) => {
+  const studentNo = normalizeStudentNo(filters?.studentNo);
+  const periodDays = normalizePeriodDays(filters?.periodDays);
+  const params = new URLSearchParams();
+  if (studentNo) params.set('studentNo', String(studentNo));
+  if (periodDays) params.set('periodDays', String(periodDays));
+  const query = params.toString();
+  return `${basePath}${query ? `?${query}` : ''}`;
+};
+
+const readResultFilterContextFromQuery = () => ({
+  studentNo: normalizeStudentNo(launchParams.get('studentNo')),
+  periodDays: normalizePeriodDays(launchParams.get('periodDays'))
+});
+
+const resultFilterContext = readResultFilterContextFromQuery();
+
+const syncResultNavigationLinks = (filters = resultFilterContext) => {
+  if (resultRecordsLink) {
+    resultRecordsLink.href = buildPlayPageHrefWithFilters('../play/records/', filters);
+  }
+  if (resultClassroomLink) {
+    resultClassroomLink.href = buildPlayPageHrefWithFilters('../play/classroom/', filters);
+  }
+};
+
+const resolveSingleStudentNoFromLogs = (logs = []) => {
+  const unique = new Set();
+  (Array.isArray(logs) ? logs : []).forEach((log) => {
+    const studentNo = normalizeStudentNo(log?.settings?.studentId);
+    if (studentNo) unique.add(studentNo);
+  });
+  if (unique.size !== 1) return null;
+  const [onlyOne] = unique;
+  return onlyOne || null;
+};
+
+syncResultNavigationLinks(resultFilterContext);
 let cachedSavedWrongs = [];
 let cachedStudentNames = [];
 let cachedGroupNames = [];
@@ -2741,6 +2796,11 @@ const finishAllPlayers = () => {
   summaryCard.classList.remove('hidden');
   quizGrid?.classList.add('hidden');
   const logs = players.map((player) => player.getLog());
+  const inferredStudentNo = resolveSingleStudentNoFromLogs(logs);
+  syncResultNavigationLinks({
+    studentNo: resultFilterContext.studentNo || inferredStudentNo,
+    periodDays: resultFilterContext.periodDays
+  });
   const summaryText = logs
     .map((log) => {
       const label = log.groupName || `학생 ${log.settings.studentId}`;

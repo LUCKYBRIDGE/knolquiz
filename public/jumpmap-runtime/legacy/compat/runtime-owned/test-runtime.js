@@ -968,6 +968,34 @@
       if (typeof raw !== 'string') return '';
       return raw.trim();
     };
+    const normalizeStudentNo = (raw) => {
+      const parsed = Math.round(Number(raw));
+      if (!Number.isFinite(parsed) || parsed < 1 || parsed > 50) return null;
+      return parsed;
+    };
+    const normalizePeriodDays = (raw) => {
+      const value = String(raw ?? '').trim().toLowerCase();
+      if (!value || value === 'all') return null;
+      const parsed = Math.round(Number(value));
+      if (parsed === 7 || parsed === 30) return parsed;
+      return null;
+    };
+    const readResultFilterContextFromQuery = () => {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        studentNo: normalizeStudentNo(params.get('studentNo')),
+        periodDays: normalizePeriodDays(params.get('periodDays'))
+      };
+    };
+    const resultFilterContext = readResultFilterContextFromQuery();
+    const buildResultNavigationHref = (basePath, preferredStudentNo = null) => {
+      const params = new URLSearchParams();
+      const studentNo = resultFilterContext.studentNo || normalizeStudentNo(preferredStudentNo);
+      if (studentNo) params.set('studentNo', String(studentNo));
+      if (resultFilterContext.periodDays) params.set('periodDays', String(resultFilterContext.periodDays));
+      const query = params.toString();
+      return resolveEditorRuntimeAssetUrl(`${basePath}${query ? `?${query}` : ''}`);
+    };
 
     const getPlayerNameColor = (index) =>
       PLAYER_NAME_COLORS[Math.max(0, index) % PLAYER_NAME_COLORS.length];
@@ -1267,9 +1295,11 @@
           const stats = playerView?.sessionStats || {};
           const currentHeightPx = getPlayerHeightValue(ps, metrics);
           const bestHeightPx = Math.max(Number(ps.maxHeight) || 0, currentHeightPx);
+          const studentNo = normalizeStudentNo(getPlayerTag(index));
           return {
             index,
             name: getPlayerDisplayName(index),
+            studentNo,
             bestHeightPx,
             quizCorrect: Math.max(0, Number(stats.quizCorrect) || 0),
             quizAttempts: Math.max(0, Number(stats.quizAttempts) || 0)
@@ -1345,14 +1375,20 @@
         });
         actions.appendChild(closeBtn);
       }
+      const studentNos = new Set();
+      (Array.isArray(rankingRows) ? rankingRows : []).forEach((row) => {
+        const studentNo = normalizeStudentNo(row?.studentNo);
+        if (studentNo) studentNos.add(studentNo);
+      });
+      const singleStudentNo = studentNos.size === 1 ? Array.from(studentNos)[0] : null;
       const recordsLink = document.createElement('a');
       recordsLink.className = 'test-start-guide-action-btn';
-      recordsLink.href = resolveEditorRuntimeAssetUrl('../../../../play/records/');
+      recordsLink.href = buildResultNavigationHref('../../../../play/records/', singleStudentNo);
       recordsLink.textContent = '지난 기록 보기';
       actions.appendChild(recordsLink);
       const classroomLink = document.createElement('a');
       classroomLink.className = 'test-start-guide-action-btn';
-      classroomLink.href = resolveEditorRuntimeAssetUrl('../../../../play/classroom/');
+      classroomLink.href = buildResultNavigationHref('../../../../play/classroom/', singleStudentNo);
       classroomLink.textContent = '학급관리 / 명예의 전당';
       actions.appendChild(classroomLink);
       const launcherLink = document.createElement('a');
