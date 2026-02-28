@@ -27,6 +27,12 @@ const EARLY_EASE_WINDOW_SEC = 120;
 const EARLY_SOFTCAP_T1 = 7;
 const EARLY_SOFTCAP_T2 = 11;
 const EARLY_SOFTCAP_T3 = 16;
+const FLOW_CYCLE_SEC = 54;
+const FLOW_LULL_START_SEC = 10;
+const FLOW_LULL_END_SEC = 20;
+const FLOW_SURGE_START_SEC = 32;
+const FLOW_SURGE_END_SEC = 40;
+const FLOW_AFTERSHOCK_END_SEC = 46;
 const ENEMY_DEFINITIONS = Object.freeze([
   { tier: 1, code: '01', name: '도깨비불', file: 'battleship-01ddokaebibul.png', baseHp: 34, baseSpeed: 58, baseTouchDamage: 8, baseSize: 56 },
   { tier: 2, code: '02', name: '물귀신', file: 'battleship-02mulguisin.png', baseHp: 46, baseSpeed: 62, baseTouchDamage: 9, baseSize: 58 },
@@ -69,6 +75,7 @@ const els = {
   nextEliteTierTime: document.getElementById('next-elite-tier-time'),
   spawnCooldown: document.getElementById('spawn-cooldown'),
   nextSpawnTime: document.getElementById('next-spawn-time'),
+  flowState: document.getElementById('flow-state'),
   quizLayer: document.getElementById('quiz-layer'),
   quizCloseBtn: document.getElementById('quiz-close-btn'),
   quizPrompt: document.getElementById('quiz-prompt'),
@@ -156,6 +163,14 @@ const state = {
     level: 1,
     elapsedSec: 0
   },
+  flow: {
+    label: '보통',
+    spawnCooldownMul: 1,
+    speedMul: 1,
+    capBonus: 0,
+    hardenedBonus: 0
+  },
+  activeSpawnCooldownMs: SPAWN_START_COOLDOWN_MS,
   enemyImages: new Map(),
   eliteAnnouncedTier: 0,
   quiz: {
@@ -217,6 +232,51 @@ const getDangerLevel = () => {
   const tierBonus = Math.floor(getUnlockedEnemyTier(state.waves.elapsedSec) / 2);
   const eliteBonus = getEliteUnlockedTier(state.waves.elapsedSec) > 0 ? 2 : 0;
   return Math.max(1, elapsedLevel + tierBonus + eliteBonus);
+};
+
+const getFlowState = (elapsedSec) => {
+  const cyclePos = ((elapsedSec % FLOW_CYCLE_SEC) + FLOW_CYCLE_SEC) % FLOW_CYCLE_SEC;
+  const pulse = Math.sin(elapsedSec * 0.45) * 0.08;
+
+  let flow = {
+    label: '보통',
+    spawnCooldownMul: 1,
+    speedMul: 1,
+    capBonus: 0,
+    hardenedBonus: 0
+  };
+
+  if (cyclePos >= FLOW_LULL_START_SEC && cyclePos < FLOW_LULL_END_SEC) {
+    flow = {
+      label: '완급-완',
+      spawnCooldownMul: 1.35,
+      speedMul: 0.9,
+      capBonus: -2,
+      hardenedBonus: -0.03
+    };
+  } else if (cyclePos >= FLOW_SURGE_START_SEC && cyclePos < FLOW_SURGE_END_SEC) {
+    flow = {
+      label: '러시',
+      spawnCooldownMul: 0.68,
+      speedMul: 1.18,
+      capBonus: 5,
+      hardenedBonus: 0.12
+    };
+  } else if (cyclePos >= FLOW_SURGE_END_SEC && cyclePos < FLOW_AFTERSHOCK_END_SEC) {
+    flow = {
+      label: '압박',
+      spawnCooldownMul: 0.84,
+      speedMul: 1.08,
+      capBonus: 2,
+      hardenedBonus: 0.06
+    };
+  }
+
+  return {
+    ...flow,
+    spawnCooldownMul: clamp(flow.spawnCooldownMul * (1 - pulse * 0.45), 0.55, 1.55),
+    speedMul: clamp(flow.speedMul * (1 + pulse), 0.82, 1.3)
+  };
 };
 
 const resolveQuizAssetPath = (rawPath) => {
@@ -396,7 +456,19 @@ const getEnemySpawnPoint = (radius) => {
   };
 };
 
-const createEnemyFromDefinition = (def, elapsedSec, elite = false) => {
+const shouldSpawnHardenedEnemy = (elapsedSec, flow, def) => {
+  if (elapsedSec < 65) return false;
+  const tierBonus = Math.max(0, def.tier - 1) * 0.008;
+  const elapsedBonus = clamp((elapsedSec - 65) / 420, 0, 1) * 0.14;
+  const flowBonus = Number(flow?.hardenedBonus) || 0;
+  const chance = clamp(0.03 + tierBonus + elapsedBonus + flowBonus, 0.01, 0.36);
+  return Math.random() < chance;
+};
+
+const createEnemyFromDefinition = (def, elapsedSec, options = {}) => {
+  const elite = options.elite === true;
+  const hardened = options.hardened === true;
+  const flowSpeedMul = Number(options.flowSpeedMul) > 0 ? Number(options.flowSpeedMul) : 1;
   const hpScale = 1 + Math.floor(elapsedSec / HP_GROWTH_STEP_SEC) * HP_GROWTH_PER_STEP;
   const speedScale = 1 + Math.floor(elapsedSec / SPEED_GROWTH_STEP_SEC) * SPEED_GROWTH_PER_STEP;
   const touchScale = 1 + Math.floor(elapsedSec / TOUCH_GROWTH_STEP_SEC) * TOUCH_GROWTH_PER_STEP;
@@ -448,12 +520,21 @@ const createEnemyFromDefinition = (def, elapsedSec, elite = false) => {
     }
   }
 
+  if (hardened && !elite) {
+    hp = Math.round(hp * (1.78 + (def.tier - 1) * 0.04));
+    speed *= 0.92;
+    touchDamage = Math.max(1, Math.round(touchDamage * (1.52 + (def.tier - 1) * 0.03)));
+  }
+
+  speed *= flowSpeedMul;
+
   return {
     id: `enemy-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     tier: def.tier,
     typeCode: def.code,
     typeName: def.name,
     elite,
+    hardened,
     x: spawnPoint.x,
     y: spawnPoint.y,
     radius,
@@ -466,20 +547,30 @@ const createEnemyFromDefinition = (def, elapsedSec, elite = false) => {
   };
 };
 
-const spawnEnemy = () => {
+const spawnEnemy = (flow) => {
   const elapsedSec = state.waves.elapsedSec;
   const softCap = elapsedSec < 60
     ? EARLY_SOFTCAP_T1
     : (elapsedSec < 140 ? EARLY_SOFTCAP_T2 : (elapsedSec < 240 ? EARLY_SOFTCAP_T3 : Number.POSITIVE_INFINITY));
-  if (state.enemies.length >= softCap) return;
+  const adjustedSoftCap = Math.max(5, softCap + (Number(flow?.capBonus) || 0));
+  if (state.enemies.length >= adjustedSoftCap) return;
 
   const unlockedTier = getUnlockedEnemyTier(elapsedSec);
   const eliteTier = getEliteUnlockedTier(elapsedSec);
   const elite = shouldSpawnEliteEnemy(elapsedSec, eliteTier);
   const maxTier = elite ? eliteTier : unlockedTier;
   const def = pickEnemyDefinition(maxTier, { preferHigh: elite });
-  const enemy = createEnemyFromDefinition(def, elapsedSec, elite);
+  const hardened = !elite && shouldSpawnHardenedEnemy(elapsedSec, flow, def);
+  const enemy = createEnemyFromDefinition(def, elapsedSec, {
+    elite,
+    hardened,
+    flowSpeedMul: Number(flow?.speedMul) || 1
+  });
   state.enemies.push(enemy);
+
+  if (hardened && Math.random() < 0.12) {
+    setStatus(`강화 ${def.name} 출현! 체력과 접촉 피해가 높습니다.`);
+  }
 };
 
 const getNearestEnemy = () => {
@@ -651,10 +742,17 @@ const updateGame = (dtSec, nowMs) => {
     SPAWN_MIN_COOLDOWN_MS,
     SPAWN_START_COOLDOWN_MS - state.waves.elapsedSec * SPAWN_DECAY_PER_SEC
   );
+  const flow = getFlowState(state.waves.elapsedSec);
+  state.flow = flow;
+  state.activeSpawnCooldownMs = clamp(
+    state.spawnCooldownMs * flow.spawnCooldownMul,
+    Math.max(280, SPAWN_MIN_COOLDOWN_MS * 0.55),
+    SPAWN_START_COOLDOWN_MS * 1.75
+  );
   state.nextSpawnMs -= dtSec * 1000;
   while (state.nextSpawnMs <= 0) {
-    spawnEnemy();
-    state.nextSpawnMs += state.spawnCooldownMs;
+    spawnEnemy(flow);
+    state.nextSpawnMs += state.activeSpawnCooldownMs;
   }
 
   if (nowMs >= state.nextShotMs) {
@@ -835,8 +933,9 @@ const refreshHud = () => {
   if (els.nextEliteTierTime) {
     els.nextEliteTierTime.textContent = eliteTier >= 10 ? '최대 단계' : formatSecText(nextEliteSec);
   }
-  if (els.spawnCooldown) els.spawnCooldown.textContent = formatSecText(state.spawnCooldownMs / 1000);
+  if (els.spawnCooldown) els.spawnCooldown.textContent = formatSecText(state.activeSpawnCooldownMs / 1000);
   if (els.nextSpawnTime) els.nextSpawnTime.textContent = formatSecText(nextSpawnSec);
+  if (els.flowState) els.flowState.textContent = state.flow?.label || '보통';
 
   const healCost = getHealCost();
   els.buyHealBtn.textContent = `체력 회복 (${healCost}G)`;
