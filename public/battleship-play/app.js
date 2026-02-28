@@ -184,7 +184,9 @@ const state = {
     loading: false,
     loaded: false,
     error: '',
-    questions: [],
+    sourceQuestions: [],
+    pendingQuestions: [],
+    cycleCount: 0,
     currentQuestion: null
   },
   enemies: [],
@@ -361,33 +363,47 @@ const loadBaseBanks = async () => {
   return { facecolor, edgecolor, validity };
 };
 
+const refillQuizPendingQuestions = () => {
+  if (!Array.isArray(state.quiz.sourceQuestions) || !state.quiz.sourceQuestions.length) return false;
+  state.quiz.pendingQuestions = shuffleArray(state.quiz.sourceQuestions.slice());
+  state.quiz.cycleCount += 1;
+  return state.quiz.pendingQuestions.length > 0;
+};
+
 const loadQuizBank = async () => {
-  if (state.quiz.loading || state.quiz.loaded) return;
+  if (state.quiz.loading) return;
+  if (state.quiz.loaded && Array.isArray(state.quiz.sourceQuestions) && state.quiz.sourceQuestions.length) return;
   state.quiz.loading = true;
   state.quiz.error = '';
   try {
+    let usableQuestions = [];
     if (setup.launcherQuizPresetId === 'csv-upload' && setup.customCsvEnabled && setup.customCsvText.trim()) {
       const parsed = parseCsvQuestionBank(setup.customCsvText);
       if (!parsed.valid || !parsed.bank?.questions?.length) {
         throw new Error(parsed.errors?.[0] || 'CSV 문제를 불러오지 못했습니다.');
       }
-      state.quiz.questions = shuffleArray(parsed.bank.questions.filter(isBattleUsableQuestion));
-      if (!state.quiz.questions.length) {
+      usableQuestions = parsed.bank.questions.filter(isBattleUsableQuestion);
+      if (!usableQuestions.length) {
         throw new Error('전투 퀴즈는 객관식 문항(선택지 2개 이상)만 사용할 수 있습니다.');
       }
-      state.quiz.loaded = true;
-      return;
+    } else {
+      const banks = await loadBaseBanks();
+      const settings = createPresetSettings(setup.launcherQuizPresetId);
+      const built = buildWeightedQuestionBank(banks, settings);
+      if (!built?.questions?.length) {
+        throw new Error('퀴즈 문제풀이용 문제를 구성하지 못했습니다.');
+      }
+      usableQuestions = built.questions.filter(isBattleUsableQuestion);
+      if (!usableQuestions.length) {
+        throw new Error('전투 퀴즈로 사용할 객관식 문항이 없습니다.');
+      }
     }
 
-    const banks = await loadBaseBanks();
-    const settings = createPresetSettings(setup.launcherQuizPresetId);
-    const built = buildWeightedQuestionBank(banks, settings);
-    if (!built?.questions?.length) {
-      throw new Error('퀴즈 문제풀이용 문제를 구성하지 못했습니다.');
-    }
-    state.quiz.questions = shuffleArray(built.questions.filter(isBattleUsableQuestion));
-    if (!state.quiz.questions.length) {
-      throw new Error('전투 퀴즈로 사용할 객관식 문항이 없습니다.');
+    state.quiz.sourceQuestions = usableQuestions.slice();
+    state.quiz.pendingQuestions = [];
+    state.quiz.cycleCount = 0;
+    if (!refillQuizPendingQuestions()) {
+      throw new Error('퀴즈 문제 큐를 구성하지 못했습니다.');
     }
     state.quiz.loaded = true;
   } catch (error) {
@@ -721,15 +737,19 @@ const openQuizLayer = async () => {
     setStatus(state.quiz.error);
     return;
   }
-  if (!state.quiz.questions.length) {
+  if (!state.quiz.pendingQuestions.length && !refillQuizPendingQuestions()) {
     setStatus('퀴즈 문제풀이용 문제가 없습니다.');
     return;
   }
   state.paused = true;
-  let next = state.quiz.questions.pop();
+  let next = state.quiz.pendingQuestions.pop();
   if (!next) {
-    await loadQuizBank();
-    next = state.quiz.questions.pop();
+    if (!refillQuizPendingQuestions()) {
+      state.paused = false;
+      setStatus('퀴즈 문제를 다시 구성하지 못했습니다.');
+      return;
+    }
+    next = state.quiz.pendingQuestions.pop();
   }
   if (!next) {
     state.paused = false;
