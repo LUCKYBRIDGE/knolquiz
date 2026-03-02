@@ -1301,8 +1301,8 @@
           edgecolor,
           validity
         ] = await Promise.all([
-          import(resolveEditorRuntimeAssetUrl('../quiz/core/engine.js')),
-          import(resolveEditorRuntimeAssetUrl('../quiz/core/bank.js')),
+          import(resolveEditorRuntimeAssetUrl('../../../../quiz/core/engine.js')),
+          import(resolveEditorRuntimeAssetUrl('../../../../quiz/core/bank.js')),
           import(resolveEditorRuntimeAssetUrl('../../../../quiz/core/importers/csv-question-bank.js')),
           import(resolveEditorRuntimeAssetUrl('../../../../quiz/core/validate.js')),
           loadJson(buildQuizDataUrl('quiz-settings.default.json')),
@@ -3051,10 +3051,14 @@
 
     const startTestLoop = () => {
       stopTestLoop();
-      const LOOP_FPS = 60;
-      const dt = 1 / LOOP_FPS;
+      let lastRafTs = 0;
 
-      const loop = () => {
+      const loop = (rafTs) => {
+        const nowRafTs = Number.isFinite(Number(rafTs)) ? Number(rafTs) : performance.now();
+        const rawDt = lastRafTs > 0 ? (nowRafTs - lastRafTs) / 1000 : (1 / 60);
+        // Keep physics speed stable across 60/120/144Hz displays while still guarding huge tab-switch jumps.
+        const dt = Math.min(0.05, Math.max(1 / 240, rawDt));
+        lastRafTs = nowRafTs;
         const views = getViews();
         const frameNow = Date.now();
         const metrics = getPlayerMetrics();

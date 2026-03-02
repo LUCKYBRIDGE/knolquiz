@@ -1,5 +1,4 @@
 const STORAGE_KEY = 'jumpmap.launcher.setup.v1';
-const LEGACY_QUIZ_APP_URL = 'https://luckybridge.github.io/math-net-master-quiz/quiz/';
 
 const GAME_LABELS = {
   jumpmap: '점프맵',
@@ -120,7 +119,7 @@ const getStartTargetUrl = (setup) => {
     return url;
   }
   if (setup.gameMode === 'basic-quiz') {
-    const url = new URL(LEGACY_QUIZ_APP_URL);
+    const url = new URL('../quiz/', window.location.href);
     url.searchParams.set('launchMode', 'play');
     url.searchParams.set('fromLauncher', '1');
     return url;
