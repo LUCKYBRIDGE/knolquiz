@@ -673,6 +673,15 @@
                   <label for="quiz-time-limit-input">총 플레이 시간(초)</label>
                   <input type="number" id="quiz-time-limit-input" min="10" max="3600" value="180" />
                 </div>
+                <div class="field hidden" id="pvam-difficulty-field">
+                  <label for="pvam-difficulty-select">자리올림 난이도(영역모델)</label>
+                  <select id="pvam-difficulty-select">
+                    <option value="none">자리올림 없음</option>
+                    <option value="low">자리올림 1~2회</option>
+                    <option value="high">자리올림 많음</option>
+                    <option value="any">혼합</option>
+                  </select>
+                </div>
                 <div class="field hidden" id="battleship-time-field">
                   <label for="battleship-time-limit-input">거북선 디펜스 제한 시간(초)</label>
                   <input type="number" id="battleship-time-limit-input" min="10" max="7200" value="180" />
@@ -782,6 +791,11 @@
             id: 'cuboid-only-24',
             title: '직육면체 중심 24문제',
             desc: '직육면체 전개도 중심 출제'
+          },
+          {
+            id: 'pvam-area-2digit',
+            title: '몇십몇×몇십몇(영역모델)',
+            desc: '영역모델 + 자릿값 세로셈 과정을 채우는 학습 퀴즈'
           }
         ];
         const CSV_UPLOAD_PRESET_ID = 'csv-upload';
@@ -815,6 +829,7 @@
           players: 1,
           gameMode: 'jumpmap',
           quizPresetId: 'jumpmap-net-30',
+          pvamCarryMode: 'none',
           characterId: 'sejong',
           playerCharacterIds: ['sejong'],
           studentCharacterMap: {},
@@ -871,6 +886,8 @@
           quizCountLimitInput: document.getElementById('quiz-count-limit-input'),
           quizTimeField: document.getElementById('quiz-time-field'),
           quizTimeLimitInput: document.getElementById('quiz-time-limit-input'),
+          pvamDifficultyField: document.getElementById('pvam-difficulty-field'),
+          pvamDifficultySelect: document.getElementById('pvam-difficulty-select'),
           battleshipTimeField: document.getElementById('battleship-time-field'),
           battleshipTimeLimitInput: document.getElementById('battleship-time-limit-input'),
           battleshipKillField: document.getElementById('battleship-kill-field'),
@@ -966,6 +983,11 @@
           els.quizTimeLimitInput.value = String(value);
           persistAndRefresh();
         });
+        els.pvamDifficultySelect?.addEventListener('change', () => {
+          const value = String(els.pvamDifficultySelect.value || 'none');
+          state.pvamCarryMode = ['none', 'low', 'high', 'any'].includes(value) ? value : 'none';
+          persistAndRefresh();
+        });
         els.quizCountLimitInput?.addEventListener('change', () => {
           const fallback = resolveQuizPresetQuestionCount(state.quizPresetId, state.customCsvText) || 1;
           const normalized = normalizeQuizCountLimit(els.quizCountLimitInput.value, fallback);
@@ -996,6 +1018,8 @@
             case 'cube-only-24':
             case 'cuboid-only-24':
               return 24;
+            case 'pvam-area-2digit':
+              return 12;
             case CSV_UPLOAD_PRESET_ID: {
               const preview = buildUploadPreviewModel(csvText || '', state.customCsvFileName || '');
               return preview.total > 0 ? preview.total : 0;
@@ -1323,6 +1347,9 @@
             players: Math.max(1, Math.min(6, Math.round(Number(source.players) || 1))),
             gameMode: normalizedGameMode,
             quizPresetId: typeof source.quizPresetId === 'string' ? source.quizPresetId : 'jumpmap-net-30',
+            pvamCarryMode: ['none', 'low', 'high', 'any'].includes(String(source.pvamCarryMode || '').trim().toLowerCase())
+              ? String(source.pvamCarryMode || '').trim().toLowerCase()
+              : 'none',
             characterId: typeof source.characterId === 'string' ? source.characterId : 'sejong',
             jumpmapStartPointId: typeof source.jumpmapStartPointId === 'string' ? source.jumpmapStartPointId : '',
             endMode,
@@ -1453,6 +1480,8 @@
           target.customCsvText = typeof target.customCsvText === 'string' ? target.customCsvText : '';
           target.customCsvFileName = typeof target.customCsvFileName === 'string' ? target.customCsvFileName : '';
           target.savedCsvItems = normalizeSavedCsvItems(target.savedCsvItems);
+          const carryMode = String(target.pvamCarryMode || '').trim().toLowerCase();
+          target.pvamCarryMode = ['none', 'low', 'high', 'any'].includes(carryMode) ? carryMode : 'none';
           if (!target.customCsvText.trim()) {
             target.customCsvEnabled = false;
             target.customCsvFileName = '';
@@ -1900,6 +1929,9 @@
           if (els.quizTimeLimitInput) {
             els.quizTimeLimitInput.value = String(state.quizTimeLimitSec);
           }
+          if (els.pvamDifficultySelect) {
+            els.pvamDifficultySelect.value = state.pvamCarryMode || 'none';
+          }
           if (els.quizCountField) {
             els.quizCountField.classList.toggle('hidden', isBattleship || state.endMode !== 'count');
           }
@@ -2151,6 +2183,10 @@
         function renderGameConditional() {
           const isJumpmap = state.gameMode === 'jumpmap';
           els.characterSection.classList.toggle('hidden', !isJumpmap);
+          const showPvamDifficulty = state.quizPresetId === 'pvam-area-2digit' && state.gameMode === 'basic-quiz';
+          if (els.pvamDifficultyField) {
+            els.pvamDifficultyField.classList.toggle('hidden', !showPvamDifficulty);
+          }
           if (els.characterSelect) {
             const existingValues = new Set(Array.from(els.characterSelect.options).map((opt) => opt.value));
             CHARACTER_OPTIONS.forEach((option) => {
@@ -2306,6 +2342,11 @@
                 <div class="summary-item-k">퀴즈</div>
                 <div class="summary-item-v">${quizShort}</div>
               </div>
+              ${state.quizPresetId === 'pvam-area-2digit' ? `
+              <div class="summary-item">
+                <div class="summary-item-k">자리올림 난이도</div>
+                <div class="summary-item-v">${state.pvamCarryMode === 'none' ? '없음' : (state.pvamCarryMode === 'low' ? '1~2회' : (state.pvamCarryMode === 'high' ? '많음' : '혼합'))}</div>
+              </div>` : ''}
               <div class="summary-item">
                 <div class="summary-item-k">문제 소스</div>
                 <div class="summary-item-v">${csvSummary}</div>

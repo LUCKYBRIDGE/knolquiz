@@ -366,21 +366,23 @@
         </div>
       </section>
 
-      <section class="card hidden" id="quiz-card">
-        <div class="quiz-header">
+      <section class="card quiz-card test-quiz-card hidden" id="quiz-card">
+        <div class="quiz-header test-quiz-header">
           <div>문제 <strong id="progress">0/0</strong></div>
           <div>점수 <strong id="score">0</strong></div>
           <div>정답률 <strong id="accuracy">0%</strong></div>
           <div>콤보 <strong id="combo">0</strong></div>
           <div class="timer">남은 시간 <span id="timer">-</span></div>
         </div>
-        <div class="prompt" id="prompt">문제 로딩중...</div>
-        <div class="question-frame">
-          <button class="question-zoom-btn" id="zoom-btn" type="button">확대</button>
-          <img id="question-img" alt="question" />
+        <div class="prompt test-quiz-prompt" id="prompt">문제 로딩중...</div>
+        <div class="test-quiz-body">
+          <div class="question-frame test-quiz-question-wrap">
+            <button class="question-zoom-btn" id="zoom-btn" type="button">확대</button>
+            <img class="test-quiz-question-img" id="question-img" alt="question" />
+          </div>
+          <div class="choices test-quiz-choices" id="choices"></div>
         </div>
-        <div class="choices" id="choices"></div>
-        <div class="feedback" id="feedback"></div>
+        <div class="feedback test-quiz-feedback" id="feedback"></div>
       </section>
 
       <div class="modal hidden" id="basic-modal">
@@ -473,8 +475,8 @@
       <section class="quiz-grid hidden" id="quiz-grid"></section>
 
       <template id="quiz-card-template">
-        <section class="card quiz-card">
-          <div class="quiz-header">
+        <section class="card quiz-card test-quiz-card">
+          <div class="quiz-header test-quiz-header">
             <div class="player-tag" data-role="player-label">학생 01</div>
             <div>문제 <strong data-role="progress">0/0</strong></div>
             <div>점수 <strong data-role="score">0</strong></div>
@@ -482,13 +484,15 @@
             <div>콤보 <strong data-role="combo">0</strong></div>
             <div class="timer">남은 시간 <span data-role="timer">-</span></div>
           </div>
-          <div class="prompt" data-role="prompt">문제 로딩중...</div>
-          <div class="question-frame">
-            <button class="question-zoom-btn" data-role="zoom-btn" type="button">확대</button>
-            <img data-role="question-img" alt="question" />
+          <div class="prompt test-quiz-prompt" data-role="prompt">문제 로딩중...</div>
+          <div class="test-quiz-body">
+            <div class="question-frame test-quiz-question-wrap">
+              <button class="question-zoom-btn" data-role="zoom-btn" type="button">확대</button>
+              <img class="test-quiz-question-img" data-role="question-img" alt="question" />
+            </div>
+            <div class="choices test-quiz-choices" data-role="choices"></div>
           </div>
-          <div class="choices" data-role="choices"></div>
-          <div class="feedback" data-role="feedback"></div>
+          <div class="feedback test-quiz-feedback" data-role="feedback"></div>
           <div class="player-summary hidden" data-role="summary"></div>
         </section>
       </template>

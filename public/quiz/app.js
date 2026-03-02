@@ -2650,8 +2650,10 @@ const createPlayerSession = ({ index, studentId, groupName, settings, questionBa
   const setFeedback = (message, type) => {
     if (!feedbackEl) return;
     feedbackEl.textContent = message;
-    feedbackEl.classList.remove('success', 'fail');
-    if (type) feedbackEl.classList.add(type);
+    feedbackEl.classList.remove('success', 'fail', 'warn', 'is-success', 'is-fail', 'is-warn');
+    if (type === 'success') feedbackEl.classList.add('success', 'is-success');
+    else if (type === 'fail') feedbackEl.classList.add('fail', 'is-fail');
+    else if (type === 'warn') feedbackEl.classList.add('warn', 'is-warn');
   };
 
   const getStructuredStepLabel = (fieldId) => {
@@ -2751,10 +2753,10 @@ const createPlayerSession = ({ index, studentId, groupName, settings, questionBa
     const shortAnswerQuestion = isTextShortAnswerQuestion(question);
     currentQuestion = structuredQuestion ? { ...question } : fixChoices(question);
     const textChoiceQuestion = isTextChoiceQuestion(currentQuestion);
-    card.classList.toggle(
-      'no-question',
-      currentQuestion.type === 'validity' || structuredQuestion || textChoiceQuestion || shortAnswerQuestion
-    );
+    const hideQuestionFrame =
+      currentQuestion.type === 'validity' || structuredQuestion || textChoiceQuestion || shortAnswerQuestion;
+    card.classList.toggle('no-question', hideQuestionFrame);
+    card.classList.toggle('question-hidden', hideQuestionFrame);
     if (promptEl) {
       if (currentQuestion.type === 'validity') {
         promptEl.textContent = currentQuestion.mode === 'invalid'
@@ -2769,7 +2771,7 @@ const createPlayerSession = ({ index, studentId, groupName, settings, questionBa
       }
     }
     if (questionImg && questionFrame) {
-      if (currentQuestion.type === 'validity' || structuredQuestion || textChoiceQuestion || shortAnswerQuestion) {
+      if (hideQuestionFrame) {
         questionFrame.style.display = 'none';
         questionImg.removeAttribute('src');
       } else {
@@ -2802,16 +2804,16 @@ const createPlayerSession = ({ index, studentId, groupName, settings, questionBa
       currentQuestion.choices.forEach((choice, idx) => {
         const btn = document.createElement('button');
         const choiceIndex = (idx % 4) + 1;
-        btn.className = `choice-btn choice-color-${choiceIndex}`;
+        btn.className = `choice-btn test-quiz-choice choice-color-${choiceIndex} choice-tone-${choiceIndex}`;
         btn.dataset.choice = choice;
         const badge = document.createElement('span');
-        badge.className = 'choice-badge';
+        badge.className = 'choice-badge test-quiz-choice-badge';
         badge.textContent = `${idx + 1}`;
         btn.appendChild(badge);
         if (textChoiceQuestion) {
           btn.classList.add('choice-btn-text');
           const label = document.createElement('span');
-          label.className = 'choice-text';
+          label.className = 'choice-text test-quiz-choice-text';
           label.textContent = choice;
           btn.appendChild(label);
         } else {
@@ -2911,8 +2913,8 @@ const createPlayerSession = ({ index, studentId, groupName, settings, questionBa
     const buttons = [...(choicesEl?.querySelectorAll('.choice-btn') || [])];
     buttons.forEach((btn) => {
       const value = btn.dataset.choice;
-      if (value === currentQuestion.answer) btn.classList.add('correct');
-      if (value === choice && value !== currentQuestion.answer) btn.classList.add('wrong');
+      if (value === currentQuestion.answer) btn.classList.add('correct', 'is-correct');
+      if (value === choice && value !== currentQuestion.answer) btn.classList.add('wrong', 'is-wrong');
     });
     if (result.answerKind === 'structured') {
       const wrongFields = new Set(result.wrongFields || []);
