@@ -752,7 +752,7 @@ const presets = [
       seed: 1,
       min: 11,
       max: 99,
-      taskKinds: ['mixed_process', 'partial_sums', 'partial_cells', 'final_product']
+      taskKinds: ['single_missing']
     }
   },
   {
@@ -968,7 +968,7 @@ const basicModes = {
       seed: 1,
       min: 11,
       max: 99,
-      taskKinds: ['decompose_factors', 'partial_cells', 'partial_sums', 'mixed_process', 'final_product']
+      taskKinds: ['single_missing']
     }
   }
 };
@@ -1002,24 +1002,30 @@ const buildPvamDemoQuestionBank = (settings) => {
   const seed = seedValue != null && seedValue !== '' ? Number.parseInt(seedValue, 10) : 1;
   const min = Math.max(10, Math.min(99, Number(params.get('pvamMin')) || 11));
   const max = Math.max(min, Math.min(99, Number(params.get('pvamMax')) || 99));
-  const supportedTaskKinds = new Set(['decompose_factors', 'decompose', 'final_product', 'partial_cells', 'partial_sums', 'partial_sum', 'mixed_process']);
-  const taskKindsRaw = String(params.get('pvamTaskKinds') || 'decompose_factors,partial_cells,partial_sums,mixed_process,final_product')
+  const carryParam = String(params.get('pvamCarry') || '').trim().toLowerCase();
+  const carryMode = ['none', 'low', 'high', 'any'].includes(carryParam) ? carryParam : 'any';
+  const supportedTaskKinds = new Set(['decompose_factors', 'decompose', 'final_product', 'partial_cells', 'partial_sums', 'partial_sum', 'mixed_process', 'single_missing', 'single']);
+  const taskKindsRaw = String(params.get('pvamTaskKinds') || 'single_missing')
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean);
   const taskKinds = taskKindsRaw
     .filter((kind) => supportedTaskKinds.has(kind))
-    .map((kind) => (kind === 'partial_sum'
-      ? 'partial_sums'
-      : (kind === 'decompose' ? 'decompose_factors' : kind)));
-  const finalTaskKinds = taskKinds.length ? taskKinds : ['decompose_factors', 'partial_cells', 'partial_sums', 'mixed_process', 'final_product'];
+    .map((kind) => {
+      if (kind === 'partial_sum') return 'partial_sums';
+      if (kind === 'decompose') return 'decompose_factors';
+      if (kind === 'single') return 'single_missing';
+      return kind;
+    });
+  const finalTaskKinds = taskKinds.length ? taskKinds : ['single_missing'];
 
   const bank = generatePlaceValueAreaModelBank({
     count,
     seed: Number.isInteger(seed) ? seed : 1,
     min,
     max,
-    taskKinds: finalTaskKinds
+    taskKinds: finalTaskKinds,
+    carryMode
   });
   const validation = validateQuestionBank(bank);
   if (!validation.valid) {
@@ -1033,18 +1039,53 @@ const buildPvamPresetQuestionBank = (preset, settings) => {
   const config = preset?.pvamDemo;
   if (!config) return null;
 
+  const params = new URLSearchParams(window.location.search);
+  const queryOverrideEnabled = parseQueryBool(params.get('pvamDemo'));
+  const queryCount = Number(params.get('pvamCount'));
+  const querySeed = Number.parseInt(params.get('pvamSeed') || '', 10);
+  const queryMin = Number(params.get('pvamMin'));
+  const queryMax = Number(params.get('pvamMax'));
+  const queryCarry = String(params.get('pvamCarry') || '').trim().toLowerCase();
+  const queryTaskKinds = String(params.get('pvamTaskKinds') || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+
   const countFallback = Math.max(1, Math.min(20, Number(settings?.questionCount) || 10));
-  const count = Math.max(1, Math.min(50, Number(config.count) || countFallback));
-  const seed = Number.isInteger(config.seed) ? config.seed : 1;
-  const min = Math.max(10, Math.min(99, Number(config.min) || 11));
-  const max = Math.max(min, Math.min(99, Number(config.max) || 99));
-  const supportedTaskKinds = new Set(['decompose_factors', 'decompose', 'final_product', 'partial_cells', 'partial_sums', 'partial_sum', 'mixed_process']);
-  const taskKinds = Array.isArray(config.taskKinds)
-    ? config.taskKinds
+  const countBase = queryOverrideEnabled && Number.isFinite(queryCount)
+    ? queryCount
+    : Number(config.count);
+  const count = Math.max(1, Math.min(50, countBase || countFallback));
+  const seed = queryOverrideEnabled && Number.isInteger(querySeed)
+    ? querySeed
+    : (Number.isInteger(config.seed) ? config.seed : 1);
+  const minBase = queryOverrideEnabled && Number.isFinite(queryMin)
+    ? queryMin
+    : Number(config.min);
+  const min = Math.max(10, Math.min(99, minBase || 11));
+  const maxBase = queryOverrideEnabled && Number.isFinite(queryMax)
+    ? queryMax
+    : Number(config.max);
+  const max = Math.max(min, Math.min(99, maxBase || 99));
+  const carryModeRaw = queryOverrideEnabled && ['none', 'low', 'high', 'any'].includes(queryCarry)
+    ? queryCarry
+    : String(config.carryMode || '').trim().toLowerCase();
+  const carryMode = ['none', 'low', 'high', 'any'].includes(carryModeRaw)
+    ? carryModeRaw
+    : 'any';
+  const supportedTaskKinds = new Set(['decompose_factors', 'decompose', 'final_product', 'partial_cells', 'partial_sums', 'partial_sum', 'mixed_process', 'single_missing', 'single']);
+  const taskKindsSource = queryOverrideEnabled && queryTaskKinds.length
+    ? queryTaskKinds
+    : (Array.isArray(config.taskKinds) ? config.taskKinds : []);
+  const taskKinds = Array.isArray(taskKindsSource)
+    ? taskKindsSource
         .filter((kind) => supportedTaskKinds.has(kind))
-        .map((kind) => (kind === 'partial_sum'
-          ? 'partial_sums'
-          : (kind === 'decompose' ? 'decompose_factors' : kind)))
+        .map((kind) => {
+          if (kind === 'partial_sum') return 'partial_sums';
+          if (kind === 'decompose') return 'decompose_factors';
+          if (kind === 'single') return 'single_missing';
+          return kind;
+        })
     : [];
 
   const bank = generatePlaceValueAreaModelBank({
@@ -1052,7 +1093,8 @@ const buildPvamPresetQuestionBank = (preset, settings) => {
     seed,
     min,
     max,
-    taskKinds: taskKinds.length ? taskKinds : ['decompose_factors', 'partial_cells', 'partial_sums', 'mixed_process', 'final_product']
+    taskKinds: taskKinds.length ? taskKinds : ['single_missing'],
+    carryMode
   });
   const validation = validateQuestionBank(bank);
   if (!validation.valid) {
@@ -1096,6 +1138,7 @@ const buildCsvBankFromLauncherSetup = (launcher) => {
 const hydrateCsvBankFromLauncherStorage = () => {
   const launcher = loadLauncherSetup();
   if (!launcher) return;
+  const presetId = String(launcher.quizPresetId || '').trim();
   const launcherCsv = presetId === 'csv-upload'
     ? buildCsvBankFromLauncherSetup(launcher)
     : { bank: null, message: '' };
@@ -1112,9 +1155,12 @@ const buildLauncherBasicQuizSettings = () => {
   if (!defaultSettings) return null;
 
   const launcher = loadLauncherSetup();
-  if (!launcher || launcher.gameMode !== 'basic-quiz') return null;
+  if (!launcher) return null;
 
   const presetId = String(launcher.quizPresetId || '').trim();
+  const launcherCarryMode = ['none', 'low', 'high', 'any'].includes(String(launcher.pvamCarryMode || '').trim().toLowerCase())
+    ? String(launcher.pvamCarryMode || '').trim().toLowerCase()
+    : 'none';
   const launcherQuizEndMode = launcher.quizEndMode === 'time' ? 'time' : 'count';
   const launcherQuizCountLimitRaw = Math.round(Number(launcher.quizCountLimit) || 0);
   const launcherQuizTimeLimitSec = Math.max(10, Math.min(3600, Math.round(Number(launcher.quizTimeLimitSec) || 180)));
@@ -1181,6 +1227,9 @@ const buildLauncherBasicQuizSettings = () => {
     case 'cuboid-only-24':
       setShapeOnlyCounts('cuboid_', 8);
       break;
+    case 'pvam-area-2digit':
+      setAllTypeCounts(2);
+      break;
     default:
       setAllTypeCounts(2);
       break;
@@ -1199,6 +1248,18 @@ const buildLauncherBasicQuizSettings = () => {
   const launcherCsv = buildCsvBankFromLauncherSetup(launcher);
   return {
     settings,
+    pvamConfig: presetId === 'pvam-area-2digit'
+      ? {
+        count: launcherQuizEndMode === 'time'
+          ? 20
+          : Math.max(1, launcherQuizCountLimit || 12),
+        seed: 1,
+        min: 11,
+        max: 99,
+        taskKinds: ['single_missing'],
+        carryMode: launcherCarryMode
+      }
+      : null,
     launcherCsv,
     launcherQuizCountLimit
   };
@@ -1207,7 +1268,7 @@ const buildLauncherBasicQuizSettings = () => {
 const maybeAutoStartQuizFromLauncher = () => {
   const launcherConfig = buildLauncherBasicQuizSettings();
   if (!launcherConfig) return false;
-  const { settings, launcherCsv, launcherQuizCountLimit } = launcherConfig;
+  const { settings, launcherCsv, launcherQuizCountLimit, pvamConfig } = launcherConfig;
   if (launcherCsv?.bank) {
     uploadedCsvQuestionBank = launcherCsv.bank;
     settings.customQuestionMode = true;
@@ -1223,6 +1284,17 @@ const maybeAutoStartQuizFromLauncher = () => {
     setLoadStatus(launcherCsv.message, 'fail');
   } else {
     setLoadStatus('메인화면 설정으로 기본 퀴즈를 시작합니다.', 'success');
+  }
+  if (pvamConfig) {
+    const pvamPreset = {
+      pvamDemo: pvamConfig
+    };
+    const pvamPresetBank = buildPvamPresetQuestionBank(pvamPreset, settings);
+    if (pvamPresetBank) {
+      startQuizWithSettings(settings, false, pvamPresetBank);
+      return true;
+    }
+    setLoadStatus('영역모델 문제 생성에 실패했습니다. 기본 퀴즈로 시작합니다.', 'fail');
   }
   startQuizWithSettings(settings, false);
   return true;
@@ -1995,7 +2067,7 @@ const openPresetModal = (preset) => {
       const config = preset.pvamDemo;
       const taskKinds = Array.isArray(config.taskKinds) && config.taskKinds.length
         ? config.taskKinds.join(', ')
-        : 'final_product, partial_cells';
+        : 'single_missing';
       const lines = [
         '모드: 자릿값 기반 직사각형 영역모델 곱셈(구조화 입력)',
         `문항 수: ${config.count ?? 10}`,
@@ -2220,6 +2292,14 @@ const applyBasicMode = () => {
     return;
   }
   startQuizWithSettings(merged, false, pvamDemoBank || undefined);
+};
+
+const openBasicPvamSafely = () => {
+  openBasicModal('pvam');
+  // Fallback for edge cases where modal visibility toggling fails in some environments.
+  if (basicModal && !basicModal.classList.contains('hidden')) return;
+  pendingBasicMode = 'pvam';
+  applyBasicMode();
 };
 
 const startWithFaceSetting = (faceToFace) => {
@@ -2570,6 +2650,28 @@ const createPlayerSession = ({ index, studentId, groupName, settings, questionBa
     if (type) feedbackEl.classList.add(type);
   };
 
+  const getStructuredStepLabel = (fieldId) => {
+    const id = String(fieldId || '').trim();
+    if (!id) return '';
+    if (id.startsWith('decomp_')) return '자릿값 분해';
+    if (id.startsWith('cell_')) return '영역모델 부분곱';
+    if (id.startsWith('row_sum_') || id.startsWith('col_sum_')) return '부분합';
+    if (id === 'total') return '최종 곱';
+    return '계산 과정';
+  };
+
+  const summarizeStructuredWrongSteps = (wrongFields) => {
+    const labels = [];
+    const seen = new Set();
+    (Array.isArray(wrongFields) ? wrongFields : []).forEach((fieldId) => {
+      const label = getStructuredStepLabel(fieldId);
+      if (!label || seen.has(label)) return;
+      seen.add(label);
+      labels.push(label);
+    });
+    return labels;
+  };
+
   const clearTimer = () => {
     if (timerId) {
       clearInterval(timerId);
@@ -2828,6 +2930,11 @@ const createPlayerSession = ({ index, studentId, groupName, settings, questionBa
 
     if (result.correct) {
       setFeedback('정답입니다!', 'success');
+    } else if (result.answerKind === 'structured') {
+      const wrongSteps = summarizeStructuredWrongSteps(result.wrongFields || []);
+      const stepSummary = wrongSteps.length ? ` 틀린 단계: ${wrongSteps.join(', ')}` : '';
+      const baseMessage = isTimeout ? '시간 초과! 오답입니다.' : '오답입니다.';
+      setFeedback(`${baseMessage}${stepSummary}`, 'fail');
     } else {
       setFeedback(isTimeout ? '시간 초과! 오답입니다.' : '오답입니다.', 'fail');
     }
@@ -3360,7 +3467,7 @@ const init = async () => {
 
   basicFiveBtn?.addEventListener('click', () => openBasicModal('5min'));
   basicTwelveBtn?.addEventListener('click', () => openBasicModal('12q'));
-  basicPvamBtn?.addEventListener('click', () => openBasicModal('pvam'));
+  basicPvamBtn?.addEventListener('click', openBasicPvamSafely);
   if (advancedToggle && advancedSettings) {
     const setAdvancedOpen = (open) => {
       advancedSettings.classList.toggle('hidden', !open);
