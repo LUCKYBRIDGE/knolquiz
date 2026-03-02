@@ -1245,7 +1245,11 @@ const buildLauncherBasicQuizSettings = () => {
     settings.questionCount = launcherQuizCountLimit;
   }
   settings.loopQuestions = settings.quizEndMode === 'time';
-  const launcherCsv = buildCsvBankFromLauncherSetup(launcher);
+  // CSV 업로드 프리셋을 선택했을 때만 런처 CSV를 문제 소스로 사용한다.
+  // (업로드 이력만 남아있는 경우 일반 프리셋이 덮어써지는 것을 방지)
+  const launcherCsv = presetId === 'csv-upload'
+    ? buildCsvBankFromLauncherSetup(launcher)
+    : { bank: null, message: '' };
   return {
     settings,
     pvamConfig: presetId === 'pvam-area-2digit'
