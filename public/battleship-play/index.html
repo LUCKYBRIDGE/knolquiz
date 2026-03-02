@@ -163,95 +163,233 @@
         font-size: 14px;
         font-weight: 900;
       }
-      .quiz-layer {
+      .test-quiz-panel {
         position: fixed;
         inset: 0;
-        display: none;
-        place-items: center;
-        background: rgba(6, 10, 23, 0.62);
         z-index: 30;
-        padding: 12px;
-      }
-      .quiz-layer.show { display: grid; }
-      .quiz-panel {
-        width: min(860px, 100%);
-        max-height: calc(100vh - 24px);
-        overflow: auto;
-        border: 2px solid #162440;
-        border-radius: 14px;
-        background: rgba(255, 252, 244, 0.98);
-        padding: 14px;
-        display: grid;
-        gap: 10px;
-      }
-      .quiz-head {
+        background: rgba(12, 10, 8, 0.52);
         display: flex;
         align-items: center;
+        justify-content: center;
+        padding: 8px;
+      }
+      .test-quiz-panel.hidden { display: none; }
+      .test-quiz-card {
+        position: relative;
+        width: min(1660px, calc(100% - 2px));
+        max-height: calc(100vh - 16px);
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr) auto auto;
+        gap: 12px;
+        padding: 14px;
+        border-radius: 16px;
+        border: 3px solid rgba(48, 35, 24, 0.9);
+        background: rgba(255, 248, 236, 0.98);
+        box-shadow: 0 12px 28px rgba(10, 8, 6, 0.28);
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        touch-action: pan-y;
+      }
+      .test-quiz-header {
+        display: flex;
+        align-items: flex-start;
         justify-content: space-between;
         gap: 10px;
       }
-      .quiz-head h3 {
-        margin: 0;
-        font-size: 22px;
+      .test-quiz-prompt {
+        font-size: clamp(17px, 2.2vw, 34px);
+        font-weight: 900;
+        color: #2f241b;
+        line-height: 1.2;
       }
-      .quiz-question {
-        border: 1px solid rgba(24, 41, 75, 0.16);
-        border-radius: 10px;
-        background: rgba(255,255,255,0.82);
+      .test-quiz-body {
+        min-height: 0;
+        display: grid;
+        grid-template-columns: 1.08fr 1fr;
+        gap: 12px;
+        align-items: stretch;
+      }
+      .test-quiz-question-wrap {
+        min-height: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px dashed rgba(48, 35, 24, 0.2);
+        border-radius: 14px;
+        background: #fff;
         padding: 10px;
-        display: grid;
-        gap: 8px;
       }
-      .quiz-prompt {
-        font-size: 16px;
-        font-weight: 800;
-        color: #223965;
-      }
-      .quiz-asset {
+      .test-quiz-question-wrap.hidden { display: none; }
+      .test-quiz-question-img {
         max-width: 100%;
-        max-height: 260px;
+        max-height: min(56vh, 640px);
         object-fit: contain;
-        border: 1px solid rgba(24, 41, 75, 0.14);
-        border-radius: 8px;
-        background: rgba(255,255,255,0.9);
       }
-      .quiz-choices {
+      .test-quiz-choices {
+        min-height: 0;
         display: grid;
-        gap: 8px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        align-content: start;
       }
-      .quiz-choice {
-        border: 2px solid rgba(24, 41, 75, 0.24);
-        border-radius: 10px;
-        background: rgba(255,255,255,0.9);
-        min-height: 42px;
+      .test-quiz-choice {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 180px;
+        padding: 12px;
+        border-radius: 16px;
+        border: 3px solid rgba(46, 35, 24, 0.38);
+        background: #fff;
+        color: #2f241b;
         font: inherit;
         font-weight: 800;
-        color: #233f71;
+        overflow: hidden;
         cursor: pointer;
-        text-align: left;
-        padding: 8px 10px;
       }
-      .quiz-choice:hover { border-color: rgba(33, 79, 178, 0.66); }
-      .quiz-choice img {
-        max-height: 120px;
+      .test-quiz-choice:disabled {
+        cursor: default;
+      }
+      .test-quiz-choice.choice-tone-1 { background: rgba(255, 229, 229, 0.85); }
+      .test-quiz-choice.choice-tone-2 { background: rgba(221, 234, 255, 0.85); }
+      .test-quiz-choice.choice-tone-3 { background: rgba(255, 248, 204, 0.9); }
+      .test-quiz-choice.choice-tone-4 { background: rgba(222, 247, 228, 0.9); }
+      .test-quiz-choice-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 2px solid rgba(35, 23, 16, 0.3);
+        background: rgba(255, 255, 255, 0.92);
+        color: #2b211a;
+        font-size: 18px;
+        font-weight: 900;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .test-quiz-choice img {
         max-width: 100%;
+        max-height: min(25vh, 280px);
         object-fit: contain;
       }
-      .quiz-result {
-        min-height: 20px;
-        font-size: 14px;
+      .test-quiz-choice-text {
+        display: block;
+        max-width: 100%;
+        font-size: clamp(14px, 1.6vw, 26px);
+        line-height: 1.3;
         font-weight: 800;
+        color: #2f241b;
+        text-align: center;
+        word-break: keep-all;
+        overflow-wrap: anywhere;
+        white-space: pre-wrap;
+        padding: 10px 6px 6px;
       }
-      .quiz-result.ok { color: #166534; }
-      .quiz-result.no { color: #b91c1c; }
-      .quiz-actions {
+      .test-quiz-choice.is-correct {
+        border-width: 5px;
+        border-color: rgba(22, 163, 74, 0.9);
+        box-shadow: inset 0 0 0 4px rgba(22, 163, 74, 0.24);
+        animation: quiz-choice-correct-pop 560ms cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .test-quiz-choice.is-wrong {
+        border-width: 5px;
+        border-color: rgba(220, 38, 38, 0.9);
+        box-shadow: inset 0 0 0 4px rgba(220, 38, 38, 0.2);
+        animation: quiz-choice-wrong-shake 420ms ease-out;
+      }
+      .test-quiz-feedback {
+        min-height: 28px;
+        font-size: clamp(14px, 1.5vw, 24px);
+        font-weight: 800;
+        color: #4b3a2a;
+      }
+      .test-quiz-feedback.is-success { color: #166534; }
+      .test-quiz-feedback.is-fail { color: #b91c1c; }
+      .test-quiz-feedback.is-warn { color: #9a3412; }
+      .test-quiz-actions {
         display: flex;
         justify-content: flex-end;
         gap: 8px;
       }
-      .quiz-actions .btn {
+      .test-quiz-actions.hidden { display: none; }
+      .test-quiz-actions .btn {
         min-height: 40px;
         min-width: 140px;
+      }
+      .test-quiz-card.quiz-fx-success {
+        animation: quiz-card-success-pop 760ms cubic-bezier(0.2, 1, 0.3, 1);
+        box-shadow:
+          0 0 0 3px rgba(34, 197, 94, 0.4),
+          0 14px 30px rgba(22, 163, 74, 0.28);
+      }
+      .test-quiz-card.quiz-fx-fail {
+        animation: quiz-card-fail-shake 420ms ease-out;
+      }
+      .test-quiz-feedback.quiz-fx-success {
+        text-shadow: 0 0 14px rgba(34, 197, 94, 0.35);
+      }
+      .test-quiz-feedback.quiz-fx-fail {
+        text-shadow: 0 0 10px rgba(220, 38, 38, 0.35);
+      }
+      @keyframes quiz-choice-correct-pop {
+        0% { transform: scale(1); }
+        40% { transform: scale(1.03); }
+        100% { transform: scale(1); }
+      }
+      @keyframes quiz-choice-wrong-shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        50% { transform: translateX(5px); }
+        75% { transform: translateX(-3px); }
+      }
+      @keyframes quiz-card-success-pop {
+        0% { transform: scale(0.995); }
+        35% { transform: scale(1.01); }
+        100% { transform: scale(1); }
+      }
+      @keyframes quiz-card-fail-shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-4px); }
+        50% { transform: translateX(4px); }
+        75% { transform: translateX(-3px); }
+      }
+      @media (max-width: 1024px) {
+        .test-quiz-body {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 760px) {
+        .test-quiz-card {
+          padding: 10px;
+          gap: 9px;
+          border-radius: 13px;
+        }
+        .test-quiz-choices {
+          grid-template-columns: 1fr;
+        }
+        .test-quiz-choice {
+          min-height: 120px;
+        }
+        .test-quiz-actions {
+          flex-direction: column;
+        }
+        .test-quiz-actions .btn {
+          min-width: 0;
+          width: 100%;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .test-quiz-choice.is-correct,
+        .test-quiz-choice.is-wrong,
+        .test-quiz-card.quiz-fx-success,
+        .test-quiz-card.quiz-fx-fail {
+          animation: none !important;
+        }
       }
       .loading-layer {
         position: fixed;
@@ -436,21 +574,22 @@
       </div>
     </div>
 
-    <div class="quiz-layer" id="quiz-layer">
-      <div class="quiz-panel">
-        <div class="quiz-head">
-          <h3>전투 퀴즈</h3>
-          <button class="btn" id="quiz-close-btn" type="button">닫기</button>
+    <div class="test-quiz-panel hidden" id="quiz-layer">
+      <div class="test-quiz-card" id="quiz-card">
+        <div class="test-quiz-header">
+          <div class="test-quiz-prompt" id="quiz-prompt">문제를 불러오는 중...</div>
+          <button class="btn" id="quiz-close-btn" type="button">전투 복귀</button>
         </div>
-        <div class="quiz-question">
-          <div class="quiz-prompt" id="quiz-prompt">문제를 불러오는 중...</div>
-          <img class="quiz-asset" id="quiz-question-asset" alt="문제 이미지" style="display:none;" />
-          <div class="quiz-choices" id="quiz-choices"></div>
-          <div class="quiz-result" id="quiz-result"></div>
-          <div class="quiz-actions">
-            <button class="btn hidden" id="quiz-next-btn" type="button">다음 문제</button>
-            <button class="btn hidden" id="quiz-return-btn" type="button">전투 복귀</button>
+        <div class="test-quiz-body">
+          <div class="test-quiz-question-wrap hidden" id="quiz-question-wrap">
+            <img class="test-quiz-question-img" id="quiz-question-asset" alt="문제 이미지" />
           </div>
+          <div class="test-quiz-choices" id="quiz-choices"></div>
+        </div>
+        <div class="test-quiz-feedback" id="quiz-result"></div>
+        <div class="test-quiz-actions hidden" id="quiz-actions">
+          <button class="btn" id="quiz-next-btn" type="button">다음 문제</button>
+          <button class="btn primary" id="quiz-return-btn" type="button">전투 복귀</button>
         </div>
       </div>
     </div>

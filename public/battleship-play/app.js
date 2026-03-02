@@ -103,11 +103,14 @@ const els = {
   upgradeBulletBtn: document.getElementById('upgrade-bullet-btn'),
   currentEnemyInfo: document.getElementById('current-enemy-info'),
   quizLayer: document.getElementById('quiz-layer'),
+  quizCard: document.getElementById('quiz-card'),
   quizCloseBtn: document.getElementById('quiz-close-btn'),
   quizPrompt: document.getElementById('quiz-prompt'),
+  quizQuestionWrap: document.getElementById('quiz-question-wrap'),
   quizQuestionAsset: document.getElementById('quiz-question-asset'),
   quizChoices: document.getElementById('quiz-choices'),
   quizResult: document.getElementById('quiz-result'),
+  quizActions: document.getElementById('quiz-actions'),
   quizNextBtn: document.getElementById('quiz-next-btn'),
   quizReturnBtn: document.getElementById('quiz-return-btn'),
   loadingLayer: document.getElementById('loading-layer'),
@@ -413,6 +416,13 @@ const resolveQuizAssetPath = (rawPath) => {
     return `../quiz/nets/${value}`;
   }
   return value;
+};
+
+const isImageAssetPath = (rawPath) => {
+  const value = String(rawPath || '').trim();
+  if (!value) return false;
+  if (value.startsWith('data:image/')) return true;
+  return /\.(svg|png|jpe?g|gif|webp|bmp|avif)$/i.test(value);
 };
 
 const createPresetSettings = (presetId) => {
@@ -879,18 +889,34 @@ const applyQuizRewards = (question, correct) => {
   setStatus(`정답! EXP +${gainedExp}, GOLD +${gainedGold}`);
 };
 
+const clearQuizVisualFx = () => {
+  els.quizCard?.classList.remove('quiz-fx-success', 'quiz-fx-fail');
+  els.quizResult?.classList.remove('quiz-fx-success', 'quiz-fx-fail');
+};
+
+const setQuizFeedback = (text = '', tone = '') => {
+  if (!els.quizResult) return;
+  els.quizResult.textContent = text;
+  els.quizResult.className = 'test-quiz-feedback';
+  if (tone) {
+    els.quizResult.classList.add(tone);
+  }
+};
+
 const setQuizActionButtonsVisible = (visible) => {
-  if (els.quizNextBtn) els.quizNextBtn.classList.toggle('hidden', !visible);
-  if (els.quizReturnBtn) els.quizReturnBtn.classList.toggle('hidden', !visible);
+  els.quizActions?.classList.toggle('hidden', !visible);
 };
 
 const closeQuizLayer = ({ keepStatus = false } = {}) => {
   state.paused = false;
   state.quiz.currentQuestion = null;
   state.quiz.answerLocked = false;
-  els.quizLayer.classList.remove('show');
-  els.quizResult.textContent = '';
-  els.quizResult.className = 'quiz-result';
+  els.quizLayer.classList.add('hidden');
+  clearQuizVisualFx();
+  setQuizFeedback('', '');
+  els.quizChoices.innerHTML = '';
+  els.quizQuestionWrap?.classList.add('hidden');
+  els.quizQuestionAsset.removeAttribute('src');
   setQuizActionButtonsVisible(false);
   if (!keepStatus) {
     setStatus('퀴즈를 종료했습니다.');
@@ -911,54 +937,81 @@ const resolveNextQuizQuestion = () => {
 
 const renderQuizQuestion = (question) => {
   els.quizChoices.innerHTML = '';
-  els.quizResult.textContent = '';
-  els.quizResult.className = 'quiz-result';
+  clearQuizVisualFx();
+  setQuizFeedback('', '');
   state.quiz.answerLocked = false;
   setQuizActionButtonsVisible(false);
   const prompt = String(question?.prompt || '알맞은 답을 고르세요.').trim();
   els.quizPrompt.textContent = prompt || '알맞은 답을 고르세요.';
 
   const questionAsset = resolveQuizAssetPath(question?.question);
-  if (questionAsset) {
-    els.quizQuestionAsset.src = questionAsset;
-    els.quizQuestionAsset.style.display = 'block';
-  } else {
-    els.quizQuestionAsset.removeAttribute('src');
-    els.quizQuestionAsset.style.display = 'none';
-  }
-
   const choices = Array.isArray(question?.choices) ? question.choices.slice() : [];
   const questionType = String(question?.type || '');
   const shouldUseTextChoice = questionType === 'csv_choice' || questionType === 'csv_subjective';
+  const showQuestionAsset = !shouldUseTextChoice && isImageAssetPath(questionAsset);
+  els.quizQuestionWrap?.classList.toggle('hidden', !showQuestionAsset);
+  if (showQuestionAsset) {
+    els.quizQuestionAsset.src = questionAsset;
+  } else {
+    els.quizQuestionAsset.removeAttribute('src');
+  }
+
+  if (choices.length === 0) {
+    setQuizFeedback('선택지를 불러오지 못했습니다.', 'is-warn');
+    setQuizActionButtonsVisible(true);
+    return;
+  }
 
   choices.forEach((choice, index) => {
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'quiz-choice';
+    btn.className = `test-quiz-choice choice-tone-${(index % 4) + 1}`;
+    btn.dataset.choice = String(choice);
+
+    const badge = document.createElement('span');
+    badge.className = 'test-quiz-choice-badge';
+    badge.textContent = String(index + 1);
+    btn.appendChild(badge);
+
     if (shouldUseTextChoice) {
-      btn.textContent = `${index + 1}. ${String(choice || '').trim()}`;
+      const label = document.createElement('span');
+      label.className = 'test-quiz-choice-text';
+      label.textContent = String(choice || '').trim();
+      btn.appendChild(label);
     } else {
       const asset = resolveQuizAssetPath(choice);
-      if (asset && asset.includes('.svg')) {
+      if (isImageAssetPath(asset)) {
         const img = document.createElement('img');
         img.src = asset;
         img.alt = `선택지 ${index + 1}`;
         btn.appendChild(img);
       } else {
-        btn.textContent = `${index + 1}. ${String(choice || '').trim()}`;
+        const label = document.createElement('span');
+        label.className = 'test-quiz-choice-text';
+        label.textContent = String(choice || '').trim();
+        btn.appendChild(label);
       }
     }
+
     btn.addEventListener('click', () => {
       if (!state.quiz.currentQuestion || state.quiz.answerLocked) return;
       state.quiz.answerLocked = true;
       const correct = String(choice) === String(state.quiz.currentQuestion.answer);
       applyQuizRewards(state.quiz.currentQuestion, correct);
-      els.quizResult.textContent = correct ? '정답! 보상을 반영했습니다.' : '오답입니다.';
-      els.quizResult.className = `quiz-result ${correct ? 'ok' : 'no'}`;
-      const choiceButtons = els.quizChoices.querySelectorAll('button.quiz-choice');
+      setQuizFeedback(correct ? '정답! 보상을 반영했습니다.' : '오답입니다.', correct ? 'is-success' : 'is-fail');
+      const choiceButtons = els.quizChoices.querySelectorAll('button.test-quiz-choice');
       choiceButtons.forEach((choiceBtn) => {
         choiceBtn.disabled = true;
+        const value = String(choiceBtn.dataset.choice || '');
+        choiceBtn.classList.toggle('is-correct', value === String(state.quiz.currentQuestion.answer));
+        choiceBtn.classList.toggle('is-wrong', value === String(choice) && !correct);
       });
+      const fxClass = correct ? 'quiz-fx-success' : 'quiz-fx-fail';
+      els.quizCard?.classList.add(fxClass);
+      els.quizResult?.classList.add(fxClass);
+      window.setTimeout(() => {
+        clearQuizVisualFx();
+      }, 760);
       setQuizActionButtonsVisible(true);
     });
     els.quizChoices.appendChild(btn);
@@ -978,7 +1031,7 @@ const showNextQuizQuestion = () => {
 
 const openQuizLayer = async () => {
   if (state.gameover) return;
-  if (els.quizLayer.classList.contains('show')) return;
+  if (!els.quizLayer.classList.contains('hidden')) return;
   setStatus('퀴즈를 준비하는 중...');
   await loadQuizBank();
   if (state.quiz.error) {
@@ -986,7 +1039,7 @@ const openQuizLayer = async () => {
     return;
   }
   state.paused = true;
-  els.quizLayer.classList.add('show');
+  els.quizLayer.classList.remove('hidden');
   showNextQuizQuestion();
 };
 
@@ -1388,7 +1441,7 @@ els.quizCloseBtn.addEventListener('click', () => {
 });
 
 els.quizNextBtn?.addEventListener('click', () => {
-  if (state.gameover || !els.quizLayer.classList.contains('show')) return;
+  if (state.gameover || els.quizLayer.classList.contains('hidden')) return;
   showNextQuizQuestion();
 });
 
