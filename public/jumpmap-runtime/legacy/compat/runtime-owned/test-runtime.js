@@ -998,11 +998,29 @@
             };
           });
           break;
+        case 'pvam-area-2digit':
+          next.questionCount = 12;
+          next.timeLimitSec = 30;
+          next.loopQuestions = true;
+          setAllTypes(false, 0);
+          break;
+        case 'pvam-area-2digit-100':
+          next.questionCount = 100;
+          next.timeLimitSec = 30;
+          next.loopQuestions = true;
+          setAllTypes(false, 0);
+          break;
         default:
           break;
       }
       return next;
     };
+    const isLauncherPvamPreset = (presetId) => (
+      presetId === 'pvam-area-2digit' || presetId === 'pvam-area-2digit-100'
+    );
+    const getLauncherPvamQuestionCount = (presetId) => (
+      presetId === 'pvam-area-2digit-100' ? 100 : 12
+    );
     const shouldUseLauncherCsvBank = (launcherSetup) => {
       if (!launcherSetup || typeof launcherSetup !== 'object') return false;
       const presetId = String(launcherSetup.quizPresetId || '').trim();
@@ -1025,6 +1043,69 @@
         return payload.questionBank;
       }
       return null;
+    };
+    const normalizePvamQuestionForRuntime = (question, index = 0) => {
+      const total = Number(question?.solution?.total);
+      if (!Number.isFinite(total)) return null;
+      const factors = Array.isArray(question?.stem?.factors)
+        ? question.stem.factors
+        : [];
+      const expression = (typeof question?.question === 'string' && question.question.trim())
+        ? question.question.trim()
+        : (factors.length >= 2 ? `${factors[0]} x ${factors[1]}` : '곱셈 문제');
+      const answer = String(Math.trunc(total));
+      return {
+        id: String(question?.id || `pvam-runtime-${index + 1}`),
+        type: 'csv_subjective',
+        renderKind: 'text_short_answer',
+        prompt: `${expression}의 값을 입력하세요.`,
+        question: expression,
+        answer,
+        acceptedAnswers: [answer],
+        acceptedMatchContains: false,
+        tags: Array.isArray(question?.tags) ? question.tags.slice() : ['multiplication', 'place-value', 'area-model']
+      };
+    };
+    const resolveLauncherPvamQuestionBank = async (resources) => {
+      const launcherSetup = getLauncherSetup();
+      const presetId = String(launcherSetup?.quizPresetId || '').trim();
+      if (!isLauncherPvamPreset(presetId)) {
+        return { bank: null, message: '' };
+      }
+      const count = getLauncherPvamQuestionCount(presetId);
+      let payload = null;
+      try {
+        payload = await loadJson(
+          resolveEditorRuntimeAssetUrl('../../../../quiz/data/pvam-area-2digit-100.json')
+        );
+      } catch (error) {
+        return {
+          bank: null,
+          message: `영역모델 문제 파일 로드 실패: ${error?.message || error}`
+        };
+      }
+      const rawQuestions = Array.isArray(payload?.questions) ? payload.questions : [];
+      const normalizedQuestions = rawQuestions
+        .slice(0, Math.max(1, count))
+        .map((question, index) => normalizePvamQuestionForRuntime(question, index))
+        .filter(Boolean);
+      if (!normalizedQuestions.length) {
+        return { bank: null, message: '영역모델 문제를 불러오지 못했습니다.' };
+      }
+      const bank = { questions: normalizedQuestions };
+      const validation = resources.validateQuestionBank
+        ? resources.validateQuestionBank(bank)
+        : { valid: true, errors: [] };
+      if (!validation?.valid) {
+        return {
+          bank: null,
+          message: `영역모델 문제 검증 실패: ${validation?.errors?.[0] || 'invalid bank'}`
+        };
+      }
+      return {
+        bank,
+        message: `영역모델 문제 ${normalizedQuestions.length}개를 사용합니다.`
+      };
     };
     const parseLauncherQuestionBankPayload = (resources, rawText, fileName) => {
       const sourceText = String(rawText || '');
@@ -1337,9 +1418,12 @@
         questionTypes: { ...(resources.defaults?.questionTypes || {}) }
       });
       const launcherCsv = resolveLauncherCsvQuestionBank(resources);
+      const launcherPvam = await resolveLauncherPvamQuestionBank(resources);
       const questionBank = launcherCsv.bank
         ? launcherCsv.bank
-        : resources.buildWeightedQuestionBank(resources.banks, settings);
+        : launcherPvam.bank
+          ? launcherPvam.bank
+          : resources.buildWeightedQuestionBank(resources.banks, settings);
       if (launcherCsv.bank) {
         settings.questionCount = Math.max(1, launcherCsv.bank.questions.length);
         settings.selectionMode = 'random';
@@ -1347,12 +1431,20 @@
         settings.shuffleChoices = true;
         settings.loopQuestions = true;
         settings.quizEndMode = 'time';
+      } else if (launcherPvam.bank) {
+        settings.questionCount = Math.max(1, launcherPvam.bank.questions.length);
+        settings.selectionMode = 'random';
+        settings.avoidRepeat = true;
+        settings.shuffleChoices = false;
+        settings.loopQuestions = true;
+        settings.quizEndMode = 'time';
       }
       console.log('[JumpmapTestRuntime] quiz session:create done', {
         index,
         questionCount: Number(questionBank?.questions?.length || 0),
-        source: launcherCsv.bank ? 'launcher-csv' : 'preset',
-        launcherCsvMessage: launcherCsv.message || ''
+        source: launcherCsv.bank ? 'launcher-csv' : launcherPvam.bank ? 'launcher-pvam' : 'preset',
+        launcherCsvMessage: launcherCsv.message || '',
+        launcherPvamMessage: launcherPvam.message || ''
       });
       return {
         index,

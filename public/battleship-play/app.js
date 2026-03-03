@@ -492,6 +492,49 @@ const createPresetSettings = (presetId) => {
   return base;
 };
 
+const isLauncherPvamPreset = (presetId) => (
+  presetId === 'pvam-area-2digit' || presetId === 'pvam-area-2digit-100'
+);
+
+const getLauncherPvamQuestionCount = (presetId) => (
+  presetId === 'pvam-area-2digit-100' ? 100 : 12
+);
+
+const normalizePvamQuestionForBattleship = (question, index = 0) => {
+  const total = Number(question?.solution?.total);
+  if (!Number.isFinite(total)) return null;
+  const factors = Array.isArray(question?.stem?.factors)
+    ? question.stem.factors
+    : [];
+  const expression = (typeof question?.question === 'string' && question.question.trim())
+    ? question.question.trim()
+    : (factors.length >= 2 ? `${factors[0]} x ${factors[1]}` : '곱셈 문제');
+  const answer = String(Math.trunc(total));
+  return {
+    id: String(question?.id || `pvam-battle-${index + 1}`),
+    type: 'csv_subjective',
+    renderKind: 'text_short_answer',
+    prompt: `${expression}의 값을 입력하세요.`,
+    question: expression,
+    answer,
+    acceptedAnswers: [answer],
+    acceptedMatchContains: false
+  };
+};
+
+const loadPvamPresetQuestions = async (presetId) => {
+  const count = getLauncherPvamQuestionCount(presetId);
+  const payload = await fetch('../quiz/data/pvam-area-2digit-100.json', { cache: 'no-store' }).then((res) => {
+    if (!res.ok) throw new Error(`영역모델 문제 파일 로드 실패 (${res.status})`);
+    return res.json();
+  });
+  const rawQuestions = Array.isArray(payload?.questions) ? payload.questions : [];
+  return rawQuestions
+    .slice(0, Math.max(1, count))
+    .map((question, index) => normalizePvamQuestionForBattleship(question, index))
+    .filter(Boolean);
+};
+
 const loadBaseBanks = async () => {
   const [facecolor, edgecolor, validity] = await Promise.all([
     fetch('../quiz/data/facecolor-questions.json', { cache: 'no-store' }).then((res) => res.json()),
@@ -523,6 +566,12 @@ const loadQuizBank = async () => {
       usableQuestions = parsed.bank.questions.filter(isBattleUsableQuestion);
       if (!usableQuestions.length) {
         throw new Error('전투 퀴즈로 사용할 문항(객관식 또는 주관식)을 찾지 못했습니다.');
+      }
+    } else if (isLauncherPvamPreset(setup.launcherQuizPresetId)) {
+      usableQuestions = (await loadPvamPresetQuestions(setup.launcherQuizPresetId))
+        .filter(isBattleUsableQuestion);
+      if (!usableQuestions.length) {
+        throw new Error('영역모델 문제를 전투 퀴즈로 불러오지 못했습니다.');
       }
     } else {
       const banks = await loadBaseBanks();
