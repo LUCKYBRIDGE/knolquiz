@@ -213,6 +213,9 @@
         gap: 14px;
         align-items: stretch;
       }
+      .test-quiz-card.question-hidden .test-quiz-body {
+        grid-template-columns: 1fr;
+      }
       .test-quiz-question-wrap {
         min-height: 0;
         display: flex;
@@ -292,6 +295,48 @@
         overflow-wrap: anywhere;
         white-space: pre-wrap;
         padding: 16px 12px 10px;
+      }
+      .test-quiz-short-answer {
+        min-height: 0;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: center;
+        border: 3px dashed rgba(48, 35, 24, 0.2);
+        border-radius: 14px;
+        background: #fff;
+        padding: 12px;
+      }
+      .test-quiz-short-answer.hidden {
+        display: none;
+      }
+      .test-quiz-short-answer-input {
+        width: 100%;
+        min-height: 68px;
+        border: 3px solid rgba(46, 35, 24, 0.3);
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-size: clamp(22px, 3.4vw, 46px);
+        font-weight: 800;
+        color: #2f241b;
+        background: #fffef8;
+      }
+      .test-quiz-short-answer-input:disabled {
+        opacity: 0.72;
+      }
+      .test-quiz-short-answer-submit {
+        min-width: 120px;
+        min-height: 68px;
+        border: 3px solid rgba(48, 35, 24, 0.38);
+        border-radius: 12px;
+        background: rgba(249, 240, 212, 0.95);
+        color: #2f241b;
+        font-size: clamp(19px, 2.7vw, 34px);
+        font-weight: 900;
+        padding: 10px 16px;
+      }
+      .test-quiz-short-answer-submit:disabled {
+        opacity: 0.6;
       }
       .test-quiz-choice.is-correct {
         border-width: 6px;
@@ -380,6 +425,24 @@
         }
         .test-quiz-choice {
           min-height: 120px;
+        }
+        .test-quiz-short-answer {
+          grid-template-columns: 1fr;
+          gap: 8px;
+          padding: 10px;
+          border-width: 2px;
+        }
+        .test-quiz-short-answer-input {
+          min-height: 52px;
+          border-width: 2px;
+          font-size: clamp(16px, 4.2vw, 28px);
+          padding: 8px 10px;
+        }
+        .test-quiz-short-answer-submit {
+          width: 100%;
+          min-height: 46px;
+          border-width: 2px;
+          font-size: clamp(14px, 3.2vw, 20px);
         }
       }
       @media (prefers-reduced-motion: reduce) {
@@ -584,6 +647,18 @@
             <img class="test-quiz-question-img" id="quiz-question-asset" alt="문제 이미지" />
           </div>
           <div class="test-quiz-choices" id="quiz-choices"></div>
+          <div class="test-quiz-short-answer hidden" id="quiz-short-answer-wrap">
+            <input
+              id="quiz-short-answer-input"
+              class="test-quiz-short-answer-input"
+              type="text"
+              inputmode="text"
+              autocomplete="off"
+              placeholder="정답을 입력하세요"
+              aria-label="정답 입력"
+            />
+            <button id="quiz-short-answer-submit" class="test-quiz-short-answer-submit" type="button">정답 제출</button>
+          </div>
         </div>
         <div class="test-quiz-feedback" id="quiz-result"></div>
         <div class="test-quiz-actions hidden" id="quiz-actions">

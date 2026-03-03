@@ -108,6 +108,9 @@ const els = {
   quizPrompt: document.getElementById('quiz-prompt'),
   quizQuestionWrap: document.getElementById('quiz-question-wrap'),
   quizQuestionAsset: document.getElementById('quiz-question-asset'),
+  quizShortAnswerWrap: document.getElementById('quiz-short-answer-wrap'),
+  quizShortAnswerInput: document.getElementById('quiz-short-answer-input'),
+  quizShortAnswerSubmit: document.getElementById('quiz-short-answer-submit'),
   quizChoices: document.getElementById('quiz-choices'),
   quizResult: document.getElementById('quiz-result'),
   quizActions: document.getElementById('quiz-actions'),
@@ -210,12 +213,35 @@ const applyLayoutMode = () => {
   document.body.classList.toggle('layout-bottom', useBottom);
 };
 
-const isBattleUsableQuestion = (question) => (
-  question
-  && Array.isArray(question.choices)
-  && question.choices.length >= 2
-  && typeof question.answer !== 'undefined'
+const isTextChoiceQuestion = (question) => (
+  question?.renderKind === 'text_choice'
+  || question?.type === 'csv_choice'
 );
+
+const isTextShortAnswerQuestion = (question) => (
+  question?.renderKind === 'text_short_answer'
+  || question?.type === 'csv_subjective'
+);
+
+const collectAcceptedAnswers = (question) => {
+  if (!Array.isArray(question?.acceptedAnswers)) return [];
+  return question.acceptedAnswers
+    .map((value) => String(value ?? '').trim())
+    .filter(Boolean);
+};
+
+const isBattleUsableQuestion = (question) => {
+  if (!question) return false;
+  if (isTextShortAnswerQuestion(question)) {
+    const acceptedAnswers = collectAcceptedAnswers(question);
+    return acceptedAnswers.length > 0 || String(question.answer ?? '').trim().length > 0;
+  }
+  return (
+    Array.isArray(question.choices)
+    && question.choices.length >= 2
+    && String(question.answer ?? '').trim().length > 0
+  );
+};
 
 const state = {
   running: false,
@@ -496,7 +522,7 @@ const loadQuizBank = async () => {
       }
       usableQuestions = parsed.bank.questions.filter(isBattleUsableQuestion);
       if (!usableQuestions.length) {
-        throw new Error('전투 퀴즈는 객관식 문항(선택지 2개 이상)만 사용할 수 있습니다.');
+        throw new Error('전투 퀴즈로 사용할 문항(객관식 또는 주관식)을 찾지 못했습니다.');
       }
     } else {
       const banks = await loadBaseBanks();
@@ -507,7 +533,7 @@ const loadQuizBank = async () => {
       }
       usableQuestions = built.questions.filter(isBattleUsableQuestion);
       if (!usableQuestions.length) {
-        throw new Error('전투 퀴즈로 사용할 객관식 문항이 없습니다.');
+        throw new Error('전투 퀴즈로 사용할 문항이 없습니다.');
       }
     }
 
@@ -907,6 +933,71 @@ const setQuizActionButtonsVisible = (visible) => {
   els.quizActions?.classList.toggle('hidden', !visible);
 };
 
+const gradeShortAnswerForBattleship = (question, rawInput) => {
+  const userAnswer = String(rawInput ?? '').trim();
+  const acceptedAnswers = collectAcceptedAnswers(question);
+  const fallbackAnswer = String(question?.answer ?? '').trim();
+  if (!acceptedAnswers.length && fallbackAnswer) {
+    acceptedAnswers.push(fallbackAnswer);
+  }
+  if (!acceptedAnswers.length) {
+    return {
+      correct: false,
+      userAnswer,
+      canonicalAnswer: ''
+    };
+  }
+  const containsMatch = Boolean(question?.acceptedMatchContains);
+  const normalizedUser = userAnswer.toLowerCase();
+  const correct = containsMatch
+    ? acceptedAnswers.some((word) => normalizedUser.includes(word.toLowerCase()))
+    : acceptedAnswers.some((word) => normalizedUser === word.toLowerCase());
+  return {
+    correct,
+    userAnswer,
+    canonicalAnswer: acceptedAnswers[0] || fallbackAnswer
+  };
+};
+
+const submitQuizAnswer = (rawAnswer) => {
+  const question = state.quiz.currentQuestion;
+  if (!question || state.quiz.answerLocked) return;
+  state.quiz.answerLocked = true;
+  const shortAnswerQuestion = isTextShortAnswerQuestion(question);
+  let correct = false;
+
+  if (shortAnswerQuestion) {
+    const graded = gradeShortAnswerForBattleship(question, rawAnswer);
+    correct = graded.correct;
+    if (els.quizShortAnswerInput) {
+      els.quizShortAnswerInput.disabled = true;
+    }
+    if (els.quizShortAnswerSubmit) {
+      els.quizShortAnswerSubmit.disabled = true;
+    }
+  } else {
+    const submittedChoice = String(rawAnswer ?? '').trim();
+    correct = submittedChoice === String(question.answer ?? '').trim();
+    const choiceButtons = els.quizChoices.querySelectorAll('button.test-quiz-choice');
+    choiceButtons.forEach((choiceBtn) => {
+      choiceBtn.disabled = true;
+      const value = String(choiceBtn.dataset.choice || '').trim();
+      choiceBtn.classList.toggle('is-correct', value === String(question.answer ?? '').trim());
+      choiceBtn.classList.toggle('is-wrong', value === submittedChoice && !correct);
+    });
+  }
+
+  applyQuizRewards(question, correct);
+  setQuizFeedback(correct ? '정답! 보상을 반영했습니다.' : '오답입니다.', correct ? 'is-success' : 'is-fail');
+  const fxClass = correct ? 'quiz-fx-success' : 'quiz-fx-fail';
+  els.quizCard?.classList.add(fxClass);
+  els.quizResult?.classList.add(fxClass);
+  window.setTimeout(() => {
+    clearQuizVisualFx();
+  }, 760);
+  setQuizActionButtonsVisible(true);
+};
+
 const closeQuizLayer = ({ keepStatus = false } = {}) => {
   state.paused = false;
   state.quiz.currentQuestion = null;
@@ -914,9 +1005,21 @@ const closeQuizLayer = ({ keepStatus = false } = {}) => {
   els.quizLayer.classList.add('hidden');
   clearQuizVisualFx();
   setQuizFeedback('', '');
+  els.quizCard?.classList.remove('question-hidden');
   els.quizChoices.innerHTML = '';
+  els.quizChoices.classList.remove('hidden');
   els.quizQuestionWrap?.classList.add('hidden');
   els.quizQuestionAsset.removeAttribute('src');
+  els.quizShortAnswerWrap?.classList.add('hidden');
+  if (els.quizShortAnswerInput) {
+    els.quizShortAnswerInput.value = '';
+    els.quizShortAnswerInput.disabled = false;
+    els.quizShortAnswerInput.onkeydown = null;
+  }
+  if (els.quizShortAnswerSubmit) {
+    els.quizShortAnswerSubmit.disabled = false;
+    els.quizShortAnswerSubmit.onclick = null;
+  }
   setQuizActionButtonsVisible(false);
   if (!keepStatus) {
     setStatus('퀴즈를 종료했습니다.');
@@ -941,19 +1044,56 @@ const renderQuizQuestion = (question) => {
   setQuizFeedback('', '');
   state.quiz.answerLocked = false;
   setQuizActionButtonsVisible(false);
+  els.quizChoices.classList.remove('hidden');
+  els.quizShortAnswerWrap?.classList.add('hidden');
+  if (els.quizShortAnswerInput) {
+    els.quizShortAnswerInput.value = '';
+    els.quizShortAnswerInput.disabled = false;
+    els.quizShortAnswerInput.onkeydown = null;
+  }
+  if (els.quizShortAnswerSubmit) {
+    els.quizShortAnswerSubmit.disabled = false;
+    els.quizShortAnswerSubmit.onclick = null;
+  }
   const prompt = String(question?.prompt || '알맞은 답을 고르세요.').trim();
   els.quizPrompt.textContent = prompt || '알맞은 답을 고르세요.';
 
   const questionAsset = resolveQuizAssetPath(question?.question);
   const choices = Array.isArray(question?.choices) ? question.choices.slice() : [];
-  const questionType = String(question?.type || '');
-  const shouldUseTextChoice = questionType === 'csv_choice' || questionType === 'csv_subjective';
-  const showQuestionAsset = !shouldUseTextChoice && isImageAssetPath(questionAsset);
+  const textChoiceQuestion = isTextChoiceQuestion(question);
+  const shortAnswerQuestion = isTextShortAnswerQuestion(question);
+  const showQuestionAsset = !textChoiceQuestion && !shortAnswerQuestion && isImageAssetPath(questionAsset);
+  els.quizCard?.classList.toggle('question-hidden', !showQuestionAsset);
   els.quizQuestionWrap?.classList.toggle('hidden', !showQuestionAsset);
   if (showQuestionAsset) {
     els.quizQuestionAsset.src = questionAsset;
   } else {
     els.quizQuestionAsset.removeAttribute('src');
+  }
+
+  if (shortAnswerQuestion) {
+    els.quizChoices.classList.add('hidden');
+    els.quizShortAnswerWrap?.classList.remove('hidden');
+    if (els.quizShortAnswerSubmit) {
+      els.quizShortAnswerSubmit.onclick = () => {
+        submitQuizAnswer(els.quizShortAnswerInput?.value || '');
+      };
+    }
+    if (els.quizShortAnswerInput) {
+      els.quizShortAnswerInput.onkeydown = (event) => {
+        if (event.key !== 'Enter') return;
+        event.preventDefault();
+        submitQuizAnswer(els.quizShortAnswerInput?.value || '');
+      };
+      window.requestAnimationFrame(() => {
+        try {
+          els.quizShortAnswerInput.focus({ preventScroll: true });
+        } catch (_error) {
+          els.quizShortAnswerInput.focus();
+        }
+      });
+    }
+    return;
   }
 
   if (choices.length === 0) {
@@ -973,7 +1113,7 @@ const renderQuizQuestion = (question) => {
     badge.textContent = String(index + 1);
     btn.appendChild(badge);
 
-    if (shouldUseTextChoice) {
+    if (textChoiceQuestion) {
       const label = document.createElement('span');
       label.className = 'test-quiz-choice-text';
       label.textContent = String(choice || '').trim();
@@ -994,25 +1134,7 @@ const renderQuizQuestion = (question) => {
     }
 
     btn.addEventListener('click', () => {
-      if (!state.quiz.currentQuestion || state.quiz.answerLocked) return;
-      state.quiz.answerLocked = true;
-      const correct = String(choice) === String(state.quiz.currentQuestion.answer);
-      applyQuizRewards(state.quiz.currentQuestion, correct);
-      setQuizFeedback(correct ? '정답! 보상을 반영했습니다.' : '오답입니다.', correct ? 'is-success' : 'is-fail');
-      const choiceButtons = els.quizChoices.querySelectorAll('button.test-quiz-choice');
-      choiceButtons.forEach((choiceBtn) => {
-        choiceBtn.disabled = true;
-        const value = String(choiceBtn.dataset.choice || '');
-        choiceBtn.classList.toggle('is-correct', value === String(state.quiz.currentQuestion.answer));
-        choiceBtn.classList.toggle('is-wrong', value === String(choice) && !correct);
-      });
-      const fxClass = correct ? 'quiz-fx-success' : 'quiz-fx-fail';
-      els.quizCard?.classList.add(fxClass);
-      els.quizResult?.classList.add(fxClass);
-      window.setTimeout(() => {
-        clearQuizVisualFx();
-      }, 760);
-      setQuizActionButtonsVisible(true);
+      submitQuizAnswer(choice);
     });
     els.quizChoices.appendChild(btn);
   });

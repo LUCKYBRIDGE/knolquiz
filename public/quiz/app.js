@@ -2460,29 +2460,23 @@ const closeZoom = () => {
 const renderTextShortAnswerQuestion = ({ choicesEl, question, onSubmit }) => {
   if (!choicesEl || !isTextShortAnswerQuestion(question)) return;
   const root = document.createElement('div');
-  root.className = 'short-answer-widget';
+  root.className = 'test-quiz-short-answer';
 
-  const description = document.createElement('div');
-  description.className = 'short-answer-desc';
-  description.textContent = '답을 직접 입력하고 제출하세요.';
-  root.appendChild(description);
-
-  const inputRow = document.createElement('div');
-  inputRow.className = 'short-answer-row';
   const input = document.createElement('input');
   input.type = 'text';
   input.autocomplete = 'off';
   input.spellcheck = false;
-  input.className = 'short-answer-input';
+  input.className = 'test-quiz-short-answer-input';
   input.placeholder = '정답 입력';
   input.setAttribute('aria-label', '주관식 정답 입력');
 
   const submitBtn = document.createElement('button');
   submitBtn.type = 'button';
-  submitBtn.className = 'primary short-answer-submit';
-  submitBtn.textContent = '제출';
+  submitBtn.className = 'test-quiz-short-answer-submit';
+  submitBtn.textContent = '정답 제출';
 
   const submit = () => {
+    if (submitBtn.disabled || input.disabled) return;
     if (typeof onSubmit !== 'function') return;
     onSubmit(input.value || '');
   };
@@ -2494,8 +2488,7 @@ const renderTextShortAnswerQuestion = ({ choicesEl, question, onSubmit }) => {
     submit();
   });
 
-  inputRow.append(input, submitBtn);
-  root.appendChild(inputRow);
+  root.append(input, submitBtn);
   choicesEl.innerHTML = '';
   choicesEl.classList.add('structured-choices');
   choicesEl.style.removeProperty('height');
