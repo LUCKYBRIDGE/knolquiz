@@ -244,7 +244,7 @@ const buildPeriodSelect = () => {
   state.selectedPeriodDays = normalized;
   els.periodSelect.value = normalized ? String(normalized) : 'all';
   if (els.periodNote) {
-    els.periodNote.textContent = `${getSelectedPeriodLabel()} 기준으로 핵심 요약/최근 활동/오답 TOP/명예의 전당 요약을 보여줍니다.`;
+    els.periodNote.textContent = `${getSelectedPeriodLabel()} 기준 핵심 기록만 표시합니다.`;
   }
 };
 
@@ -269,15 +269,14 @@ const renderSummary = () => {
   const quizAccuracy = quizSolved > 0 ? Math.round((quizCorrect / quizSolved) * 1000) / 10 : 0;
   const jumpBestHeightPx = state.jumpmapRows.reduce((max, row) => Math.max(max, Number(row.bestHeightPx) || 0), 0);
   const battleshipBestKills = state.battleshipRows.reduce((max, row) => Math.max(max, Number(row.kills) || 0), 0);
-  const battleshipBestSurvivedSec = state.battleshipRows.reduce((max, row) => Math.max(max, Number(row.survivedSec) || 0), 0);
   const recentCreatedAt = getLatestActivityIso();
 
   const rows = [
     ['학생번호', getStudentLabel(no)],
     ['이름', student?.name || `${getStudentLabel(no)} 이름없음`],
-    ['조회 기간', getSelectedPeriodLabel()],
     ['출석일', `${attendanceDays}일`],
-    ['퀴즈', `${quizRuns}판 · 정답률 ${quizAccuracy.toFixed(1)}%`],
+    ['퀴즈 정답률', `${quizAccuracy.toFixed(1)}%`],
+    ['퀴즈 플레이', `${quizRuns}판`],
     ['점프맵 최고높이', pxToMeterText(jumpBestHeightPx)],
     ['거북선 최고격파', `${battleshipBestKills}킬`],
     ['최근 활동', recentCreatedAt ? formatTime(recentCreatedAt) : '-']
@@ -340,7 +339,7 @@ const renderActivityRows = () => {
     return;
   }
 
-  entries.slice(0, 20).forEach((entry) => {
+  entries.slice(0, 8).forEach((entry) => {
     const item = document.createElement('div');
     item.className = 'item';
     const title = document.createElement('div');
@@ -381,7 +380,7 @@ const renderWrongRows = () => {
       b.count - a.count ||
       new Date(b.lastAt || 0).getTime() - new Date(a.lastAt || 0).getTime()
     )
-    .slice(0, 12);
+    .slice(0, 6);
 
   topWrongs.forEach((row, index) => {
     const item = document.createElement('div');
@@ -403,7 +402,7 @@ const renderSeasonRows = () => {
     appendEmpty(els.seasonList, '해당 학생의 시즌 점수 기록이 없습니다.');
     return;
   }
-  state.seasonRows.forEach((row) => {
+  state.seasonRows.slice(0, 5).forEach((row) => {
     const item = document.createElement('div');
     item.className = 'item';
     const title = document.createElement('div');

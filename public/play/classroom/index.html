@@ -40,6 +40,31 @@
         letter-spacing: -0.02em;
       }
       .top-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+      .view-tabs {
+        display: inline-flex;
+        gap: 8px;
+        padding: 6px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(255,255,255,0.7);
+        margin-bottom: 12px;
+      }
+      .view-tab {
+        border: 1px solid rgba(24, 41, 75, 0.22);
+        background: rgba(255,255,255,0.78);
+        color: #2d3c5b;
+        border-radius: 10px;
+        padding: 9px 14px;
+        font-size: 14px;
+        font-weight: 900;
+        min-height: 40px;
+        cursor: pointer;
+      }
+      .view-tab.active {
+        background: linear-gradient(180deg, #1f4f94, #173d73);
+        border-color: rgba(12, 38, 70, 0.96);
+        color: #f5f9ff;
+      }
       .btn {
         border: 2px solid rgba(24, 41, 75, 0.85);
         background: #fff;
@@ -71,9 +96,11 @@
       .status.error { color: #b91c1c; }
       .grid {
         display: grid;
-        grid-template-columns: 1.5fr 1fr;
+        grid-template-columns: 1fr;
         gap: 12px;
       }
+      .view-pane { display: none; }
+      .view-pane.active { display: block; }
       .card {
         border: 1px solid var(--line);
         border-radius: 16px;
@@ -102,6 +129,31 @@
         gap: 8px;
         flex-wrap: wrap;
         margin-bottom: 8px;
+      }
+      .kpi-strip {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+      .kpi-card {
+        border: 1px solid rgba(24,41,75,0.16);
+        border-radius: 10px;
+        background: rgba(255,255,255,0.82);
+        padding: 8px 10px;
+        display: grid;
+        gap: 2px;
+      }
+      .kpi-card .label {
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--muted);
+      }
+      .kpi-card .value {
+        font-size: 20px;
+        line-height: 1.1;
+        font-weight: 900;
+        color: #20375f;
       }
       .student-list {
         max-height: 68vh;
@@ -200,13 +252,16 @@
         font-size: 13px;
         font-weight: 700;
       }
-      .season-list,
-      .leaderboard-list {
+      .season-list {
         border: 1px solid rgba(24,41,75,0.14);
         border-radius: 10px;
         background: rgba(255,255,255,0.66);
         max-height: 240px;
         overflow: auto;
+      }
+      .leaderboard-list {
+        display: grid;
+        gap: 10px;
       }
       .item {
         padding: 8px;
@@ -240,6 +295,14 @@
         display: grid;
         gap: 10px;
       }
+      .hall-controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .hall-controls .field:last-child {
+        grid-column: 1 / -1;
+      }
       .hall-top-panel {
         border: 1px solid rgba(24,41,75,0.16);
         border-radius: 12px;
@@ -250,6 +313,128 @@
         display: flex;
         gap: 8px;
         flex-wrap: wrap;
+      }
+      .hall-summary {
+        border: 1px solid rgba(24,41,75,0.15);
+        border-radius: 12px;
+        background: rgba(255,255,255,0.84);
+        padding: 10px;
+        display: grid;
+        gap: 8px;
+      }
+      .hall-summary-title {
+        font-size: 16px;
+        font-weight: 900;
+        color: #1f355d;
+      }
+      .hall-summary-meta {
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 700;
+      }
+      .hall-top3 {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+      .hall-top3-card {
+        border: 1px solid rgba(24,41,75,0.16);
+        border-radius: 12px;
+        background: rgba(255,255,255,0.92);
+        padding: 8px;
+        display: grid;
+        gap: 3px;
+      }
+      .hall-top3-rank {
+        font-size: 12px;
+        font-weight: 900;
+        color: #1f355d;
+      }
+      .hall-top3-name {
+        font-size: 13px;
+        font-weight: 900;
+        color: #172745;
+      }
+      .hall-top3-score {
+        font-size: 12px;
+        font-weight: 800;
+        color: #3b4f73;
+      }
+      .hall-row-simple {
+        border: 1px solid rgba(24,41,75,0.12);
+        border-radius: 10px;
+        background: rgba(255,255,255,0.9);
+        padding: 8px 10px;
+        display: grid;
+        grid-template-columns: 58px 1fr auto auto;
+        gap: 8px;
+        align-items: center;
+      }
+      .hall-row-rank {
+        font-size: 12px;
+        font-weight: 900;
+        color: #24406f;
+      }
+      .hall-row-name {
+        font-size: 13px;
+        font-weight: 800;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .hall-row-score {
+        font-size: 12px;
+        font-weight: 900;
+        color: #18335f;
+      }
+      .hall-row-time {
+        font-size: 11px;
+        color: var(--muted);
+        font-weight: 700;
+      }
+      .hall-secondary {
+        border: 1px solid rgba(24,41,75,0.13);
+        border-radius: 12px;
+        background: rgba(255,255,255,0.82);
+        overflow: hidden;
+      }
+      .hall-secondary > summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 10px 12px;
+        font-size: 13px;
+        font-weight: 800;
+        color: #24406f;
+        border-bottom: 1px solid transparent;
+        background: linear-gradient(180deg, rgba(255,255,255,0.94), rgba(236,242,255,0.86));
+      }
+      .hall-secondary > summary::-webkit-details-marker { display: none; }
+      .hall-secondary[open] > summary {
+        border-bottom-color: rgba(24,41,75,0.14);
+      }
+      .hall-secondary-list {
+        display: grid;
+        gap: 8px;
+        padding: 10px;
+      }
+      .hall-secondary-item {
+        border: 1px solid rgba(24,41,75,0.11);
+        border-radius: 10px;
+        background: rgba(255,255,255,0.88);
+        padding: 8px 10px;
+        display: grid;
+        gap: 4px;
+      }
+      .hall-secondary-title {
+        font-size: 13px;
+        font-weight: 900;
+        color: #17305a;
+      }
+      .hall-secondary-top {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--muted);
       }
       .leaderboard-showcase {
         border: 1px solid rgba(24,41,75,0.22);
@@ -587,6 +772,14 @@
         .grid { grid-template-columns: 1fr; }
       }
       @media (max-width: 760px) {
+        .view-tabs {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          width: 100%;
+        }
+        .kpi-strip {
+          grid-template-columns: 1fr;
+        }
         .student-row { grid-template-columns: 58px 1fr; }
         .student-check,
         .student-count,
@@ -597,8 +790,14 @@
         }
         .student-link-btn { justify-self: flex-start; }
         .row2 { grid-template-columns: 1fr; }
+        .hall-controls { grid-template-columns: 1fr; }
         .policy-grid { grid-template-columns: 1fr; }
         .hall-podium { grid-template-columns: 1fr; }
+        .hall-top3 { grid-template-columns: 1fr; }
+        .hall-row-simple {
+          grid-template-columns: 1fr;
+          gap: 4px;
+        }
         .hall-top-actions .btn { width: 100%; }
       }
     </style>
@@ -615,10 +814,28 @@
         </div>
       </div>
       <div class="status" id="status-box">학급 데이터를 불러오는 중...</div>
+      <div class="view-tabs" id="view-tabs">
+        <button class="view-tab active" id="view-students-btn" data-view="students" type="button">학급관리</button>
+        <button class="view-tab" id="view-hall-btn" data-view="hall" type="button">명예의 전당</button>
+      </div>
       <div class="grid">
-        <section class="card">
+        <section class="card view-pane active" id="students-pane" data-view="students">
           <h2>학생 1~50 관리</h2>
           <div class="body">
+            <div class="kpi-strip">
+              <div class="kpi-card">
+                <span class="label">활성 학생</span>
+                <span class="value" id="kpi-active-students">-</span>
+              </div>
+              <div class="kpi-card">
+                <span class="label">비활성 학생</span>
+                <span class="value" id="kpi-inactive-students">-</span>
+              </div>
+              <div class="kpi-card">
+                <span class="label">누적 출석일</span>
+                <span class="value" id="kpi-attendance-days">-</span>
+              </div>
+            </div>
             <div class="student-actions">
               <button class="btn" id="init-students-btn" type="button">1~50 기본 생성</button>
               <button class="btn primary" id="save-students-btn" type="button">학생정보 저장</button>
@@ -627,15 +844,15 @@
             <div class="note">학번은 고정(1~50)이며, 이름/활성상태를 수정 후 저장하면 플레이어 선택과 기록 집계에 반영됩니다.</div>
           </div>
         </section>
-        <section class="card" id="hall-of-fame" style="scroll-margin-top: 14px;">
+        <section class="card view-pane" id="hall-pane" data-view="hall" style="scroll-margin-top: 14px;">
           <h2>명예의 전당</h2>
           <div class="body hall-body">
             <div class="panel hall-top-panel">
-              <div class="field">
-                <label for="season-select">명예의 전당 시즌</label>
-                <select id="season-select"></select>
-              </div>
-              <div class="row2">
+              <div class="hall-controls">
+                <div class="field">
+                  <label for="season-select">명예의 전당 시즌</label>
+                  <select id="season-select"></select>
+                </div>
                 <div class="field">
                   <label for="leaderboard-period-select">리더보드 조회 기간</label>
                   <select id="leaderboard-period-select">
@@ -646,7 +863,7 @@
                 </div>
                 <div class="field">
                   <label for="leaderboard-period-note">기간 안내</label>
-                  <div class="note" id="leaderboard-period-note">명예의 전당 / 상세링크 / CSV 모두 같은 기간 기준을 사용합니다.</div>
+                  <div class="note" id="leaderboard-period-note">기간 필터는 명예의 전당/상세/CSV에 동일하게 적용됩니다.</div>
                 </div>
               </div>
               <div class="hall-top-actions">
@@ -655,7 +872,7 @@
               </div>
             </div>
             <div class="leaderboard-list leaderboard-showcase" id="leaderboard-list"></div>
-            <div class="note">가장 최근 시즌의 순위를 먼저 보여줍니다. 학생 상세로 이동해 개인 기록을 함께 확인할 수 있습니다.</div>
+            <div class="note">핵심 순위만 먼저 보여주고, 상세 항목은 아래에서 확장해 볼 수 있습니다.</div>
 
             <details class="teacher-tools" id="teacher-tools-panel">
               <summary>교사용 시즌/점수 설정</summary>
@@ -688,6 +905,9 @@
                         <option value="jumpmap-net-12">전개도 학습 12문제</option>
                         <option value="cube-only-24">정육면체 중심 24문제</option>
                         <option value="cuboid-only-24">직육면체 중심 24문제</option>
+                        <option value="cube-only-100">정육면체 100문제</option>
+                        <option value="cuboid-only-100">직육면체 100문제</option>
+                        <option value="jumpmap-net-100">종합 100문제</option>
                         <option value="csv-upload">업로드 문제</option>
                       </select>
                     </div>

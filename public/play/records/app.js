@@ -355,7 +355,7 @@ const updateFilterHint = () => {
   const studentText = state.selectedStudentNo
     ? `${getStudentLabel(state.selectedStudentNo)} 기록`
     : '전체 학생 기록';
-  els.filterHint.textContent = `${studentText}을 ${periodText} 기준으로 표시 중입니다.`;
+  els.filterHint.textContent = `${studentText} · ${periodText}`;
 };
 
 const truncateText = (value, maxLength = 52) => {
@@ -372,16 +372,12 @@ const renderSummary = ({ players, jumpmapSessions, quizSessions, battleshipSessi
   const totalQuizQuestions = players.reduce((sum, player) => sum + (Number(player?.stats?.totalQuestions) || 0), 0);
   const totalQuizCorrect = players.reduce((sum, player) => sum + (Number(player?.stats?.correctAnswers) || 0), 0);
   const overallAccuracy = totalQuizQuestions > 0 ? Math.round((totalQuizCorrect / totalQuizQuestions) * 1000) / 10 : 0;
-  const bestJumpmapHeightPx = players.reduce((max, player) => Math.max(max, Number(player?.jumpmapStats?.bestHeightPx) || 0), 0);
-  const bestBattleshipKills = players.reduce((max, player) => Math.max(max, Number(player?.battleshipStats?.bestScore) || 0), 0);
 
   const rows = [
     ['활성 학생', `${totalPlayers}명`],
-    ['최근 플레이', `${totalSessions}판`],
+    ['누적 플레이', `${totalSessions}판`],
     ['퀴즈 정답률', `${overallAccuracy.toFixed(1)}%`],
-    ['오답 TOP 집계', `${wrongs.length}건`],
-    ['점프맵 최고', pxToMeterText(bestJumpmapHeightPx)],
-    ['거북선 최고', `${bestBattleshipKills}킬`]
+    ['오답 집계', `${wrongs.length}건`]
   ];
 
   rows.forEach(([k, v]) => {
@@ -423,7 +419,7 @@ const renderPlayerRank = (players) => {
       b.accuracy - a.accuracy ||
       b.totalRuns - a.totalRuns
     )
-    .slice(0, 10);
+    .slice(0, 5);
 
   ranked.forEach((entry, index) => {
     const player = entry.player;
@@ -438,12 +434,12 @@ const renderPlayerRank = (players) => {
 
     const score = document.createElement('div');
     score.className = 'meta';
-    score.textContent = `퀴즈 ${entry.quizScore}점`;
+    score.textContent = `${entry.quizScore}점`;
     row.append(name, score);
 
     const meta = document.createElement('div');
     meta.className = 'meta';
-    meta.textContent = `퀴즈 ${entry.quizScore}점 · 정답률 ${entry.accuracy}% · 플레이 ${entry.totalRuns}판`;
+    meta.textContent = `정답률 ${entry.accuracy}% · 플레이 ${entry.totalRuns}판`;
 
     if (studentNo) {
       const link = document.createElement('a');
@@ -512,7 +508,7 @@ const renderActivityFeed = ({ jumpmapSessions, quizSessions, battleshipSessions 
   });
 
   entries.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  const topEntries = entries.slice(0, 12);
+  const topEntries = entries.slice(0, 6);
 
   if (!topEntries.length) {
     appendEmpty(els.activityFeed, '최근 활동 기록이 없습니다.');
@@ -567,7 +563,7 @@ const renderWrongs = (wrongs) => {
       b.count - a.count ||
       new Date(b.lastAt || 0).getTime() - new Date(a.lastAt || 0).getTime()
     )
-    .slice(0, 10);
+    .slice(0, 5);
 
   topWrongs.forEach((wrong, index) => {
     const item = createItem();
@@ -593,14 +589,8 @@ const renderFilteredView = () => {
   renderWrongs(filtered.wrongs);
   updateFilterHint();
   syncTopNavigationLinks();
-  const studentText = state.selectedStudentNo
-    ? ` · 학생필터 ${getStudentLabel(state.selectedStudentNo)}`
-    : '';
-  const periodText = state.selectedPeriodDays
-    ? ` · 기간필터 ${getPeriodLabel(state.selectedPeriodDays)}`
-    : '';
   els.status.textContent =
-    `불러오기 완료 · 플레이 ${filtered.jumpmapSessions.length + filtered.quizSessions.length + filtered.battleshipSessions.length}건 · 학생 ${filtered.players.length}명 · 오답 ${filtered.wrongs.length}건${studentText}${periodText}`;
+    `불러오기 완료 · 플레이 ${filtered.jumpmapSessions.length + filtered.quizSessions.length + filtered.battleshipSessions.length}건 · 학생 ${filtered.players.length}명 · 오답 ${filtered.wrongs.length}건`;
 };
 
 const loadAndRender = async () => {
