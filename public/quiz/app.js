@@ -1149,6 +1149,41 @@ const hydrateCsvBankFromLauncherStorage = () => {
   setCustomCsvStatus(launcherCsv.message || `메인화면 업로드 문제 ${launcherCsv.bank.questions.length}개 로드 완료`, 'success');
 };
 
+const LAUNCHER_STATIC_NET_PRESET_FILES = Object.freeze({
+  'cube-only-100': './data/net-cube-100.json',
+  'cuboid-only-100': './data/net-cuboid-100.json',
+  'jumpmap-net-100': './data/net-mixed-100.json'
+});
+
+const resolveLauncherStaticNetPresetPath = (presetId) => (
+  LAUNCHER_STATIC_NET_PRESET_FILES[String(presetId || '').trim()] || ''
+);
+
+const loadLauncherStaticNetPresetBank = async (presetId) => {
+  const filePath = resolveLauncherStaticNetPresetPath(presetId);
+  if (!filePath) return { bank: null, message: '' };
+  try {
+    const payload = await loadJson(filePath);
+    const bankCandidate = Array.isArray(payload?.questions) ? payload : null;
+    if (!bankCandidate?.questions?.length) {
+      return { bank: null, message: '전개도 100문제 파일에서 questions 목록을 찾지 못했습니다.' };
+    }
+    const validation = validateQuestionBank(bankCandidate);
+    if (!validation.valid) {
+      return { bank: null, message: `전개도 100문제 검증 실패: ${validation.errors[0]}` };
+    }
+    return {
+      bank: cloneQuestionBank(bankCandidate),
+      message: `전개도 100문제 ${bankCandidate.questions.length}개를 사용합니다.`
+    };
+  } catch (error) {
+    return {
+      bank: null,
+      message: `전개도 100문제 로드 실패: ${error?.message || error}`
+    };
+  }
+};
+
 const buildLauncherBasicQuizSettings = () => {
   const params = new URLSearchParams(window.location.search);
   if (params.get('launchMode') !== 'play' || params.get('fromLauncher') !== '1') return null;
@@ -1232,6 +1267,18 @@ const buildLauncherBasicQuizSettings = () => {
       setShapeOnlyCounts('cuboid_', 8);
       presetQuestionCountBase = 24;
       break;
+    case 'cube-only-100':
+      setShapeOnlyCounts('cube_', 8);
+      presetQuestionCountBase = 100;
+      break;
+    case 'cuboid-only-100':
+      setShapeOnlyCounts('cuboid_', 8);
+      presetQuestionCountBase = 100;
+      break;
+    case 'jumpmap-net-100':
+      setAllTypeCounts(5);
+      presetQuestionCountBase = 100;
+      break;
     case 'pvam-area-2digit':
       setAllTypeCounts(2);
       presetQuestionCountBase = 12;
@@ -1264,6 +1311,7 @@ const buildLauncherBasicQuizSettings = () => {
   const isPvamPreset = presetId === 'pvam-area-2digit' || presetId === 'pvam-area-2digit-100';
   const pvamDefaultCount = presetId === 'pvam-area-2digit-100' ? 100 : 12;
   return {
+    presetId,
     settings,
     pvamConfig: isPvamPreset
       ? {
@@ -1282,10 +1330,11 @@ const buildLauncherBasicQuizSettings = () => {
   };
 };
 
-const maybeAutoStartQuizFromLauncher = () => {
+const maybeAutoStartQuizFromLauncher = async () => {
   const launcherConfig = buildLauncherBasicQuizSettings();
   if (!launcherConfig) return false;
-  const { settings, launcherCsv, launcherQuizCountLimit, pvamConfig } = launcherConfig;
+  const { presetId, settings, launcherCsv, launcherQuizCountLimit, pvamConfig } = launcherConfig;
+  const launcherStaticNet = await loadLauncherStaticNetPresetBank(presetId);
   if (launcherCsv?.bank) {
     uploadedCsvQuestionBank = launcherCsv.bank;
     settings.customQuestionMode = true;
@@ -1296,11 +1345,32 @@ const maybeAutoStartQuizFromLauncher = () => {
       ? availableCount
       : Math.max(1, Math.min(availableCount, launcherQuizCountLimit || availableCount));
     setLoadStatus(launcherCsv.message || '메인화면 업로드 문제를 불러왔습니다.', 'success');
+  } else if (launcherStaticNet?.bank) {
+    const availableCount = launcherStaticNet.bank.questions.length;
+    settings.customQuestionMode = false;
+    settings.customCsvMode = false;
+    settings.selectionMode = 'random';
+    settings.avoidRepeat = true;
+    settings.shuffleChoices = true;
+    if (settings.quizEndMode === 'time') {
+      settings.questionCount = availableCount;
+      settings.loopQuestions = true;
+    } else {
+      settings.questionCount = Math.max(1, Math.min(availableCount, launcherQuizCountLimit || availableCount));
+      settings.loopQuestions = false;
+    }
+    setLoadStatus(launcherStaticNet.message || '전개도 100문제를 불러왔습니다.', 'success');
   } else if (launcherCsv?.message) {
     uploadedCsvQuestionBank = null;
     setLoadStatus(launcherCsv.message, 'fail');
+  } else if (resolveLauncherStaticNetPresetPath(presetId) && launcherStaticNet?.message) {
+    setLoadStatus(launcherStaticNet.message, 'fail');
   } else {
     setLoadStatus('메인화면 설정으로 기본 퀴즈를 시작합니다.', 'success');
+  }
+  if (launcherStaticNet?.bank) {
+    startQuizWithSettings(settings, false, launcherStaticNet.bank);
+    return true;
   }
   if (pvamConfig) {
     const pvamPreset = {
@@ -3563,7 +3633,9 @@ const init = async () => {
     downloadQuizResultReportCsv();
   });
 
-  maybeAutoStartQuizFromLauncher();
+  maybeAutoStartQuizFromLauncher().catch((error) => {
+    console.warn('launcher auto-start failed', error);
+  });
 };
 
 init();

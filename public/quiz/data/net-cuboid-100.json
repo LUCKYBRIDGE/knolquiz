@@ -1,0 +1,2214 @@
+{
+  "version": 1,
+  "generatedAt": "2026-03-03T14:14:43.115Z",
+  "meta": {
+    "id": "cuboid-only-100",
+    "title": "직육면체 중심 100문제",
+    "description": "직육면체 전개도 중심 출제 100문항",
+    "seed": 12001,
+    "file": "net-cuboid-100.json"
+  },
+  "count": 100,
+  "questions": [
+    {
+      "id": "cuboid-11-01-facecolor-02-q1",
+      "type": "facecolor",
+      "prompt": "색칠된 면과 평행한 면을 고르세요",
+      "question": "facecolor/cuboid-11-01-facecolor-02-01.svg",
+      "answer": "facecolor/cuboid-11-01-facecolor-02-02.svg",
+      "choices": [
+        "facecolor/cuboid-11-01-facecolor-02-02.svg",
+        "facecolor/cuboid-11-01-facecolor-01-02.svg",
+        "facecolor/cuboid-11-01-facecolor-01-01.svg",
+        "facecolor/cuboid-11-01-facecolor-03-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "facecolor"
+      ],
+      "meta": {
+        "base": "cuboid-11-01-facecolor-02",
+        "baseId": "cuboid-11-01",
+        "pair": "02"
+      }
+    },
+    {
+      "id": "cuboid-06-01-facecolor-01-q2",
+      "type": "facecolor",
+      "prompt": "색칠된 면과 평행한 면을 고르세요",
+      "question": "facecolor/cuboid-06-01-facecolor-01-02.svg",
+      "answer": "facecolor/cuboid-06-01-facecolor-01-01.svg",
+      "choices": [
+        "facecolor/cuboid-06-01-facecolor-03-02.svg",
+        "facecolor/cuboid-06-01-facecolor-02-02.svg",
+        "facecolor/cuboid-06-01-facecolor-01-01.svg",
+        "facecolor/cuboid-06-01-facecolor-03-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "facecolor"
+      ],
+      "meta": {
+        "base": "cuboid-06-01-facecolor-01",
+        "baseId": "cuboid-06-01",
+        "pair": "01"
+      }
+    },
+    {
+      "id": "cuboid-06-01-facecolor-01-q1",
+      "type": "facecolor",
+      "prompt": "색칠된 면과 평행한 면을 고르세요",
+      "question": "facecolor/cuboid-06-01-facecolor-01-01.svg",
+      "answer": "facecolor/cuboid-06-01-facecolor-01-02.svg",
+      "choices": [
+        "facecolor/cuboid-06-01-facecolor-02-02.svg",
+        "facecolor/cuboid-06-01-facecolor-01-02.svg",
+        "facecolor/cuboid-06-01-facecolor-03-02.svg",
+        "facecolor/cuboid-06-01-facecolor-03-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "facecolor"
+      ],
+      "meta": {
+        "base": "cuboid-06-01-facecolor-01",
+        "baseId": "cuboid-06-01",
+        "pair": "01"
+      }
+    },
+    {
+      "id": "cuboid-01-01-facecolor-03-q2",
+      "type": "facecolor",
+      "prompt": "색칠된 면과 평행한 면을 고르세요",
+      "question": "facecolor/cuboid-01-01-facecolor-03-02.svg",
+      "answer": "facecolor/cuboid-01-01-facecolor-03-01.svg",
+      "choices": [
+        "facecolor/cuboid-01-01-facecolor-01-01.svg",
+        "facecolor/cuboid-01-01-facecolor-01-02.svg",
+        "facecolor/cuboid-01-01-facecolor-02-02.svg",
+        "facecolor/cuboid-01-01-facecolor-03-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "facecolor"
+      ],
+      "meta": {
+        "base": "cuboid-01-01-facecolor-03",
+        "baseId": "cuboid-01-01",
+        "pair": "03"
+      }
+    },
+    {
+      "id": "cuboid-04-01-facecolor-02-q2",
+      "type": "facecolor",
+      "prompt": "색칠된 면과 평행한 면을 고르세요",
+      "question": "facecolor/cuboid-04-01-facecolor-02-02.svg",
+      "answer": "facecolor/cuboid-04-01-facecolor-02-01.svg",
+      "choices": [
+        "facecolor/cuboid-04-01-facecolor-03-01.svg",
+        "facecolor/cuboid-04-01-facecolor-01-02.svg",
+        "facecolor/cuboid-04-01-facecolor-02-01.svg",
+        "facecolor/cuboid-04-01-facecolor-01-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "facecolor"
+      ],
+      "meta": {
+        "base": "cuboid-04-01-facecolor-02",
+        "baseId": "cuboid-04-01",
+        "pair": "02"
+      }
+    },
+    {
+      "id": "cuboid-07-01-facecolor-01-q1",
+      "type": "facecolor",
+      "prompt": "색칠된 면과 평행한 면을 고르세요",
+      "question": "facecolor/cuboid-07-01-facecolor-01-01.svg",
+      "answer": "facecolor/cuboid-07-01-facecolor-01-02.svg",
+      "choices": [
+        "facecolor/cuboid-07-01-facecolor-01-02.svg",
+        "facecolor/cuboid-07-01-facecolor-02-02.svg",
+        "facecolor/cuboid-07-01-facecolor-03-02.svg",
+        "facecolor/cuboid-07-01-facecolor-03-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "facecolor"
+      ],
+      "meta": {
+        "base": "cuboid-07-01-facecolor-01",
+        "baseId": "cuboid-07-01",
+        "pair": "01"
+      }
+    },
+    {
+      "id": "cuboid-05-01-facecolor-02-q2",
+      "type": "facecolor",
+      "prompt": "색칠된 면과 평행한 면을 고르세요",
+      "question": "facecolor/cuboid-05-01-facecolor-02-02.svg",
+      "answer": "facecolor/cuboid-05-01-facecolor-02-01.svg",
+      "choices": [
+        "facecolor/cuboid-05-01-facecolor-01-01.svg",
+        "facecolor/cuboid-05-01-facecolor-01-02.svg",
+        "facecolor/cuboid-05-01-facecolor-02-01.svg",
+        "facecolor/cuboid-05-01-facecolor-03-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "facecolor"
+      ],
+      "meta": {
+        "base": "cuboid-05-01-facecolor-02",
+        "baseId": "cuboid-05-01",
+        "pair": "02"
+      }
+    },
+    {
+      "id": "cuboid-03-01-facecolor-02-q1",
+      "type": "facecolor",
+      "prompt": "색칠된 면과 평행한 면을 고르세요",
+      "question": "facecolor/cuboid-03-01-facecolor-02-01.svg",
+      "answer": "facecolor/cuboid-03-01-facecolor-02-02.svg",
+      "choices": [
+        "facecolor/cuboid-03-01-facecolor-02-02.svg",
+        "facecolor/cuboid-03-01-facecolor-01-02.svg",
+        "facecolor/cuboid-03-01-facecolor-03-02.svg",
+        "facecolor/cuboid-03-01-facecolor-01-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "facecolor"
+      ],
+      "meta": {
+        "base": "cuboid-03-01-facecolor-02",
+        "baseId": "cuboid-03-01",
+        "pair": "02"
+      }
+    },
+    {
+      "id": "cuboid-07-01-facecolor-02-q2",
+      "type": "facecolor",
+      "prompt": "색칠된 면과 평행한 면을 고르세요",
+      "question": "facecolor/cuboid-07-01-facecolor-02-02.svg",
+      "answer": "facecolor/cuboid-07-01-facecolor-02-01.svg",
+      "choices": [
+        "facecolor/cuboid-07-01-facecolor-03-01.svg",
+        "facecolor/cuboid-07-01-facecolor-01-01.svg",
+        "facecolor/cuboid-07-01-facecolor-02-01.svg",
+        "facecolor/cuboid-07-01-facecolor-03-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "facecolor"
+      ],
+      "meta": {
+        "base": "cuboid-07-01-facecolor-02",
+        "baseId": "cuboid-07-01",
+        "pair": "02"
+      }
+    },
+    {
+      "id": "cuboid-06-01-facecolor-02-q1",
+      "type": "facecolor",
+      "prompt": "색칠된 면과 평행한 면을 고르세요",
+      "question": "facecolor/cuboid-06-01-facecolor-02-01.svg",
+      "answer": "facecolor/cuboid-06-01-facecolor-02-02.svg",
+      "choices": [
+        "facecolor/cuboid-06-01-facecolor-03-01.svg",
+        "facecolor/cuboid-06-01-facecolor-02-02.svg",
+        "facecolor/cuboid-06-01-facecolor-01-02.svg",
+        "facecolor/cuboid-06-01-facecolor-01-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "facecolor"
+      ],
+      "meta": {
+        "base": "cuboid-06-01-facecolor-02",
+        "baseId": "cuboid-06-01",
+        "pair": "02"
+      }
+    },
+    {
+      "id": "cuboid-05-01-facecolor-02-q1",
+      "type": "facecolor",
+      "prompt": "색칠된 면과 평행한 면을 고르세요",
+      "question": "facecolor/cuboid-05-01-facecolor-02-01.svg",
+      "answer": "facecolor/cuboid-05-01-facecolor-02-02.svg",
+      "choices": [
+        "facecolor/cuboid-05-01-facecolor-01-01.svg",
+        "facecolor/cuboid-05-01-facecolor-02-02.svg",
+        "facecolor/cuboid-05-01-facecolor-03-01.svg",
+        "facecolor/cuboid-05-01-facecolor-01-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "facecolor"
+      ],
+      "meta": {
+        "base": "cuboid-05-01-facecolor-02",
+        "baseId": "cuboid-05-01",
+        "pair": "02"
+      }
+    },
+    {
+      "id": "cuboid-09-01-facecolor-02-q2",
+      "type": "facecolor",
+      "prompt": "색칠된 면과 평행한 면을 고르세요",
+      "question": "facecolor/cuboid-09-01-facecolor-02-02.svg",
+      "answer": "facecolor/cuboid-09-01-facecolor-02-01.svg",
+      "choices": [
+        "facecolor/cuboid-09-01-facecolor-02-01.svg",
+        "facecolor/cuboid-09-01-facecolor-01-01.svg",
+        "facecolor/cuboid-09-01-facecolor-03-02.svg",
+        "facecolor/cuboid-09-01-facecolor-01-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "facecolor"
+      ],
+      "meta": {
+        "base": "cuboid-09-01-facecolor-02",
+        "baseId": "cuboid-09-01",
+        "pair": "02"
+      }
+    },
+    {
+      "id": "cuboid-08-01-facecolor-02-q2",
+      "type": "facecolor",
+      "prompt": "색칠된 면과 평행한 면을 고르세요",
+      "question": "facecolor/cuboid-08-01-facecolor-02-02.svg",
+      "answer": "facecolor/cuboid-08-01-facecolor-02-01.svg",
+      "choices": [
+        "facecolor/cuboid-08-01-facecolor-01-02.svg",
+        "facecolor/cuboid-08-01-facecolor-03-01.svg",
+        "facecolor/cuboid-08-01-facecolor-01-01.svg",
+        "facecolor/cuboid-08-01-facecolor-02-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "facecolor"
+      ],
+      "meta": {
+        "base": "cuboid-08-01-facecolor-02",
+        "baseId": "cuboid-08-01",
+        "pair": "02"
+      }
+    },
+    {
+      "id": "cuboid-01-01-facecolor-02-q2",
+      "type": "facecolor",
+      "prompt": "색칠된 면과 평행한 면을 고르세요",
+      "question": "facecolor/cuboid-01-01-facecolor-02-02.svg",
+      "answer": "facecolor/cuboid-01-01-facecolor-02-01.svg",
+      "choices": [
+        "facecolor/cuboid-01-01-facecolor-02-01.svg",
+        "facecolor/cuboid-01-01-facecolor-03-01.svg",
+        "facecolor/cuboid-01-01-facecolor-01-01.svg",
+        "facecolor/cuboid-01-01-facecolor-03-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "facecolor"
+      ],
+      "meta": {
+        "base": "cuboid-01-01-facecolor-02",
+        "baseId": "cuboid-01-01",
+        "pair": "02"
+      }
+    },
+    {
+      "id": "cuboid-10-01-facecolor-03-q2",
+      "type": "facecolor",
+      "prompt": "색칠된 면과 평행한 면을 고르세요",
+      "question": "facecolor/cuboid-10-01-facecolor-03-02.svg",
+      "answer": "facecolor/cuboid-10-01-facecolor-03-01.svg",
+      "choices": [
+        "facecolor/cuboid-10-01-facecolor-03-01.svg",
+        "facecolor/cuboid-10-01-facecolor-02-02.svg",
+        "facecolor/cuboid-10-01-facecolor-01-01.svg",
+        "facecolor/cuboid-10-01-facecolor-01-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "facecolor"
+      ],
+      "meta": {
+        "base": "cuboid-10-01-facecolor-03",
+        "baseId": "cuboid-10-01",
+        "pair": "03"
+      }
+    },
+    {
+      "id": "cuboid-08-01-facecolor-03-q2",
+      "type": "facecolor",
+      "prompt": "색칠된 면과 평행한 면을 고르세요",
+      "question": "facecolor/cuboid-08-01-facecolor-03-02.svg",
+      "answer": "facecolor/cuboid-08-01-facecolor-03-01.svg",
+      "choices": [
+        "facecolor/cuboid-08-01-facecolor-01-01.svg",
+        "facecolor/cuboid-08-01-facecolor-01-02.svg",
+        "facecolor/cuboid-08-01-facecolor-02-02.svg",
+        "facecolor/cuboid-08-01-facecolor-03-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "facecolor"
+      ],
+      "meta": {
+        "base": "cuboid-08-01-facecolor-03",
+        "baseId": "cuboid-08-01",
+        "pair": "03"
+      }
+    },
+    {
+      "id": "cuboid-03-01-facecolor-02-q2",
+      "type": "facecolor",
+      "prompt": "색칠된 면과 평행한 면을 고르세요",
+      "question": "facecolor/cuboid-03-01-facecolor-02-02.svg",
+      "answer": "facecolor/cuboid-03-01-facecolor-02-01.svg",
+      "choices": [
+        "facecolor/cuboid-03-01-facecolor-03-02.svg",
+        "facecolor/cuboid-03-01-facecolor-03-01.svg",
+        "facecolor/cuboid-03-01-facecolor-01-01.svg",
+        "facecolor/cuboid-03-01-facecolor-02-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "facecolor"
+      ],
+      "meta": {
+        "base": "cuboid-03-01-facecolor-02",
+        "baseId": "cuboid-03-01",
+        "pair": "02"
+      }
+    },
+    {
+      "id": "cuboid-03-01-facecolor-03-q2",
+      "type": "facecolor",
+      "prompt": "색칠된 면과 평행한 면을 고르세요",
+      "question": "facecolor/cuboid-03-01-facecolor-03-02.svg",
+      "answer": "facecolor/cuboid-03-01-facecolor-03-01.svg",
+      "choices": [
+        "facecolor/cuboid-03-01-facecolor-02-01.svg",
+        "facecolor/cuboid-03-01-facecolor-03-01.svg",
+        "facecolor/cuboid-03-01-facecolor-02-02.svg",
+        "facecolor/cuboid-03-01-facecolor-01-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "facecolor"
+      ],
+      "meta": {
+        "base": "cuboid-03-01-facecolor-03",
+        "baseId": "cuboid-03-01",
+        "pair": "03"
+      }
+    },
+    {
+      "id": "cuboid-05-01-facecolor-03-q2",
+      "type": "facecolor",
+      "prompt": "색칠된 면과 평행한 면을 고르세요",
+      "question": "facecolor/cuboid-05-01-facecolor-03-02.svg",
+      "answer": "facecolor/cuboid-05-01-facecolor-03-01.svg",
+      "choices": [
+        "facecolor/cuboid-05-01-facecolor-02-01.svg",
+        "facecolor/cuboid-05-01-facecolor-02-02.svg",
+        "facecolor/cuboid-05-01-facecolor-03-01.svg",
+        "facecolor/cuboid-05-01-facecolor-01-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "facecolor"
+      ],
+      "meta": {
+        "base": "cuboid-05-01-facecolor-03",
+        "baseId": "cuboid-05-01",
+        "pair": "03"
+      }
+    },
+    {
+      "id": "cuboid-02-01-facecolor-01-q2",
+      "type": "facecolor",
+      "prompt": "색칠된 면과 평행한 면을 고르세요",
+      "question": "facecolor/cuboid-02-01-facecolor-01-02.svg",
+      "answer": "facecolor/cuboid-02-01-facecolor-01-01.svg",
+      "choices": [
+        "facecolor/cuboid-02-01-facecolor-01-01.svg",
+        "facecolor/cuboid-02-01-facecolor-02-01.svg",
+        "facecolor/cuboid-02-01-facecolor-03-02.svg",
+        "facecolor/cuboid-02-01-facecolor-02-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "facecolor"
+      ],
+      "meta": {
+        "base": "cuboid-02-01-facecolor-01",
+        "baseId": "cuboid-02-01",
+        "pair": "01"
+      }
+    },
+    {
+      "id": "cuboid-11-01-facecolor-01-q1",
+      "type": "facecolor",
+      "prompt": "색칠된 면과 평행한 면을 고르세요",
+      "question": "facecolor/cuboid-11-01-facecolor-01-01.svg",
+      "answer": "facecolor/cuboid-11-01-facecolor-01-02.svg",
+      "choices": [
+        "facecolor/cuboid-11-01-facecolor-02-01.svg",
+        "facecolor/cuboid-11-01-facecolor-01-02.svg",
+        "facecolor/cuboid-11-01-facecolor-02-02.svg",
+        "facecolor/cuboid-11-01-facecolor-03-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "facecolor"
+      ],
+      "meta": {
+        "base": "cuboid-11-01-facecolor-01",
+        "baseId": "cuboid-11-01",
+        "pair": "01"
+      }
+    },
+    {
+      "id": "cuboid-04-01-facecolor-01-q2",
+      "type": "facecolor",
+      "prompt": "색칠된 면과 평행한 면을 고르세요",
+      "question": "facecolor/cuboid-04-01-facecolor-01-02.svg",
+      "answer": "facecolor/cuboid-04-01-facecolor-01-01.svg",
+      "choices": [
+        "facecolor/cuboid-04-01-facecolor-03-01.svg",
+        "facecolor/cuboid-04-01-facecolor-03-02.svg",
+        "facecolor/cuboid-04-01-facecolor-02-01.svg",
+        "facecolor/cuboid-04-01-facecolor-01-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "facecolor"
+      ],
+      "meta": {
+        "base": "cuboid-04-01-facecolor-01",
+        "baseId": "cuboid-04-01",
+        "pair": "01"
+      }
+    },
+    {
+      "id": "cuboid-11-01-facecolor-03-q2",
+      "type": "facecolor",
+      "prompt": "색칠된 면과 평행한 면을 고르세요",
+      "question": "facecolor/cuboid-11-01-facecolor-03-02.svg",
+      "answer": "facecolor/cuboid-11-01-facecolor-03-01.svg",
+      "choices": [
+        "facecolor/cuboid-11-01-facecolor-02-02.svg",
+        "facecolor/cuboid-11-01-facecolor-01-02.svg",
+        "facecolor/cuboid-11-01-facecolor-03-01.svg",
+        "facecolor/cuboid-11-01-facecolor-02-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "facecolor"
+      ],
+      "meta": {
+        "base": "cuboid-11-01-facecolor-03",
+        "baseId": "cuboid-11-01",
+        "pair": "03"
+      }
+    },
+    {
+      "id": "cuboid-01-01-facecolor-03-q1",
+      "type": "facecolor",
+      "prompt": "색칠된 면과 평행한 면을 고르세요",
+      "question": "facecolor/cuboid-01-01-facecolor-03-01.svg",
+      "answer": "facecolor/cuboid-01-01-facecolor-03-02.svg",
+      "choices": [
+        "facecolor/cuboid-01-01-facecolor-02-02.svg",
+        "facecolor/cuboid-01-01-facecolor-03-02.svg",
+        "facecolor/cuboid-01-01-facecolor-02-01.svg",
+        "facecolor/cuboid-01-01-facecolor-01-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "facecolor"
+      ],
+      "meta": {
+        "base": "cuboid-01-01-facecolor-03",
+        "baseId": "cuboid-01-01",
+        "pair": "03"
+      }
+    },
+    {
+      "id": "cuboid-03-01-facecolor-01-q1",
+      "type": "facecolor",
+      "prompt": "색칠된 면과 평행한 면을 고르세요",
+      "question": "facecolor/cuboid-03-01-facecolor-01-01.svg",
+      "answer": "facecolor/cuboid-03-01-facecolor-01-02.svg",
+      "choices": [
+        "facecolor/cuboid-03-01-facecolor-02-01.svg",
+        "facecolor/cuboid-03-01-facecolor-03-01.svg",
+        "facecolor/cuboid-03-01-facecolor-01-02.svg",
+        "facecolor/cuboid-03-01-facecolor-03-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "facecolor"
+      ],
+      "meta": {
+        "base": "cuboid-03-01-facecolor-01",
+        "baseId": "cuboid-03-01",
+        "pair": "01"
+      }
+    },
+    {
+      "id": "cuboid-05-01-facecolor-01-q2",
+      "type": "facecolor",
+      "prompt": "색칠된 면과 평행한 면을 고르세요",
+      "question": "facecolor/cuboid-05-01-facecolor-01-02.svg",
+      "answer": "facecolor/cuboid-05-01-facecolor-01-01.svg",
+      "choices": [
+        "facecolor/cuboid-05-01-facecolor-02-01.svg",
+        "facecolor/cuboid-05-01-facecolor-01-01.svg",
+        "facecolor/cuboid-05-01-facecolor-03-01.svg",
+        "facecolor/cuboid-05-01-facecolor-02-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "facecolor"
+      ],
+      "meta": {
+        "base": "cuboid-05-01-facecolor-01",
+        "baseId": "cuboid-05-01",
+        "pair": "01"
+      }
+    },
+    {
+      "id": "cuboid-05-01-facecolor-01-q1",
+      "type": "facecolor",
+      "prompt": "색칠된 면과 평행한 면을 고르세요",
+      "question": "facecolor/cuboid-05-01-facecolor-01-01.svg",
+      "answer": "facecolor/cuboid-05-01-facecolor-01-02.svg",
+      "choices": [
+        "facecolor/cuboid-05-01-facecolor-01-02.svg",
+        "facecolor/cuboid-05-01-facecolor-03-02.svg",
+        "facecolor/cuboid-05-01-facecolor-02-01.svg",
+        "facecolor/cuboid-05-01-facecolor-03-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "facecolor"
+      ],
+      "meta": {
+        "base": "cuboid-05-01-facecolor-01",
+        "baseId": "cuboid-05-01",
+        "pair": "01"
+      }
+    },
+    {
+      "id": "cuboid-08-01-facecolor-03-q1",
+      "type": "facecolor",
+      "prompt": "색칠된 면과 평행한 면을 고르세요",
+      "question": "facecolor/cuboid-08-01-facecolor-03-01.svg",
+      "answer": "facecolor/cuboid-08-01-facecolor-03-02.svg",
+      "choices": [
+        "facecolor/cuboid-08-01-facecolor-01-01.svg",
+        "facecolor/cuboid-08-01-facecolor-02-02.svg",
+        "facecolor/cuboid-08-01-facecolor-03-02.svg",
+        "facecolor/cuboid-08-01-facecolor-02-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "facecolor"
+      ],
+      "meta": {
+        "base": "cuboid-08-01-facecolor-03",
+        "baseId": "cuboid-08-01",
+        "pair": "03"
+      }
+    },
+    {
+      "id": "cuboid-11-01-facecolor-02-q2",
+      "type": "facecolor",
+      "prompt": "색칠된 면과 평행한 면을 고르세요",
+      "question": "facecolor/cuboid-11-01-facecolor-02-02.svg",
+      "answer": "facecolor/cuboid-11-01-facecolor-02-01.svg",
+      "choices": [
+        "facecolor/cuboid-11-01-facecolor-02-01.svg",
+        "facecolor/cuboid-11-01-facecolor-01-02.svg",
+        "facecolor/cuboid-11-01-facecolor-03-01.svg",
+        "facecolor/cuboid-11-01-facecolor-01-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "facecolor"
+      ],
+      "meta": {
+        "base": "cuboid-11-01-facecolor-02",
+        "baseId": "cuboid-11-01",
+        "pair": "02"
+      }
+    },
+    {
+      "id": "cuboid-07-01-facecolor-02-q1",
+      "type": "facecolor",
+      "prompt": "색칠된 면과 평행한 면을 고르세요",
+      "question": "facecolor/cuboid-07-01-facecolor-02-01.svg",
+      "answer": "facecolor/cuboid-07-01-facecolor-02-02.svg",
+      "choices": [
+        "facecolor/cuboid-07-01-facecolor-03-02.svg",
+        "facecolor/cuboid-07-01-facecolor-02-02.svg",
+        "facecolor/cuboid-07-01-facecolor-03-01.svg",
+        "facecolor/cuboid-07-01-facecolor-01-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "facecolor"
+      ],
+      "meta": {
+        "base": "cuboid-07-01-facecolor-02",
+        "baseId": "cuboid-07-01",
+        "pair": "02"
+      }
+    },
+    {
+      "id": "cuboid-04-01-edgecolor04-q2",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-04-01-edgecolor04-02.svg",
+      "answer": "edgecolor/cuboid-04-01-edgecolor04-01.svg",
+      "choices": [
+        "edgecolor/cuboid-04-01-edgecolor04-01.svg",
+        "edgecolor/cuboid-04-01-edgecolor03-02.svg",
+        "edgecolor/cuboid-04-01-edgecolor02-02.svg",
+        "edgecolor/cuboid-04-01-edgecolor05-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-04-01-edgecolor04",
+        "baseId": "cuboid-04-01",
+        "pair": "04"
+      }
+    },
+    {
+      "id": "cuboid-05-01-edgecolor01-q2",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-05-01-edgecolor01-02.svg",
+      "answer": "edgecolor/cuboid-05-01-edgecolor01-01.svg",
+      "choices": [
+        "edgecolor/cuboid-05-01-edgecolor01-01.svg",
+        "edgecolor/cuboid-05-01-edgecolor04-02.svg",
+        "edgecolor/cuboid-05-01-edgecolor03-01.svg",
+        "edgecolor/cuboid-05-01-edgecolor05-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-05-01-edgecolor01",
+        "baseId": "cuboid-05-01",
+        "pair": "01"
+      }
+    },
+    {
+      "id": "cuboid-02-01-edgecolor01-q1",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-02-01-edgecolor01-01.svg",
+      "answer": "edgecolor/cuboid-02-01-edgecolor01-02.svg",
+      "choices": [
+        "edgecolor/cuboid-02-01-edgecolor01-02.svg",
+        "edgecolor/cuboid-02-01-edgecolor04-02.svg",
+        "edgecolor/cuboid-02-01-edgecolor05-01.svg",
+        "edgecolor/cuboid-02-01-edgecolor03-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-02-01-edgecolor01",
+        "baseId": "cuboid-02-01",
+        "pair": "01"
+      }
+    },
+    {
+      "id": "cuboid-09-01-edgecolor03-q1",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-09-01-edgecolor03-01.svg",
+      "answer": "edgecolor/cuboid-09-01-edgecolor03-02.svg",
+      "choices": [
+        "edgecolor/cuboid-09-01-edgecolor01-01.svg",
+        "edgecolor/cuboid-09-01-edgecolor04-01.svg",
+        "edgecolor/cuboid-09-01-edgecolor03-02.svg",
+        "edgecolor/cuboid-09-01-edgecolor02-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-09-01-edgecolor03",
+        "baseId": "cuboid-09-01",
+        "pair": "03"
+      }
+    },
+    {
+      "id": "cuboid-05-01-edgecolor02-q2",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-05-01-edgecolor02-02.svg",
+      "answer": "edgecolor/cuboid-05-01-edgecolor02-01.svg",
+      "choices": [
+        "edgecolor/cuboid-05-01-edgecolor04-02.svg",
+        "edgecolor/cuboid-05-01-edgecolor03-02.svg",
+        "edgecolor/cuboid-05-01-edgecolor02-01.svg",
+        "edgecolor/cuboid-05-01-edgecolor05-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-05-01-edgecolor02",
+        "baseId": "cuboid-05-01",
+        "pair": "02"
+      }
+    },
+    {
+      "id": "cuboid-01-01-edgecolor05-q1",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-01-01-edgecolor05-01.svg",
+      "answer": "edgecolor/cuboid-01-01-edgecolor05-02.svg",
+      "choices": [
+        "edgecolor/cuboid-01-01-edgecolor01-02.svg",
+        "edgecolor/cuboid-01-01-edgecolor03-01.svg",
+        "edgecolor/cuboid-01-01-edgecolor04-02.svg",
+        "edgecolor/cuboid-01-01-edgecolor05-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-01-01-edgecolor05",
+        "baseId": "cuboid-01-01",
+        "pair": "05"
+      }
+    },
+    {
+      "id": "cuboid-03-01-edgecolor05-q1",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-03-01-edgecolor05-01.svg",
+      "answer": "edgecolor/cuboid-03-01-edgecolor05-02.svg",
+      "choices": [
+        "edgecolor/cuboid-03-01-edgecolor03-02.svg",
+        "edgecolor/cuboid-03-01-edgecolor03-01.svg",
+        "edgecolor/cuboid-03-01-edgecolor05-02.svg",
+        "edgecolor/cuboid-03-01-edgecolor01-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-03-01-edgecolor05",
+        "baseId": "cuboid-03-01",
+        "pair": "05"
+      }
+    },
+    {
+      "id": "cuboid-03-01-edgecolor02-q1",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-03-01-edgecolor02-01.svg",
+      "answer": "edgecolor/cuboid-03-01-edgecolor02-02.svg",
+      "choices": [
+        "edgecolor/cuboid-03-01-edgecolor04-02.svg",
+        "edgecolor/cuboid-03-01-edgecolor02-02.svg",
+        "edgecolor/cuboid-03-01-edgecolor04-01.svg",
+        "edgecolor/cuboid-03-01-edgecolor01-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-03-01-edgecolor02",
+        "baseId": "cuboid-03-01",
+        "pair": "02"
+      }
+    },
+    {
+      "id": "cuboid-07-01-edgecolor04-q2",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-07-01-edgecolor04-02.svg",
+      "answer": "edgecolor/cuboid-07-01-edgecolor04-01.svg",
+      "choices": [
+        "edgecolor/cuboid-07-01-edgecolor02-01.svg",
+        "edgecolor/cuboid-07-01-edgecolor04-01.svg",
+        "edgecolor/cuboid-07-01-edgecolor05-02.svg",
+        "edgecolor/cuboid-07-01-edgecolor03-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-07-01-edgecolor04",
+        "baseId": "cuboid-07-01",
+        "pair": "04"
+      }
+    },
+    {
+      "id": "cuboid-04-01-edgecolor02-q2",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-04-01-edgecolor02-02.svg",
+      "answer": "edgecolor/cuboid-04-01-edgecolor02-01.svg",
+      "choices": [
+        "edgecolor/cuboid-04-01-edgecolor04-02.svg",
+        "edgecolor/cuboid-04-01-edgecolor04-01.svg",
+        "edgecolor/cuboid-04-01-edgecolor02-01.svg",
+        "edgecolor/cuboid-04-01-edgecolor05-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-04-01-edgecolor02",
+        "baseId": "cuboid-04-01",
+        "pair": "02"
+      }
+    },
+    {
+      "id": "cuboid-11-01-edgecolor01-q1",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-11-01-edgecolor01-01.svg",
+      "answer": "edgecolor/cuboid-11-01-edgecolor01-02.svg",
+      "choices": [
+        "edgecolor/cuboid-11-01-edgecolor05-01.svg",
+        "edgecolor/cuboid-11-01-edgecolor02-01.svg",
+        "edgecolor/cuboid-11-01-edgecolor01-02.svg",
+        "edgecolor/cuboid-11-01-edgecolor04-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-11-01-edgecolor01",
+        "baseId": "cuboid-11-01",
+        "pair": "01"
+      }
+    },
+    {
+      "id": "cuboid-05-01-edgecolor02-q1",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-05-01-edgecolor02-01.svg",
+      "answer": "edgecolor/cuboid-05-01-edgecolor02-02.svg",
+      "choices": [
+        "edgecolor/cuboid-05-01-edgecolor02-02.svg",
+        "edgecolor/cuboid-05-01-edgecolor05-01.svg",
+        "edgecolor/cuboid-05-01-edgecolor03-01.svg",
+        "edgecolor/cuboid-05-01-edgecolor03-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-05-01-edgecolor02",
+        "baseId": "cuboid-05-01",
+        "pair": "02"
+      }
+    },
+    {
+      "id": "cuboid-07-01-edgecolor03-q1",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-07-01-edgecolor03-01.svg",
+      "answer": "edgecolor/cuboid-07-01-edgecolor03-02.svg",
+      "choices": [
+        "edgecolor/cuboid-07-01-edgecolor05-01.svg",
+        "edgecolor/cuboid-07-01-edgecolor04-02.svg",
+        "edgecolor/cuboid-07-01-edgecolor04-01.svg",
+        "edgecolor/cuboid-07-01-edgecolor03-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-07-01-edgecolor03",
+        "baseId": "cuboid-07-01",
+        "pair": "03"
+      }
+    },
+    {
+      "id": "cuboid-06-01-edgecolor01-q2",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-06-01-edgecolor01-02.svg",
+      "answer": "edgecolor/cuboid-06-01-edgecolor01-01.svg",
+      "choices": [
+        "edgecolor/cuboid-06-01-edgecolor03-02.svg",
+        "edgecolor/cuboid-06-01-edgecolor01-01.svg",
+        "edgecolor/cuboid-06-01-edgecolor05-02.svg",
+        "edgecolor/cuboid-06-01-edgecolor02-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-06-01-edgecolor01",
+        "baseId": "cuboid-06-01",
+        "pair": "01"
+      }
+    },
+    {
+      "id": "cuboid-09-01-edgecolor01-q2",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-09-01-edgecolor01-02.svg",
+      "answer": "edgecolor/cuboid-09-01-edgecolor01-01.svg",
+      "choices": [
+        "edgecolor/cuboid-09-01-edgecolor04-02.svg",
+        "edgecolor/cuboid-09-01-edgecolor01-01.svg",
+        "edgecolor/cuboid-09-01-edgecolor03-01.svg",
+        "edgecolor/cuboid-09-01-edgecolor02-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-09-01-edgecolor01",
+        "baseId": "cuboid-09-01",
+        "pair": "01"
+      }
+    },
+    {
+      "id": "cuboid-02-01-edgecolor03-q2",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-02-01-edgecolor03-02.svg",
+      "answer": "edgecolor/cuboid-02-01-edgecolor03-01.svg",
+      "choices": [
+        "edgecolor/cuboid-02-01-edgecolor03-01.svg",
+        "edgecolor/cuboid-02-01-edgecolor05-02.svg",
+        "edgecolor/cuboid-02-01-edgecolor01-02.svg",
+        "edgecolor/cuboid-02-01-edgecolor02-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-02-01-edgecolor03",
+        "baseId": "cuboid-02-01",
+        "pair": "03"
+      }
+    },
+    {
+      "id": "cuboid-07-01-edgecolor01-q2",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-07-01-edgecolor01-02.svg",
+      "answer": "edgecolor/cuboid-07-01-edgecolor01-01.svg",
+      "choices": [
+        "edgecolor/cuboid-07-01-edgecolor03-02.svg",
+        "edgecolor/cuboid-07-01-edgecolor04-02.svg",
+        "edgecolor/cuboid-07-01-edgecolor03-01.svg",
+        "edgecolor/cuboid-07-01-edgecolor01-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-07-01-edgecolor01",
+        "baseId": "cuboid-07-01",
+        "pair": "01"
+      }
+    },
+    {
+      "id": "cuboid-01-01-edgecolor01-q1",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-01-01-edgecolor01-01.svg",
+      "answer": "edgecolor/cuboid-01-01-edgecolor01-02.svg",
+      "choices": [
+        "edgecolor/cuboid-01-01-edgecolor05-02.svg",
+        "edgecolor/cuboid-01-01-edgecolor04-01.svg",
+        "edgecolor/cuboid-01-01-edgecolor01-02.svg",
+        "edgecolor/cuboid-01-01-edgecolor03-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-01-01-edgecolor01",
+        "baseId": "cuboid-01-01",
+        "pair": "01"
+      }
+    },
+    {
+      "id": "cuboid-05-01-edgecolor05-q1",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-05-01-edgecolor05-01.svg",
+      "answer": "edgecolor/cuboid-05-01-edgecolor05-02.svg",
+      "choices": [
+        "edgecolor/cuboid-05-01-edgecolor04-02.svg",
+        "edgecolor/cuboid-05-01-edgecolor04-01.svg",
+        "edgecolor/cuboid-05-01-edgecolor01-02.svg",
+        "edgecolor/cuboid-05-01-edgecolor05-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-05-01-edgecolor05",
+        "baseId": "cuboid-05-01",
+        "pair": "05"
+      }
+    },
+    {
+      "id": "cuboid-10-01-edgecolor05-q1",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-10-01-edgecolor05-01.svg",
+      "answer": "edgecolor/cuboid-10-01-edgecolor05-02.svg",
+      "choices": [
+        "edgecolor/cuboid-10-01-edgecolor03-02.svg",
+        "edgecolor/cuboid-10-01-edgecolor04-02.svg",
+        "edgecolor/cuboid-10-01-edgecolor01-01.svg",
+        "edgecolor/cuboid-10-01-edgecolor05-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-10-01-edgecolor05",
+        "baseId": "cuboid-10-01",
+        "pair": "05"
+      }
+    },
+    {
+      "id": "cuboid-01-01-edgecolor02-q1",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-01-01-edgecolor02-01.svg",
+      "answer": "edgecolor/cuboid-01-01-edgecolor02-02.svg",
+      "choices": [
+        "edgecolor/cuboid-01-01-edgecolor01-02.svg",
+        "edgecolor/cuboid-01-01-edgecolor02-02.svg",
+        "edgecolor/cuboid-01-01-edgecolor01-01.svg",
+        "edgecolor/cuboid-01-01-edgecolor03-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-01-01-edgecolor02",
+        "baseId": "cuboid-01-01",
+        "pair": "02"
+      }
+    },
+    {
+      "id": "cuboid-03-01-edgecolor01-q2",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-03-01-edgecolor01-02.svg",
+      "answer": "edgecolor/cuboid-03-01-edgecolor01-01.svg",
+      "choices": [
+        "edgecolor/cuboid-03-01-edgecolor02-02.svg",
+        "edgecolor/cuboid-03-01-edgecolor01-01.svg",
+        "edgecolor/cuboid-03-01-edgecolor04-02.svg",
+        "edgecolor/cuboid-03-01-edgecolor03-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-03-01-edgecolor01",
+        "baseId": "cuboid-03-01",
+        "pair": "01"
+      }
+    },
+    {
+      "id": "cuboid-06-01-edgecolor04-q1",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-06-01-edgecolor04-01.svg",
+      "answer": "edgecolor/cuboid-06-01-edgecolor04-02.svg",
+      "choices": [
+        "edgecolor/cuboid-06-01-edgecolor01-01.svg",
+        "edgecolor/cuboid-06-01-edgecolor02-02.svg",
+        "edgecolor/cuboid-06-01-edgecolor05-02.svg",
+        "edgecolor/cuboid-06-01-edgecolor04-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-06-01-edgecolor04",
+        "baseId": "cuboid-06-01",
+        "pair": "04"
+      }
+    },
+    {
+      "id": "cuboid-08-01-edgecolor05-q2",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-08-01-edgecolor05-02.svg",
+      "answer": "edgecolor/cuboid-08-01-edgecolor05-01.svg",
+      "choices": [
+        "edgecolor/cuboid-08-01-edgecolor01-01.svg",
+        "edgecolor/cuboid-08-01-edgecolor02-01.svg",
+        "edgecolor/cuboid-08-01-edgecolor05-01.svg",
+        "edgecolor/cuboid-08-01-edgecolor04-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-08-01-edgecolor05",
+        "baseId": "cuboid-08-01",
+        "pair": "05"
+      }
+    },
+    {
+      "id": "cuboid-02-01-edgecolor01-q2",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-02-01-edgecolor01-02.svg",
+      "answer": "edgecolor/cuboid-02-01-edgecolor01-01.svg",
+      "choices": [
+        "edgecolor/cuboid-02-01-edgecolor04-01.svg",
+        "edgecolor/cuboid-02-01-edgecolor02-02.svg",
+        "edgecolor/cuboid-02-01-edgecolor01-01.svg",
+        "edgecolor/cuboid-02-01-edgecolor05-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-02-01-edgecolor01",
+        "baseId": "cuboid-02-01",
+        "pair": "01"
+      }
+    },
+    {
+      "id": "cuboid-08-01-edgecolor01-q1",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-08-01-edgecolor01-01.svg",
+      "answer": "edgecolor/cuboid-08-01-edgecolor01-02.svg",
+      "choices": [
+        "edgecolor/cuboid-08-01-edgecolor05-02.svg",
+        "edgecolor/cuboid-08-01-edgecolor03-02.svg",
+        "edgecolor/cuboid-08-01-edgecolor01-02.svg",
+        "edgecolor/cuboid-08-01-edgecolor02-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-08-01-edgecolor01",
+        "baseId": "cuboid-08-01",
+        "pair": "01"
+      }
+    },
+    {
+      "id": "cuboid-11-01-edgecolor03-q1",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-11-01-edgecolor03-01.svg",
+      "answer": "edgecolor/cuboid-11-01-edgecolor03-02.svg",
+      "choices": [
+        "edgecolor/cuboid-11-01-edgecolor03-02.svg",
+        "edgecolor/cuboid-11-01-edgecolor05-01.svg",
+        "edgecolor/cuboid-11-01-edgecolor02-02.svg",
+        "edgecolor/cuboid-11-01-edgecolor01-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-11-01-edgecolor03",
+        "baseId": "cuboid-11-01",
+        "pair": "03"
+      }
+    },
+    {
+      "id": "cuboid-11-01-edgecolor04-q1",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-11-01-edgecolor04-01.svg",
+      "answer": "edgecolor/cuboid-11-01-edgecolor04-02.svg",
+      "choices": [
+        "edgecolor/cuboid-11-01-edgecolor05-02.svg",
+        "edgecolor/cuboid-11-01-edgecolor04-02.svg",
+        "edgecolor/cuboid-11-01-edgecolor02-02.svg",
+        "edgecolor/cuboid-11-01-edgecolor01-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-11-01-edgecolor04",
+        "baseId": "cuboid-11-01",
+        "pair": "04"
+      }
+    },
+    {
+      "id": "cuboid-01-01-edgecolor03-q2",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-01-01-edgecolor03-02.svg",
+      "answer": "edgecolor/cuboid-01-01-edgecolor03-01.svg",
+      "choices": [
+        "edgecolor/cuboid-01-01-edgecolor02-02.svg",
+        "edgecolor/cuboid-01-01-edgecolor03-01.svg",
+        "edgecolor/cuboid-01-01-edgecolor02-01.svg",
+        "edgecolor/cuboid-01-01-edgecolor04-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-01-01-edgecolor03",
+        "baseId": "cuboid-01-01",
+        "pair": "03"
+      }
+    },
+    {
+      "id": "cuboid-02-01-edgecolor04-q2",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-02-01-edgecolor04-02.svg",
+      "answer": "edgecolor/cuboid-02-01-edgecolor04-01.svg",
+      "choices": [
+        "edgecolor/cuboid-02-01-edgecolor02-01.svg",
+        "edgecolor/cuboid-02-01-edgecolor04-01.svg",
+        "edgecolor/cuboid-02-01-edgecolor05-02.svg",
+        "edgecolor/cuboid-02-01-edgecolor05-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-02-01-edgecolor04",
+        "baseId": "cuboid-02-01",
+        "pair": "04"
+      }
+    },
+    {
+      "id": "cuboid-06-01-edgecolor01-q1",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-06-01-edgecolor01-01.svg",
+      "answer": "edgecolor/cuboid-06-01-edgecolor01-02.svg",
+      "choices": [
+        "edgecolor/cuboid-06-01-edgecolor01-02.svg",
+        "edgecolor/cuboid-06-01-edgecolor03-01.svg",
+        "edgecolor/cuboid-06-01-edgecolor04-01.svg",
+        "edgecolor/cuboid-06-01-edgecolor02-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-06-01-edgecolor01",
+        "baseId": "cuboid-06-01",
+        "pair": "01"
+      }
+    },
+    {
+      "id": "cuboid-08-01-edgecolor01-q2",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-08-01-edgecolor01-02.svg",
+      "answer": "edgecolor/cuboid-08-01-edgecolor01-01.svg",
+      "choices": [
+        "edgecolor/cuboid-08-01-edgecolor03-01.svg",
+        "edgecolor/cuboid-08-01-edgecolor01-01.svg",
+        "edgecolor/cuboid-08-01-edgecolor05-02.svg",
+        "edgecolor/cuboid-08-01-edgecolor02-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-08-01-edgecolor01",
+        "baseId": "cuboid-08-01",
+        "pair": "01"
+      }
+    },
+    {
+      "id": "cuboid-05-01-edgecolor04-q2",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-05-01-edgecolor04-02.svg",
+      "answer": "edgecolor/cuboid-05-01-edgecolor04-01.svg",
+      "choices": [
+        "edgecolor/cuboid-05-01-edgecolor03-02.svg",
+        "edgecolor/cuboid-05-01-edgecolor04-01.svg",
+        "edgecolor/cuboid-05-01-edgecolor02-01.svg",
+        "edgecolor/cuboid-05-01-edgecolor03-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-05-01-edgecolor04",
+        "baseId": "cuboid-05-01",
+        "pair": "04"
+      }
+    },
+    {
+      "id": "cuboid-10-01-edgecolor01-q2",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-10-01-edgecolor01-02.svg",
+      "answer": "edgecolor/cuboid-10-01-edgecolor01-01.svg",
+      "choices": [
+        "edgecolor/cuboid-10-01-edgecolor02-02.svg",
+        "edgecolor/cuboid-10-01-edgecolor04-01.svg",
+        "edgecolor/cuboid-10-01-edgecolor01-01.svg",
+        "edgecolor/cuboid-10-01-edgecolor02-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-10-01-edgecolor01",
+        "baseId": "cuboid-10-01",
+        "pair": "01"
+      }
+    },
+    {
+      "id": "cuboid-05-01-edgecolor04-q1",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-05-01-edgecolor04-01.svg",
+      "answer": "edgecolor/cuboid-05-01-edgecolor04-02.svg",
+      "choices": [
+        "edgecolor/cuboid-05-01-edgecolor05-02.svg",
+        "edgecolor/cuboid-05-01-edgecolor01-01.svg",
+        "edgecolor/cuboid-05-01-edgecolor01-02.svg",
+        "edgecolor/cuboid-05-01-edgecolor04-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-05-01-edgecolor04",
+        "baseId": "cuboid-05-01",
+        "pair": "04"
+      }
+    },
+    {
+      "id": "cuboid-07-01-edgecolor05-q2",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-07-01-edgecolor05-02.svg",
+      "answer": "edgecolor/cuboid-07-01-edgecolor05-01.svg",
+      "choices": [
+        "edgecolor/cuboid-07-01-edgecolor01-01.svg",
+        "edgecolor/cuboid-07-01-edgecolor02-01.svg",
+        "edgecolor/cuboid-07-01-edgecolor05-01.svg",
+        "edgecolor/cuboid-07-01-edgecolor03-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-07-01-edgecolor05",
+        "baseId": "cuboid-07-01",
+        "pair": "05"
+      }
+    },
+    {
+      "id": "cuboid-02-01-edgecolor03-q1",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-02-01-edgecolor03-01.svg",
+      "answer": "edgecolor/cuboid-02-01-edgecolor03-02.svg",
+      "choices": [
+        "edgecolor/cuboid-02-01-edgecolor04-02.svg",
+        "edgecolor/cuboid-02-01-edgecolor03-02.svg",
+        "edgecolor/cuboid-02-01-edgecolor01-02.svg",
+        "edgecolor/cuboid-02-01-edgecolor02-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-02-01-edgecolor03",
+        "baseId": "cuboid-02-01",
+        "pair": "03"
+      }
+    },
+    {
+      "id": "cuboid-08-01-edgecolor02-q2",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-08-01-edgecolor02-02.svg",
+      "answer": "edgecolor/cuboid-08-01-edgecolor02-01.svg",
+      "choices": [
+        "edgecolor/cuboid-08-01-edgecolor03-01.svg",
+        "edgecolor/cuboid-08-01-edgecolor02-01.svg",
+        "edgecolor/cuboid-08-01-edgecolor01-01.svg",
+        "edgecolor/cuboid-08-01-edgecolor04-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-08-01-edgecolor02",
+        "baseId": "cuboid-08-01",
+        "pair": "02"
+      }
+    },
+    {
+      "id": "cuboid-01-01-edgecolor04-q2",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-01-01-edgecolor04-02.svg",
+      "answer": "edgecolor/cuboid-01-01-edgecolor04-01.svg",
+      "choices": [
+        "edgecolor/cuboid-01-01-edgecolor04-01.svg",
+        "edgecolor/cuboid-01-01-edgecolor05-01.svg",
+        "edgecolor/cuboid-01-01-edgecolor01-01.svg",
+        "edgecolor/cuboid-01-01-edgecolor02-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-01-01-edgecolor04",
+        "baseId": "cuboid-01-01",
+        "pair": "04"
+      }
+    },
+    {
+      "id": "cuboid-02-01-edgecolor05-q1",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-02-01-edgecolor05-01.svg",
+      "answer": "edgecolor/cuboid-02-01-edgecolor05-02.svg",
+      "choices": [
+        "edgecolor/cuboid-02-01-edgecolor01-01.svg",
+        "edgecolor/cuboid-02-01-edgecolor02-02.svg",
+        "edgecolor/cuboid-02-01-edgecolor03-02.svg",
+        "edgecolor/cuboid-02-01-edgecolor05-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-02-01-edgecolor05",
+        "baseId": "cuboid-02-01",
+        "pair": "05"
+      }
+    },
+    {
+      "id": "cuboid-03-01-edgecolor01-q1",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-03-01-edgecolor01-01.svg",
+      "answer": "edgecolor/cuboid-03-01-edgecolor01-02.svg",
+      "choices": [
+        "edgecolor/cuboid-03-01-edgecolor04-01.svg",
+        "edgecolor/cuboid-03-01-edgecolor03-01.svg",
+        "edgecolor/cuboid-03-01-edgecolor05-02.svg",
+        "edgecolor/cuboid-03-01-edgecolor01-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-03-01-edgecolor01",
+        "baseId": "cuboid-03-01",
+        "pair": "01"
+      }
+    },
+    {
+      "id": "cuboid-07-01-edgecolor02-q1",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-07-01-edgecolor02-01.svg",
+      "answer": "edgecolor/cuboid-07-01-edgecolor02-02.svg",
+      "choices": [
+        "edgecolor/cuboid-07-01-edgecolor03-02.svg",
+        "edgecolor/cuboid-07-01-edgecolor04-01.svg",
+        "edgecolor/cuboid-07-01-edgecolor02-02.svg",
+        "edgecolor/cuboid-07-01-edgecolor03-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-07-01-edgecolor02",
+        "baseId": "cuboid-07-01",
+        "pair": "02"
+      }
+    },
+    {
+      "id": "cuboid-09-01-edgecolor02-q1",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-09-01-edgecolor02-01.svg",
+      "answer": "edgecolor/cuboid-09-01-edgecolor02-02.svg",
+      "choices": [
+        "edgecolor/cuboid-09-01-edgecolor02-02.svg",
+        "edgecolor/cuboid-09-01-edgecolor03-02.svg",
+        "edgecolor/cuboid-09-01-edgecolor05-02.svg",
+        "edgecolor/cuboid-09-01-edgecolor04-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-09-01-edgecolor02",
+        "baseId": "cuboid-09-01",
+        "pair": "02"
+      }
+    },
+    {
+      "id": "cuboid-04-01-edgecolor05-q1",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-04-01-edgecolor05-01.svg",
+      "answer": "edgecolor/cuboid-04-01-edgecolor05-02.svg",
+      "choices": [
+        "edgecolor/cuboid-04-01-edgecolor01-02.svg",
+        "edgecolor/cuboid-04-01-edgecolor01-01.svg",
+        "edgecolor/cuboid-04-01-edgecolor04-02.svg",
+        "edgecolor/cuboid-04-01-edgecolor05-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-04-01-edgecolor05",
+        "baseId": "cuboid-04-01",
+        "pair": "05"
+      }
+    },
+    {
+      "id": "cuboid-04-01-edgecolor03-q1",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-04-01-edgecolor03-01.svg",
+      "answer": "edgecolor/cuboid-04-01-edgecolor03-02.svg",
+      "choices": [
+        "edgecolor/cuboid-04-01-edgecolor04-01.svg",
+        "edgecolor/cuboid-04-01-edgecolor03-02.svg",
+        "edgecolor/cuboid-04-01-edgecolor02-02.svg",
+        "edgecolor/cuboid-04-01-edgecolor01-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-04-01-edgecolor03",
+        "baseId": "cuboid-04-01",
+        "pair": "03"
+      }
+    },
+    {
+      "id": "cuboid-03-01-edgecolor02-q2",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-03-01-edgecolor02-02.svg",
+      "answer": "edgecolor/cuboid-03-01-edgecolor02-01.svg",
+      "choices": [
+        "edgecolor/cuboid-03-01-edgecolor03-02.svg",
+        "edgecolor/cuboid-03-01-edgecolor05-02.svg",
+        "edgecolor/cuboid-03-01-edgecolor02-01.svg",
+        "edgecolor/cuboid-03-01-edgecolor03-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-03-01-edgecolor02",
+        "baseId": "cuboid-03-01",
+        "pair": "02"
+      }
+    },
+    {
+      "id": "cuboid-04-01-edgecolor04-q1",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-04-01-edgecolor04-01.svg",
+      "answer": "edgecolor/cuboid-04-01-edgecolor04-02.svg",
+      "choices": [
+        "edgecolor/cuboid-04-01-edgecolor04-02.svg",
+        "edgecolor/cuboid-04-01-edgecolor02-01.svg",
+        "edgecolor/cuboid-04-01-edgecolor03-02.svg",
+        "edgecolor/cuboid-04-01-edgecolor01-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-04-01-edgecolor04",
+        "baseId": "cuboid-04-01",
+        "pair": "04"
+      }
+    },
+    {
+      "id": "cuboid-09-01-edgecolor04-q2",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-09-01-edgecolor04-02.svg",
+      "answer": "edgecolor/cuboid-09-01-edgecolor04-01.svg",
+      "choices": [
+        "edgecolor/cuboid-09-01-edgecolor02-01.svg",
+        "edgecolor/cuboid-09-01-edgecolor04-01.svg",
+        "edgecolor/cuboid-09-01-edgecolor05-02.svg",
+        "edgecolor/cuboid-09-01-edgecolor01-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-09-01-edgecolor04",
+        "baseId": "cuboid-09-01",
+        "pair": "04"
+      }
+    },
+    {
+      "id": "cuboid-11-01-edgecolor04-q2",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-11-01-edgecolor04-02.svg",
+      "answer": "edgecolor/cuboid-11-01-edgecolor04-01.svg",
+      "choices": [
+        "edgecolor/cuboid-11-01-edgecolor01-01.svg",
+        "edgecolor/cuboid-11-01-edgecolor02-02.svg",
+        "edgecolor/cuboid-11-01-edgecolor03-01.svg",
+        "edgecolor/cuboid-11-01-edgecolor04-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-11-01-edgecolor04",
+        "baseId": "cuboid-11-01",
+        "pair": "04"
+      }
+    },
+    {
+      "id": "cuboid-07-01-edgecolor03-q2",
+      "type": "edgecolor",
+      "prompt": "빨간 모서리와 맞물리는 모서리를 고르세요",
+      "question": "edgecolor/cuboid-07-01-edgecolor03-02.svg",
+      "answer": "edgecolor/cuboid-07-01-edgecolor03-01.svg",
+      "choices": [
+        "edgecolor/cuboid-07-01-edgecolor04-02.svg",
+        "edgecolor/cuboid-07-01-edgecolor05-02.svg",
+        "edgecolor/cuboid-07-01-edgecolor05-01.svg",
+        "edgecolor/cuboid-07-01-edgecolor03-01.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "cuboid",
+        "edgecolor"
+      ],
+      "meta": {
+        "base": "cuboid-07-01-edgecolor03",
+        "baseId": "cuboid-07-01",
+        "pair": "03"
+      }
+    },
+    {
+      "id": "validity-valid-62",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-09-03.svg",
+      "answer": "cuboid-09-03.svg",
+      "choices": [
+        "invalid/cuboid-bad-fold-08.svg",
+        "invalid/cuboid-bad-5f-05.svg",
+        "invalid/cuboid-bad-6f-04.svg",
+        "cuboid-09-03.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-53",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-overlap-06.svg",
+      "answer": "invalid/cuboid-bad-overlap-06.svg",
+      "choices": [
+        "cuboid-06-02.svg",
+        "cuboid-08-03.svg",
+        "invalid/cuboid-bad-overlap-06.svg",
+        "cuboid-07-03.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-50",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-overlap-03.svg",
+      "answer": "invalid/cuboid-bad-overlap-03.svg",
+      "choices": [
+        "cuboid-09-03.svg",
+        "invalid/cuboid-bad-overlap-03.svg",
+        "cuboid-08-03.svg",
+        "cuboid-08-05.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-54",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-overlap-07.svg",
+      "answer": "invalid/cuboid-bad-overlap-07.svg",
+      "choices": [
+        "cuboid-06-03.svg",
+        "cuboid-09-01.svg",
+        "invalid/cuboid-bad-overlap-07.svg",
+        "cuboid-03-05.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-26",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-6f-03.svg",
+      "answer": "invalid/cuboid-bad-6f-03.svg",
+      "choices": [
+        "invalid/cuboid-bad-6f-03.svg",
+        "cuboid-05-05.svg",
+        "cube-06.svg",
+        "cuboid-11-04.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-38",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-05-03.svg",
+      "answer": "cuboid-05-03.svg",
+      "choices": [
+        "invalid/cuboid-bad-overlap-04.svg",
+        "invalid/cuboid-bad-fold-05.svg",
+        "invalid/cube-bad-10.svg",
+        "cuboid-05-03.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-71",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-10-06.svg",
+      "answer": "cuboid-10-06.svg",
+      "choices": [
+        "invalid/cube-bad-12.svg",
+        "invalid/cuboid-bad-6f-03.svg",
+        "invalid/cuboid-bad-overlap-01.svg",
+        "cuboid-10-06.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-23",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-5f-08.svg",
+      "answer": "invalid/cuboid-bad-5f-08.svg",
+      "choices": [
+        "cuboid-01-06.svg",
+        "cube-10.svg",
+        "invalid/cuboid-bad-5f-08.svg",
+        "cuboid-08-05.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-28",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-6f-05.svg",
+      "answer": "invalid/cuboid-bad-6f-05.svg",
+      "choices": [
+        "cuboid-11-01.svg",
+        "cuboid-01-06.svg",
+        "invalid/cuboid-bad-6f-05.svg",
+        "cuboid-09-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-55",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-overlap-08.svg",
+      "answer": "invalid/cuboid-bad-overlap-08.svg",
+      "choices": [
+        "cube-05.svg",
+        "cuboid-10-03.svg",
+        "invalid/cuboid-bad-overlap-08.svg",
+        "cuboid-06-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-13",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-01-02.svg",
+      "answer": "cuboid-01-02.svg",
+      "choices": [
+        "invalid/cuboid-bad-edge-05.svg",
+        "invalid/cube-bad-08.svg",
+        "invalid/cuboid-bad-overlap-05.svg",
+        "cuboid-01-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-54",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-08-01.svg",
+      "answer": "cuboid-08-01.svg",
+      "choices": [
+        "cuboid-08-01.svg",
+        "invalid/cuboid-bad-5f-08.svg",
+        "invalid/cuboid-bad-overlap-05.svg",
+        "invalid/cube-bad-02.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-43",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-06-02.svg",
+      "answer": "cuboid-06-02.svg",
+      "choices": [
+        "invalid/cuboid-bad-fold-04.svg",
+        "cuboid-06-02.svg",
+        "invalid/cuboid-bad-6f-04.svg",
+        "invalid/cuboid-bad-6f-05.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-32",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-edge-01.svg",
+      "answer": "invalid/cuboid-bad-edge-01.svg",
+      "choices": [
+        "cuboid-04-01.svg",
+        "cuboid-07-01.svg",
+        "invalid/cuboid-bad-edge-01.svg",
+        "cuboid-08-03.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-27",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-6f-04.svg",
+      "answer": "invalid/cuboid-bad-6f-04.svg",
+      "choices": [
+        "invalid/cuboid-bad-6f-04.svg",
+        "cuboid-01-06.svg",
+        "cube-07.svg",
+        "cuboid-03-05.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-21",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-02-04.svg",
+      "answer": "cuboid-02-04.svg",
+      "choices": [
+        "cuboid-02-04.svg",
+        "invalid/cube-bad-08.svg",
+        "invalid/cube-bad-03.svg",
+        "invalid/cuboid-bad-6f-04.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-23",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-02-06.svg",
+      "answer": "cuboid-02-06.svg",
+      "choices": [
+        "invalid/cuboid-bad-5f-02.svg",
+        "invalid/cuboid-bad-5f-03.svg",
+        "invalid/cuboid-bad-overlap-06.svg",
+        "cuboid-02-06.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-20",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-5f-05.svg",
+      "answer": "invalid/cuboid-bad-5f-05.svg",
+      "choices": [
+        "invalid/cuboid-bad-5f-05.svg",
+        "cuboid-05-06.svg",
+        "cuboid-06-06.svg",
+        "cuboid-02-04.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-invalid-40",
+      "type": "validity",
+      "mode": "invalid",
+      "prompt": "올바르지 않은 전개도를 고르세요",
+      "question": "invalid/cuboid-bad-fold-01.svg",
+      "answer": "invalid/cuboid-bad-fold-01.svg",
+      "choices": [
+        "cuboid-10-01.svg",
+        "cuboid-08-02.svg",
+        "invalid/cuboid-bad-fold-01.svg",
+        "cuboid-09-06.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    },
+    {
+      "id": "validity-valid-76",
+      "type": "validity",
+      "mode": "valid",
+      "prompt": "올바른 전개도를 고르세요",
+      "question": "cuboid-11-05.svg",
+      "answer": "cuboid-11-05.svg",
+      "choices": [
+        "cuboid-11-05.svg",
+        "invalid/cube-bad-04.svg",
+        "invalid/cuboid-bad-6f-04.svg",
+        "invalid/cube-bad-14.svg"
+      ],
+      "difficulty": 2,
+      "tags": [
+        "validity"
+      ]
+    }
+  ]
+}

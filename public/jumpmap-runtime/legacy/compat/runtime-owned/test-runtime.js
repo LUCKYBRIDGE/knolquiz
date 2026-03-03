@@ -998,6 +998,38 @@
             };
           });
           break;
+        case 'cube-only-100':
+          next.questionCount = 100;
+          next.timeLimitSec = 30;
+          next.loopQuestions = true;
+          Object.keys(next.questionTypes).forEach((key) => {
+            const isCube = key.startsWith('cube_');
+            next.questionTypes[key] = {
+              ...(next.questionTypes[key] || {}),
+              enabled: isCube,
+              count: isCube ? 8 : 0
+            };
+          });
+          break;
+        case 'cuboid-only-100':
+          next.questionCount = 100;
+          next.timeLimitSec = 30;
+          next.loopQuestions = true;
+          Object.keys(next.questionTypes).forEach((key) => {
+            const isCuboid = key.startsWith('cuboid_');
+            next.questionTypes[key] = {
+              ...(next.questionTypes[key] || {}),
+              enabled: isCuboid,
+              count: isCuboid ? 8 : 0
+            };
+          });
+          break;
+        case 'jumpmap-net-100':
+          next.questionCount = 100;
+          next.timeLimitSec = 30;
+          next.loopQuestions = true;
+          setAllTypes(true, 5);
+          break;
         case 'pvam-area-2digit':
           next.questionCount = 12;
           next.timeLimitSec = 30;
@@ -1020,6 +1052,14 @@
     );
     const getLauncherPvamQuestionCount = (presetId) => (
       presetId === 'pvam-area-2digit-100' ? 100 : 12
+    );
+    const LAUNCHER_STATIC_NET_PRESET_FILES = Object.freeze({
+      'cube-only-100': '../../../../quiz/data/net-cube-100.json',
+      'cuboid-only-100': '../../../../quiz/data/net-cuboid-100.json',
+      'jumpmap-net-100': '../../../../quiz/data/net-mixed-100.json'
+    });
+    const resolveLauncherStaticNetPresetPath = (presetId) => (
+      LAUNCHER_STATIC_NET_PRESET_FILES[String(presetId || '').trim()] || ''
     );
     const shouldUseLauncherCsvBank = (launcherSetup) => {
       if (!launcherSetup || typeof launcherSetup !== 'object') return false;
@@ -1105,6 +1145,41 @@
       return {
         bank,
         message: `영역모델 문제 ${normalizedQuestions.length}개를 사용합니다.`
+      };
+    };
+    const resolveLauncherStaticNetQuestionBank = async (resources) => {
+      const launcherSetup = getLauncherSetup();
+      const presetId = String(launcherSetup?.quizPresetId || '').trim();
+      const filePath = resolveLauncherStaticNetPresetPath(presetId);
+      if (!filePath) {
+        return { bank: null, message: '' };
+      }
+      let payload = null;
+      try {
+        payload = await loadJson(resolveEditorRuntimeAssetUrl(filePath));
+      } catch (error) {
+        return {
+          bank: null,
+          message: `전개도 100문제 파일 로드 실패: ${error?.message || error}`
+        };
+      }
+      const rawQuestions = Array.isArray(payload?.questions) ? payload.questions : [];
+      if (!rawQuestions.length) {
+        return { bank: null, message: '전개도 100문제에서 questions 목록을 찾지 못했습니다.' };
+      }
+      const bank = { questions: rawQuestions };
+      const validation = resources.validateQuestionBank
+        ? resources.validateQuestionBank(bank)
+        : { valid: true, errors: [] };
+      if (!validation?.valid) {
+        return {
+          bank: null,
+          message: `전개도 100문제 검증 실패: ${validation?.errors?.[0] || 'invalid bank'}`
+        };
+      }
+      return {
+        bank,
+        message: `전개도 100문제 ${rawQuestions.length}개를 사용합니다.`
       };
     };
     const parseLauncherQuestionBankPayload = (resources, rawText, fileName) => {
@@ -1418,14 +1493,24 @@
         questionTypes: { ...(resources.defaults?.questionTypes || {}) }
       });
       const launcherCsv = resolveLauncherCsvQuestionBank(resources);
+      const launcherStaticNet = await resolveLauncherStaticNetQuestionBank(resources);
       const launcherPvam = await resolveLauncherPvamQuestionBank(resources);
       const questionBank = launcherCsv.bank
         ? launcherCsv.bank
+        : launcherStaticNet.bank
+          ? launcherStaticNet.bank
         : launcherPvam.bank
           ? launcherPvam.bank
           : resources.buildWeightedQuestionBank(resources.banks, settings);
       if (launcherCsv.bank) {
         settings.questionCount = Math.max(1, launcherCsv.bank.questions.length);
+        settings.selectionMode = 'random';
+        settings.avoidRepeat = true;
+        settings.shuffleChoices = true;
+        settings.loopQuestions = true;
+        settings.quizEndMode = 'time';
+      } else if (launcherStaticNet.bank) {
+        settings.questionCount = Math.max(1, launcherStaticNet.bank.questions.length);
         settings.selectionMode = 'random';
         settings.avoidRepeat = true;
         settings.shuffleChoices = true;
@@ -1442,8 +1527,15 @@
       console.log('[JumpmapTestRuntime] quiz session:create done', {
         index,
         questionCount: Number(questionBank?.questions?.length || 0),
-        source: launcherCsv.bank ? 'launcher-csv' : launcherPvam.bank ? 'launcher-pvam' : 'preset',
+        source: launcherCsv.bank
+          ? 'launcher-csv'
+          : launcherStaticNet.bank
+            ? 'launcher-static-net'
+            : launcherPvam.bank
+              ? 'launcher-pvam'
+              : 'preset',
         launcherCsvMessage: launcherCsv.message || '',
+        launcherStaticNetMessage: launcherStaticNet.message || '',
         launcherPvamMessage: launcherPvam.message || ''
       });
       return {

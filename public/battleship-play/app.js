@@ -58,6 +58,11 @@ const PRESET_TYPE_COUNTS = Object.freeze({
   'cube-only-24': { cube: 8 },
   'cuboid-only-24': { cuboid: 8 }
 });
+const LAUNCHER_STATIC_NET_PRESET_FILES = Object.freeze({
+  'cube-only-100': '../quiz/data/net-cube-100.json',
+  'cuboid-only-100': '../quiz/data/net-cuboid-100.json',
+  'jumpmap-net-100': '../quiz/data/net-mixed-100.json'
+});
 const MIN_LOADING_MS = 5000;
 const LOADING_ROTATE_MS = 1400;
 const LOADING_GAME_TIPS = Object.freeze([
@@ -496,6 +501,12 @@ const isLauncherPvamPreset = (presetId) => (
   presetId === 'pvam-area-2digit' || presetId === 'pvam-area-2digit-100'
 );
 
+const resolveLauncherStaticNetPresetPath = (presetId) => (
+  LAUNCHER_STATIC_NET_PRESET_FILES[String(presetId || '').trim()] || ''
+);
+
+const isLauncherStaticNetPreset = (presetId) => Boolean(resolveLauncherStaticNetPresetPath(presetId));
+
 const getLauncherPvamQuestionCount = (presetId) => (
   presetId === 'pvam-area-2digit-100' ? 100 : 12
 );
@@ -535,6 +546,17 @@ const loadPvamPresetQuestions = async (presetId) => {
     .filter(Boolean);
 };
 
+const loadLauncherStaticNetQuestions = async (presetId) => {
+  const filePath = resolveLauncherStaticNetPresetPath(presetId);
+  if (!filePath) return [];
+  const payload = await fetch(filePath, { cache: 'no-store' }).then((res) => {
+    if (!res.ok) throw new Error(`전개도 문제 파일 로드 실패 (${res.status})`);
+    return res.json();
+  });
+  const rawQuestions = Array.isArray(payload?.questions) ? payload.questions : [];
+  return rawQuestions.filter(isBattleUsableQuestion);
+};
+
 const loadBaseBanks = async () => {
   const [facecolor, edgecolor, validity] = await Promise.all([
     fetch('../quiz/data/facecolor-questions.json', { cache: 'no-store' }).then((res) => res.json()),
@@ -566,6 +588,11 @@ const loadQuizBank = async () => {
       usableQuestions = parsed.bank.questions.filter(isBattleUsableQuestion);
       if (!usableQuestions.length) {
         throw new Error('전투 퀴즈로 사용할 문항(객관식 또는 주관식)을 찾지 못했습니다.');
+      }
+    } else if (isLauncherStaticNetPreset(setup.launcherQuizPresetId)) {
+      usableQuestions = await loadLauncherStaticNetQuestions(setup.launcherQuizPresetId);
+      if (!usableQuestions.length) {
+        throw new Error('전개도 100문제를 전투 퀴즈로 불러오지 못했습니다.');
       }
     } else if (isLauncherPvamPreset(setup.launcherQuizPresetId)) {
       usableQuestions = (await loadPvamPresetQuestions(setup.launcherQuizPresetId))

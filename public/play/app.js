@@ -11,6 +11,9 @@ const QUIZ_PRESET_LABELS = {
   'jumpmap-net-12': '전개도 학습 12문제',
   'cube-only-24': '정육면체 중심 24문제',
   'cuboid-only-24': '직육면체 중심 24문제',
+  'cube-only-100': '정육면체 100문제',
+  'cuboid-only-100': '직육면체 100문제',
+  'jumpmap-net-100': '종합 100문제',
   'pvam-area-2digit': '몇십몇×몇십몇(영역모델)',
   'pvam-area-2digit-100': '몇십몇×몇십몇 100문제(영역모델)',
   'csv-upload': '업로드 CSV 문제'

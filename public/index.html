@@ -793,6 +793,21 @@
             desc: '직육면체 전개도 중심 출제'
           },
           {
+            id: 'cube-only-100',
+            title: '정육면체 100문제',
+            desc: '100문제 · 정육면체 전개도 집중 훈련'
+          },
+          {
+            id: 'cuboid-only-100',
+            title: '직육면체 100문제',
+            desc: '100문제 · 직육면체 전개도 집중 훈련'
+          },
+          {
+            id: 'jumpmap-net-100',
+            title: '종합 100문제',
+            desc: '100문제 · 정육면체/직육면체 종합'
+          },
+          {
             id: 'pvam-area-2digit',
             title: '몇십몇×몇십몇(영역모델)',
             desc: '영역모델 + 자릿값 세로셈 과정을 채우는 학습 퀴즈'
@@ -1023,6 +1038,10 @@
             case 'cube-only-24':
             case 'cuboid-only-24':
               return 24;
+            case 'cube-only-100':
+            case 'cuboid-only-100':
+            case 'jumpmap-net-100':
+              return 100;
             case 'pvam-area-2digit':
               return 12;
             case 'pvam-area-2digit-100':
