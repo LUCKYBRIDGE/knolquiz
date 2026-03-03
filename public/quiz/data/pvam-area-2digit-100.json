@@ -1,0 +1,7618 @@
+{
+  "meta": {
+    "id": "pvam-area-2digit-100",
+    "title": "몇십몇×몇십몇 100문제(영역모델)",
+    "description": "자동 생성된 100문제 고정 세트",
+    "generator": "place-value-area-model",
+    "seed": 1001,
+    "min": 11,
+    "max": 99,
+    "taskKinds": [
+      "single_missing"
+    ],
+    "carryMode": "any",
+    "generatedAt": "2026-03-03T05:11:10.498Z"
+  },
+  "questions": [
+    {
+      "id": "pvam-single_missing-23x34-1001",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "23 x 34",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          23,
+          34
+        ],
+        "decomposition": {
+          "a": [
+            20,
+            3
+          ],
+          "b": [
+            30,
+            4
+          ]
+        },
+        "singleMissingTarget": "row_sum_1"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_1",
+            "kind": "integer",
+            "solutionPath": "rowSums.1"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            20,
+            3
+          ],
+          "b": [
+            30,
+            4
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 690,
+          "cell_r0c1": 92,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          690,
+          92
+        ],
+        "colSums": [
+          690,
+          92
+        ],
+        "total": 782
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-49x58-1002",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "49 x 58",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          49,
+          58
+        ],
+        "decomposition": {
+          "a": [
+            40,
+            9
+          ],
+          "b": [
+            50,
+            8
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            40,
+            9
+          ],
+          "b": [
+            50,
+            8
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 2450,
+          "cell_r0c1": 392,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          2450,
+          392
+        ],
+        "colSums": [
+          2450,
+          392
+        ],
+        "total": 2842
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-40x30-1003",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "40 x 30",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          40,
+          30
+        ],
+        "decomposition": {
+          "a": [
+            40,
+            0
+          ],
+          "b": [
+            30,
+            0
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            40,
+            0
+          ],
+          "b": [
+            30,
+            0
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 1200,
+          "cell_r0c1": 0,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          1200,
+          0
+        ],
+        "colSums": [
+          1200,
+          0
+        ],
+        "total": 1200
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-26x35-1004",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "26 x 35",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          26,
+          35
+        ],
+        "decomposition": {
+          "a": [
+            20,
+            6
+          ],
+          "b": [
+            30,
+            5
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            20,
+            6
+          ],
+          "b": [
+            30,
+            5
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 780,
+          "cell_r0c1": 130,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          780,
+          130
+        ],
+        "colSums": [
+          780,
+          130
+        ],
+        "total": 910
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-48x72-1005",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "48 x 72",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          48,
+          72
+        ],
+        "decomposition": {
+          "a": [
+            40,
+            8
+          ],
+          "b": [
+            70,
+            2
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            40,
+            8
+          ],
+          "b": [
+            70,
+            2
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 3360,
+          "cell_r0c1": 96,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          3360,
+          96
+        ],
+        "colSums": [
+          3360,
+          96
+        ],
+        "total": 3456
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-42x30-1006",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "42 x 30",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          42,
+          30
+        ],
+        "decomposition": {
+          "a": [
+            40,
+            2
+          ],
+          "b": [
+            30,
+            0
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            40,
+            2
+          ],
+          "b": [
+            30,
+            0
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 1260,
+          "cell_r0c1": 0,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          1260,
+          0
+        ],
+        "colSums": [
+          1260,
+          0
+        ],
+        "total": 1260
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-88x32-1007",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "88 x 32",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          88,
+          32
+        ],
+        "decomposition": {
+          "a": [
+            80,
+            8
+          ],
+          "b": [
+            30,
+            2
+          ]
+        },
+        "singleMissingTarget": "row_sum_1"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_1",
+            "kind": "integer",
+            "solutionPath": "rowSums.1"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            80,
+            8
+          ],
+          "b": [
+            30,
+            2
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 2640,
+          "cell_r0c1": 176,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          2640,
+          176
+        ],
+        "colSums": [
+          2640,
+          176
+        ],
+        "total": 2816
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-79x75-1008",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "79 x 75",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          79,
+          75
+        ],
+        "decomposition": {
+          "a": [
+            70,
+            9
+          ],
+          "b": [
+            70,
+            5
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            70,
+            9
+          ],
+          "b": [
+            70,
+            5
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 5530,
+          "cell_r0c1": 395,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          5530,
+          395
+        ],
+        "colSums": [
+          5530,
+          395
+        ],
+        "total": 5925
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-72x67-1009",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "72 x 67",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          72,
+          67
+        ],
+        "decomposition": {
+          "a": [
+            70,
+            2
+          ],
+          "b": [
+            60,
+            7
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            70,
+            2
+          ],
+          "b": [
+            60,
+            7
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 4320,
+          "cell_r0c1": 504,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          4320,
+          504
+        ],
+        "colSums": [
+          4320,
+          504
+        ],
+        "total": 4824
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-49x82-1010",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "49 x 82",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          49,
+          82
+        ],
+        "decomposition": {
+          "a": [
+            40,
+            9
+          ],
+          "b": [
+            80,
+            2
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            40,
+            9
+          ],
+          "b": [
+            80,
+            2
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 3920,
+          "cell_r0c1": 98,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          3920,
+          98
+        ],
+        "colSums": [
+          3920,
+          98
+        ],
+        "total": 4018
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-99x70-1011",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "99 x 70",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          99,
+          70
+        ],
+        "decomposition": {
+          "a": [
+            90,
+            9
+          ],
+          "b": [
+            70,
+            0
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            90,
+            9
+          ],
+          "b": [
+            70,
+            0
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 6930,
+          "cell_r0c1": 0,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          6930,
+          0
+        ],
+        "colSums": [
+          6930,
+          0
+        ],
+        "total": 6930
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-37x59-1012",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "37 x 59",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          37,
+          59
+        ],
+        "decomposition": {
+          "a": [
+            30,
+            7
+          ],
+          "b": [
+            50,
+            9
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            30,
+            7
+          ],
+          "b": [
+            50,
+            9
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 1850,
+          "cell_r0c1": 333,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          1850,
+          333
+        ],
+        "colSums": [
+          1850,
+          333
+        ],
+        "total": 2183
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-12x28-1013",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "12 x 28",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          12,
+          28
+        ],
+        "decomposition": {
+          "a": [
+            10,
+            2
+          ],
+          "b": [
+            20,
+            8
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            10,
+            2
+          ],
+          "b": [
+            20,
+            8
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 240,
+          "cell_r0c1": 96,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          240,
+          96
+        ],
+        "colSums": [
+          240,
+          96
+        ],
+        "total": 336
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-25x83-1014",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "25 x 83",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          25,
+          83
+        ],
+        "decomposition": {
+          "a": [
+            20,
+            5
+          ],
+          "b": [
+            80,
+            3
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            20,
+            5
+          ],
+          "b": [
+            80,
+            3
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 2000,
+          "cell_r0c1": 75,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          2000,
+          75
+        ],
+        "colSums": [
+          2000,
+          75
+        ],
+        "total": 2075
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-33x95-1015",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "33 x 95",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          33,
+          95
+        ],
+        "decomposition": {
+          "a": [
+            30,
+            3
+          ],
+          "b": [
+            90,
+            5
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            30,
+            3
+          ],
+          "b": [
+            90,
+            5
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 2970,
+          "cell_r0c1": 165,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          2970,
+          165
+        ],
+        "colSums": [
+          2970,
+          165
+        ],
+        "total": 3135
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-98x99-1016",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "98 x 99",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          98,
+          99
+        ],
+        "decomposition": {
+          "a": [
+            90,
+            8
+          ],
+          "b": [
+            90,
+            9
+          ]
+        },
+        "singleMissingTarget": "row_sum_1"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_1",
+            "kind": "integer",
+            "solutionPath": "rowSums.1"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            90,
+            8
+          ],
+          "b": [
+            90,
+            9
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 8820,
+          "cell_r0c1": 882,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          8820,
+          882
+        ],
+        "colSums": [
+          8820,
+          882
+        ],
+        "total": 9702
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-30x27-1017",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "30 x 27",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          30,
+          27
+        ],
+        "decomposition": {
+          "a": [
+            30,
+            0
+          ],
+          "b": [
+            20,
+            7
+          ]
+        },
+        "singleMissingTarget": "row_sum_1"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_1",
+            "kind": "integer",
+            "solutionPath": "rowSums.1"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            30,
+            0
+          ],
+          "b": [
+            20,
+            7
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 600,
+          "cell_r0c1": 210,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          600,
+          210
+        ],
+        "colSums": [
+          600,
+          210
+        ],
+        "total": 810
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-74x86-1018",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "74 x 86",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          74,
+          86
+        ],
+        "decomposition": {
+          "a": [
+            70,
+            4
+          ],
+          "b": [
+            80,
+            6
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            70,
+            4
+          ],
+          "b": [
+            80,
+            6
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 5920,
+          "cell_r0c1": 444,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          5920,
+          444
+        ],
+        "colSums": [
+          5920,
+          444
+        ],
+        "total": 6364
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-16x98-1019",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "16 x 98",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          16,
+          98
+        ],
+        "decomposition": {
+          "a": [
+            10,
+            6
+          ],
+          "b": [
+            90,
+            8
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            10,
+            6
+          ],
+          "b": [
+            90,
+            8
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 1440,
+          "cell_r0c1": 128,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          1440,
+          128
+        ],
+        "colSums": [
+          1440,
+          128
+        ],
+        "total": 1568
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-21x94-1020",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "21 x 94",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          21,
+          94
+        ],
+        "decomposition": {
+          "a": [
+            20,
+            1
+          ],
+          "b": [
+            90,
+            4
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            20,
+            1
+          ],
+          "b": [
+            90,
+            4
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 1890,
+          "cell_r0c1": 84,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          1890,
+          84
+        ],
+        "colSums": [
+          1890,
+          84
+        ],
+        "total": 1974
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-95x89-1021",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "95 x 89",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          95,
+          89
+        ],
+        "decomposition": {
+          "a": [
+            90,
+            5
+          ],
+          "b": [
+            80,
+            9
+          ]
+        },
+        "singleMissingTarget": "row_sum_1"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_1",
+            "kind": "integer",
+            "solutionPath": "rowSums.1"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            90,
+            5
+          ],
+          "b": [
+            80,
+            9
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 7600,
+          "cell_r0c1": 855,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          7600,
+          855
+        ],
+        "colSums": [
+          7600,
+          855
+        ],
+        "total": 8455
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-91x44-1022",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "91 x 44",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          91,
+          44
+        ],
+        "decomposition": {
+          "a": [
+            90,
+            1
+          ],
+          "b": [
+            40,
+            4
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            90,
+            1
+          ],
+          "b": [
+            40,
+            4
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 3640,
+          "cell_r0c1": 364,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          3640,
+          364
+        ],
+        "colSums": [
+          3640,
+          364
+        ],
+        "total": 4004
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-60x95-1023",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "60 x 95",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          60,
+          95
+        ],
+        "decomposition": {
+          "a": [
+            60,
+            0
+          ],
+          "b": [
+            90,
+            5
+          ]
+        },
+        "singleMissingTarget": "row_sum_1"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_1",
+            "kind": "integer",
+            "solutionPath": "rowSums.1"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            60,
+            0
+          ],
+          "b": [
+            90,
+            5
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 5400,
+          "cell_r0c1": 300,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          5400,
+          300
+        ],
+        "colSums": [
+          5400,
+          300
+        ],
+        "total": 5700
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-43x36-1024",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "43 x 36",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          43,
+          36
+        ],
+        "decomposition": {
+          "a": [
+            40,
+            3
+          ],
+          "b": [
+            30,
+            6
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            40,
+            3
+          ],
+          "b": [
+            30,
+            6
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 1290,
+          "cell_r0c1": 258,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          1290,
+          258
+        ],
+        "colSums": [
+          1290,
+          258
+        ],
+        "total": 1548
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-97x62-1025",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "97 x 62",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          97,
+          62
+        ],
+        "decomposition": {
+          "a": [
+            90,
+            7
+          ],
+          "b": [
+            60,
+            2
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            90,
+            7
+          ],
+          "b": [
+            60,
+            2
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 5820,
+          "cell_r0c1": 194,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          5820,
+          194
+        ],
+        "colSums": [
+          5820,
+          194
+        ],
+        "total": 6014
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-29x65-1026",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "29 x 65",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          29,
+          65
+        ],
+        "decomposition": {
+          "a": [
+            20,
+            9
+          ],
+          "b": [
+            60,
+            5
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            20,
+            9
+          ],
+          "b": [
+            60,
+            5
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 1740,
+          "cell_r0c1": 145,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          1740,
+          145
+        ],
+        "colSums": [
+          1740,
+          145
+        ],
+        "total": 1885
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-47x86-1027",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "47 x 86",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          47,
+          86
+        ],
+        "decomposition": {
+          "a": [
+            40,
+            7
+          ],
+          "b": [
+            80,
+            6
+          ]
+        },
+        "singleMissingTarget": "row_sum_1"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_1",
+            "kind": "integer",
+            "solutionPath": "rowSums.1"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            40,
+            7
+          ],
+          "b": [
+            80,
+            6
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 3760,
+          "cell_r0c1": 282,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          3760,
+          282
+        ],
+        "colSums": [
+          3760,
+          282
+        ],
+        "total": 4042
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-17x26-1028",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "17 x 26",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          17,
+          26
+        ],
+        "decomposition": {
+          "a": [
+            10,
+            7
+          ],
+          "b": [
+            20,
+            6
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            10,
+            7
+          ],
+          "b": [
+            20,
+            6
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 340,
+          "cell_r0c1": 102,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          340,
+          102
+        ],
+        "colSums": [
+          340,
+          102
+        ],
+        "total": 442
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-21x44-1029",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "21 x 44",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          21,
+          44
+        ],
+        "decomposition": {
+          "a": [
+            20,
+            1
+          ],
+          "b": [
+            40,
+            4
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            20,
+            1
+          ],
+          "b": [
+            40,
+            4
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 840,
+          "cell_r0c1": 84,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          840,
+          84
+        ],
+        "colSums": [
+          840,
+          84
+        ],
+        "total": 924
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-69x34-1030",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "69 x 34",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          69,
+          34
+        ],
+        "decomposition": {
+          "a": [
+            60,
+            9
+          ],
+          "b": [
+            30,
+            4
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            60,
+            9
+          ],
+          "b": [
+            30,
+            4
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 2070,
+          "cell_r0c1": 276,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          2070,
+          276
+        ],
+        "colSums": [
+          2070,
+          276
+        ],
+        "total": 2346
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-93x83-1031",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "93 x 83",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          93,
+          83
+        ],
+        "decomposition": {
+          "a": [
+            90,
+            3
+          ],
+          "b": [
+            80,
+            3
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            90,
+            3
+          ],
+          "b": [
+            80,
+            3
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 7440,
+          "cell_r0c1": 279,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          7440,
+          279
+        ],
+        "colSums": [
+          7440,
+          279
+        ],
+        "total": 7719
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-78x63-1032",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "78 x 63",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          78,
+          63
+        ],
+        "decomposition": {
+          "a": [
+            70,
+            8
+          ],
+          "b": [
+            60,
+            3
+          ]
+        },
+        "singleMissingTarget": "row_sum_1"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_1",
+            "kind": "integer",
+            "solutionPath": "rowSums.1"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            70,
+            8
+          ],
+          "b": [
+            60,
+            3
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 4680,
+          "cell_r0c1": 234,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          4680,
+          234
+        ],
+        "colSums": [
+          4680,
+          234
+        ],
+        "total": 4914
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-75x81-1033",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "75 x 81",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          75,
+          81
+        ],
+        "decomposition": {
+          "a": [
+            70,
+            5
+          ],
+          "b": [
+            80,
+            1
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            70,
+            5
+          ],
+          "b": [
+            80,
+            1
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 6000,
+          "cell_r0c1": 75,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          6000,
+          75
+        ],
+        "colSums": [
+          6000,
+          75
+        ],
+        "total": 6075
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-79x78-1034",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "79 x 78",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          79,
+          78
+        ],
+        "decomposition": {
+          "a": [
+            70,
+            9
+          ],
+          "b": [
+            70,
+            8
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            70,
+            9
+          ],
+          "b": [
+            70,
+            8
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 5530,
+          "cell_r0c1": 632,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          5530,
+          632
+        ],
+        "colSums": [
+          5530,
+          632
+        ],
+        "total": 6162
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-64x98-1035",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "64 x 98",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          64,
+          98
+        ],
+        "decomposition": {
+          "a": [
+            60,
+            4
+          ],
+          "b": [
+            90,
+            8
+          ]
+        },
+        "singleMissingTarget": "row_sum_1"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_1",
+            "kind": "integer",
+            "solutionPath": "rowSums.1"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            60,
+            4
+          ],
+          "b": [
+            90,
+            8
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 5760,
+          "cell_r0c1": 512,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          5760,
+          512
+        ],
+        "colSums": [
+          5760,
+          512
+        ],
+        "total": 6272
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-92x87-1036",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "92 x 87",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          92,
+          87
+        ],
+        "decomposition": {
+          "a": [
+            90,
+            2
+          ],
+          "b": [
+            80,
+            7
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            90,
+            2
+          ],
+          "b": [
+            80,
+            7
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 7360,
+          "cell_r0c1": 644,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          7360,
+          644
+        ],
+        "colSums": [
+          7360,
+          644
+        ],
+        "total": 8004
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-61x46-1037",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "61 x 46",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          61,
+          46
+        ],
+        "decomposition": {
+          "a": [
+            60,
+            1
+          ],
+          "b": [
+            40,
+            6
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            60,
+            1
+          ],
+          "b": [
+            40,
+            6
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 2440,
+          "cell_r0c1": 366,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          2440,
+          366
+        ],
+        "colSums": [
+          2440,
+          366
+        ],
+        "total": 2806
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-11x62-1038",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "11 x 62",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          11,
+          62
+        ],
+        "decomposition": {
+          "a": [
+            10,
+            1
+          ],
+          "b": [
+            60,
+            2
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            10,
+            1
+          ],
+          "b": [
+            60,
+            2
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 660,
+          "cell_r0c1": 22,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          660,
+          22
+        ],
+        "colSums": [
+          660,
+          22
+        ],
+        "total": 682
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-61x53-1039",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "61 x 53",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          61,
+          53
+        ],
+        "decomposition": {
+          "a": [
+            60,
+            1
+          ],
+          "b": [
+            50,
+            3
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            60,
+            1
+          ],
+          "b": [
+            50,
+            3
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 3050,
+          "cell_r0c1": 183,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          3050,
+          183
+        ],
+        "colSums": [
+          3050,
+          183
+        ],
+        "total": 3233
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-21x68-1040",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "21 x 68",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          21,
+          68
+        ],
+        "decomposition": {
+          "a": [
+            20,
+            1
+          ],
+          "b": [
+            60,
+            8
+          ]
+        },
+        "singleMissingTarget": "row_sum_1"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_1",
+            "kind": "integer",
+            "solutionPath": "rowSums.1"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            20,
+            1
+          ],
+          "b": [
+            60,
+            8
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 1260,
+          "cell_r0c1": 168,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          1260,
+          168
+        ],
+        "colSums": [
+          1260,
+          168
+        ],
+        "total": 1428
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-51x44-1041",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "51 x 44",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          51,
+          44
+        ],
+        "decomposition": {
+          "a": [
+            50,
+            1
+          ],
+          "b": [
+            40,
+            4
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            50,
+            1
+          ],
+          "b": [
+            40,
+            4
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 2040,
+          "cell_r0c1": 204,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          2040,
+          204
+        ],
+        "colSums": [
+          2040,
+          204
+        ],
+        "total": 2244
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-36x50-1042",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "36 x 50",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          36,
+          50
+        ],
+        "decomposition": {
+          "a": [
+            30,
+            6
+          ],
+          "b": [
+            50,
+            0
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            30,
+            6
+          ],
+          "b": [
+            50,
+            0
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 1800,
+          "cell_r0c1": 0,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          1800,
+          0
+        ],
+        "colSums": [
+          1800,
+          0
+        ],
+        "total": 1800
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-46x64-1043",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "46 x 64",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          46,
+          64
+        ],
+        "decomposition": {
+          "a": [
+            40,
+            6
+          ],
+          "b": [
+            60,
+            4
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            40,
+            6
+          ],
+          "b": [
+            60,
+            4
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 2760,
+          "cell_r0c1": 184,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          2760,
+          184
+        ],
+        "colSums": [
+          2760,
+          184
+        ],
+        "total": 2944
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-39x24-1044",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "39 x 24",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          39,
+          24
+        ],
+        "decomposition": {
+          "a": [
+            30,
+            9
+          ],
+          "b": [
+            20,
+            4
+          ]
+        },
+        "singleMissingTarget": "row_sum_1"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_1",
+            "kind": "integer",
+            "solutionPath": "rowSums.1"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            30,
+            9
+          ],
+          "b": [
+            20,
+            4
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 780,
+          "cell_r0c1": 156,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          780,
+          156
+        ],
+        "colSums": [
+          780,
+          156
+        ],
+        "total": 936
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-50x29-1045",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "50 x 29",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          50,
+          29
+        ],
+        "decomposition": {
+          "a": [
+            50,
+            0
+          ],
+          "b": [
+            20,
+            9
+          ]
+        },
+        "singleMissingTarget": "row_sum_1"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_1",
+            "kind": "integer",
+            "solutionPath": "rowSums.1"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            50,
+            0
+          ],
+          "b": [
+            20,
+            9
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 1000,
+          "cell_r0c1": 450,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          1000,
+          450
+        ],
+        "colSums": [
+          1000,
+          450
+        ],
+        "total": 1450
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-66x33-1046",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "66 x 33",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          66,
+          33
+        ],
+        "decomposition": {
+          "a": [
+            60,
+            6
+          ],
+          "b": [
+            30,
+            3
+          ]
+        },
+        "singleMissingTarget": "row_sum_1"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_1",
+            "kind": "integer",
+            "solutionPath": "rowSums.1"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            60,
+            6
+          ],
+          "b": [
+            30,
+            3
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 1980,
+          "cell_r0c1": 198,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          1980,
+          198
+        ],
+        "colSums": [
+          1980,
+          198
+        ],
+        "total": 2178
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-59x80-1047",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "59 x 80",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          59,
+          80
+        ],
+        "decomposition": {
+          "a": [
+            50,
+            9
+          ],
+          "b": [
+            80,
+            0
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            50,
+            9
+          ],
+          "b": [
+            80,
+            0
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 4720,
+          "cell_r0c1": 0,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          4720,
+          0
+        ],
+        "colSums": [
+          4720,
+          0
+        ],
+        "total": 4720
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-34x63-1048",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "34 x 63",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          34,
+          63
+        ],
+        "decomposition": {
+          "a": [
+            30,
+            4
+          ],
+          "b": [
+            60,
+            3
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            30,
+            4
+          ],
+          "b": [
+            60,
+            3
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 2040,
+          "cell_r0c1": 102,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          2040,
+          102
+        ],
+        "colSums": [
+          2040,
+          102
+        ],
+        "total": 2142
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-92x88-1049",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "92 x 88",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          92,
+          88
+        ],
+        "decomposition": {
+          "a": [
+            90,
+            2
+          ],
+          "b": [
+            80,
+            8
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            90,
+            2
+          ],
+          "b": [
+            80,
+            8
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 7360,
+          "cell_r0c1": 736,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          7360,
+          736
+        ],
+        "colSums": [
+          7360,
+          736
+        ],
+        "total": 8096
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-72x75-1050",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "72 x 75",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          72,
+          75
+        ],
+        "decomposition": {
+          "a": [
+            70,
+            2
+          ],
+          "b": [
+            70,
+            5
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            70,
+            2
+          ],
+          "b": [
+            70,
+            5
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 5040,
+          "cell_r0c1": 360,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          5040,
+          360
+        ],
+        "colSums": [
+          5040,
+          360
+        ],
+        "total": 5400
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-35x56-1051",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "35 x 56",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          35,
+          56
+        ],
+        "decomposition": {
+          "a": [
+            30,
+            5
+          ],
+          "b": [
+            50,
+            6
+          ]
+        },
+        "singleMissingTarget": "row_sum_1"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_1",
+            "kind": "integer",
+            "solutionPath": "rowSums.1"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            30,
+            5
+          ],
+          "b": [
+            50,
+            6
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 1750,
+          "cell_r0c1": 210,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          1750,
+          210
+        ],
+        "colSums": [
+          1750,
+          210
+        ],
+        "total": 1960
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-72x72-1052",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "72 x 72",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          72,
+          72
+        ],
+        "decomposition": {
+          "a": [
+            70,
+            2
+          ],
+          "b": [
+            70,
+            2
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            70,
+            2
+          ],
+          "b": [
+            70,
+            2
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 5040,
+          "cell_r0c1": 144,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          5040,
+          144
+        ],
+        "colSums": [
+          5040,
+          144
+        ],
+        "total": 5184
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-34x65-1053",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "34 x 65",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          34,
+          65
+        ],
+        "decomposition": {
+          "a": [
+            30,
+            4
+          ],
+          "b": [
+            60,
+            5
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            30,
+            4
+          ],
+          "b": [
+            60,
+            5
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 2040,
+          "cell_r0c1": 170,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          2040,
+          170
+        ],
+        "colSums": [
+          2040,
+          170
+        ],
+        "total": 2210
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-83x65-1054",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "83 x 65",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          83,
+          65
+        ],
+        "decomposition": {
+          "a": [
+            80,
+            3
+          ],
+          "b": [
+            60,
+            5
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            80,
+            3
+          ],
+          "b": [
+            60,
+            5
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 4980,
+          "cell_r0c1": 415,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          4980,
+          415
+        ],
+        "colSums": [
+          4980,
+          415
+        ],
+        "total": 5395
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-24x23-1055",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "24 x 23",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          24,
+          23
+        ],
+        "decomposition": {
+          "a": [
+            20,
+            4
+          ],
+          "b": [
+            20,
+            3
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            20,
+            4
+          ],
+          "b": [
+            20,
+            3
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 480,
+          "cell_r0c1": 72,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          480,
+          72
+        ],
+        "colSums": [
+          480,
+          72
+        ],
+        "total": 552
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-84x43-1056",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "84 x 43",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          84,
+          43
+        ],
+        "decomposition": {
+          "a": [
+            80,
+            4
+          ],
+          "b": [
+            40,
+            3
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            80,
+            4
+          ],
+          "b": [
+            40,
+            3
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 3360,
+          "cell_r0c1": 252,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          3360,
+          252
+        ],
+        "colSums": [
+          3360,
+          252
+        ],
+        "total": 3612
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-59x87-1057",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "59 x 87",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          59,
+          87
+        ],
+        "decomposition": {
+          "a": [
+            50,
+            9
+          ],
+          "b": [
+            80,
+            7
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            50,
+            9
+          ],
+          "b": [
+            80,
+            7
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 4720,
+          "cell_r0c1": 413,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          4720,
+          413
+        ],
+        "colSums": [
+          4720,
+          413
+        ],
+        "total": 5133
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-59x80-1058",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "59 x 80",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          59,
+          80
+        ],
+        "decomposition": {
+          "a": [
+            50,
+            9
+          ],
+          "b": [
+            80,
+            0
+          ]
+        },
+        "singleMissingTarget": "row_sum_1"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_1",
+            "kind": "integer",
+            "solutionPath": "rowSums.1"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            50,
+            9
+          ],
+          "b": [
+            80,
+            0
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 4720,
+          "cell_r0c1": 0,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          4720,
+          0
+        ],
+        "colSums": [
+          4720,
+          0
+        ],
+        "total": 4720
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-53x41-1059",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "53 x 41",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          53,
+          41
+        ],
+        "decomposition": {
+          "a": [
+            50,
+            3
+          ],
+          "b": [
+            40,
+            1
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            50,
+            3
+          ],
+          "b": [
+            40,
+            1
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 2120,
+          "cell_r0c1": 53,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          2120,
+          53
+        ],
+        "colSums": [
+          2120,
+          53
+        ],
+        "total": 2173
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-84x87-1060",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "84 x 87",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          84,
+          87
+        ],
+        "decomposition": {
+          "a": [
+            80,
+            4
+          ],
+          "b": [
+            80,
+            7
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            80,
+            4
+          ],
+          "b": [
+            80,
+            7
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 6720,
+          "cell_r0c1": 588,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          6720,
+          588
+        ],
+        "colSums": [
+          6720,
+          588
+        ],
+        "total": 7308
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-77x87-1061",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "77 x 87",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          77,
+          87
+        ],
+        "decomposition": {
+          "a": [
+            70,
+            7
+          ],
+          "b": [
+            80,
+            7
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            70,
+            7
+          ],
+          "b": [
+            80,
+            7
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 6160,
+          "cell_r0c1": 539,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          6160,
+          539
+        ],
+        "colSums": [
+          6160,
+          539
+        ],
+        "total": 6699
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-82x54-1062",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "82 x 54",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          82,
+          54
+        ],
+        "decomposition": {
+          "a": [
+            80,
+            2
+          ],
+          "b": [
+            50,
+            4
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            80,
+            2
+          ],
+          "b": [
+            50,
+            4
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 4100,
+          "cell_r0c1": 328,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          4100,
+          328
+        ],
+        "colSums": [
+          4100,
+          328
+        ],
+        "total": 4428
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-23x61-1063",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "23 x 61",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          23,
+          61
+        ],
+        "decomposition": {
+          "a": [
+            20,
+            3
+          ],
+          "b": [
+            60,
+            1
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            20,
+            3
+          ],
+          "b": [
+            60,
+            1
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 1380,
+          "cell_r0c1": 23,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          1380,
+          23
+        ],
+        "colSums": [
+          1380,
+          23
+        ],
+        "total": 1403
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-94x24-1064",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "94 x 24",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          94,
+          24
+        ],
+        "decomposition": {
+          "a": [
+            90,
+            4
+          ],
+          "b": [
+            20,
+            4
+          ]
+        },
+        "singleMissingTarget": "row_sum_1"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_1",
+            "kind": "integer",
+            "solutionPath": "rowSums.1"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            90,
+            4
+          ],
+          "b": [
+            20,
+            4
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 1880,
+          "cell_r0c1": 376,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          1880,
+          376
+        ],
+        "colSums": [
+          1880,
+          376
+        ],
+        "total": 2256
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-75x43-1065",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "75 x 43",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          75,
+          43
+        ],
+        "decomposition": {
+          "a": [
+            70,
+            5
+          ],
+          "b": [
+            40,
+            3
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            70,
+            5
+          ],
+          "b": [
+            40,
+            3
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 3000,
+          "cell_r0c1": 225,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          3000,
+          225
+        ],
+        "colSums": [
+          3000,
+          225
+        ],
+        "total": 3225
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-29x29-1066",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "29 x 29",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          29,
+          29
+        ],
+        "decomposition": {
+          "a": [
+            20,
+            9
+          ],
+          "b": [
+            20,
+            9
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            20,
+            9
+          ],
+          "b": [
+            20,
+            9
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 580,
+          "cell_r0c1": 261,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          580,
+          261
+        ],
+        "colSums": [
+          580,
+          261
+        ],
+        "total": 841
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-18x50-1067",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "18 x 50",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          18,
+          50
+        ],
+        "decomposition": {
+          "a": [
+            10,
+            8
+          ],
+          "b": [
+            50,
+            0
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            10,
+            8
+          ],
+          "b": [
+            50,
+            0
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 900,
+          "cell_r0c1": 0,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          900,
+          0
+        ],
+        "colSums": [
+          900,
+          0
+        ],
+        "total": 900
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-49x13-1068",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "49 x 13",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          49,
+          13
+        ],
+        "decomposition": {
+          "a": [
+            40,
+            9
+          ],
+          "b": [
+            10,
+            3
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            40,
+            9
+          ],
+          "b": [
+            10,
+            3
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 490,
+          "cell_r0c1": 147,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          490,
+          147
+        ],
+        "colSums": [
+          490,
+          147
+        ],
+        "total": 637
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-87x62-1069",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "87 x 62",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          87,
+          62
+        ],
+        "decomposition": {
+          "a": [
+            80,
+            7
+          ],
+          "b": [
+            60,
+            2
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            80,
+            7
+          ],
+          "b": [
+            60,
+            2
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 5220,
+          "cell_r0c1": 174,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          5220,
+          174
+        ],
+        "colSums": [
+          5220,
+          174
+        ],
+        "total": 5394
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-86x35-1070",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "86 x 35",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          86,
+          35
+        ],
+        "decomposition": {
+          "a": [
+            80,
+            6
+          ],
+          "b": [
+            30,
+            5
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            80,
+            6
+          ],
+          "b": [
+            30,
+            5
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 2580,
+          "cell_r0c1": 430,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          2580,
+          430
+        ],
+        "colSums": [
+          2580,
+          430
+        ],
+        "total": 3010
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-70x54-1071",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "70 x 54",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          70,
+          54
+        ],
+        "decomposition": {
+          "a": [
+            70,
+            0
+          ],
+          "b": [
+            50,
+            4
+          ]
+        },
+        "singleMissingTarget": "row_sum_1"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_1",
+            "kind": "integer",
+            "solutionPath": "rowSums.1"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            70,
+            0
+          ],
+          "b": [
+            50,
+            4
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 3500,
+          "cell_r0c1": 280,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          3500,
+          280
+        ],
+        "colSums": [
+          3500,
+          280
+        ],
+        "total": 3780
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-21x24-1072",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "21 x 24",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          21,
+          24
+        ],
+        "decomposition": {
+          "a": [
+            20,
+            1
+          ],
+          "b": [
+            20,
+            4
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            20,
+            1
+          ],
+          "b": [
+            20,
+            4
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 420,
+          "cell_r0c1": 84,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          420,
+          84
+        ],
+        "colSums": [
+          420,
+          84
+        ],
+        "total": 504
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-58x35-1073",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "58 x 35",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          58,
+          35
+        ],
+        "decomposition": {
+          "a": [
+            50,
+            8
+          ],
+          "b": [
+            30,
+            5
+          ]
+        },
+        "singleMissingTarget": "row_sum_1"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_1",
+            "kind": "integer",
+            "solutionPath": "rowSums.1"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            50,
+            8
+          ],
+          "b": [
+            30,
+            5
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 1740,
+          "cell_r0c1": 290,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          1740,
+          290
+        ],
+        "colSums": [
+          1740,
+          290
+        ],
+        "total": 2030
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-57x29-1074",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "57 x 29",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          57,
+          29
+        ],
+        "decomposition": {
+          "a": [
+            50,
+            7
+          ],
+          "b": [
+            20,
+            9
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            50,
+            7
+          ],
+          "b": [
+            20,
+            9
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 1140,
+          "cell_r0c1": 513,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          1140,
+          513
+        ],
+        "colSums": [
+          1140,
+          513
+        ],
+        "total": 1653
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-74x15-1075",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "74 x 15",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          74,
+          15
+        ],
+        "decomposition": {
+          "a": [
+            70,
+            4
+          ],
+          "b": [
+            10,
+            5
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            70,
+            4
+          ],
+          "b": [
+            10,
+            5
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 740,
+          "cell_r0c1": 370,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          740,
+          370
+        ],
+        "colSums": [
+          740,
+          370
+        ],
+        "total": 1110
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-54x33-1076",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "54 x 33",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          54,
+          33
+        ],
+        "decomposition": {
+          "a": [
+            50,
+            4
+          ],
+          "b": [
+            30,
+            3
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            50,
+            4
+          ],
+          "b": [
+            30,
+            3
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 1620,
+          "cell_r0c1": 162,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          1620,
+          162
+        ],
+        "colSums": [
+          1620,
+          162
+        ],
+        "total": 1782
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-91x68-1077",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "91 x 68",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          91,
+          68
+        ],
+        "decomposition": {
+          "a": [
+            90,
+            1
+          ],
+          "b": [
+            60,
+            8
+          ]
+        },
+        "singleMissingTarget": "row_sum_1"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_1",
+            "kind": "integer",
+            "solutionPath": "rowSums.1"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            90,
+            1
+          ],
+          "b": [
+            60,
+            8
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 5460,
+          "cell_r0c1": 728,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          5460,
+          728
+        ],
+        "colSums": [
+          5460,
+          728
+        ],
+        "total": 6188
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-92x55-1078",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "92 x 55",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          92,
+          55
+        ],
+        "decomposition": {
+          "a": [
+            90,
+            2
+          ],
+          "b": [
+            50,
+            5
+          ]
+        },
+        "singleMissingTarget": "row_sum_1"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_1",
+            "kind": "integer",
+            "solutionPath": "rowSums.1"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            90,
+            2
+          ],
+          "b": [
+            50,
+            5
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 4600,
+          "cell_r0c1": 460,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          4600,
+          460
+        ],
+        "colSums": [
+          4600,
+          460
+        ],
+        "total": 5060
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-32x86-1079",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "32 x 86",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          32,
+          86
+        ],
+        "decomposition": {
+          "a": [
+            30,
+            2
+          ],
+          "b": [
+            80,
+            6
+          ]
+        },
+        "singleMissingTarget": "row_sum_1"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_1",
+            "kind": "integer",
+            "solutionPath": "rowSums.1"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            30,
+            2
+          ],
+          "b": [
+            80,
+            6
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 2560,
+          "cell_r0c1": 192,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          2560,
+          192
+        ],
+        "colSums": [
+          2560,
+          192
+        ],
+        "total": 2752
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-96x68-1080",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "96 x 68",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          96,
+          68
+        ],
+        "decomposition": {
+          "a": [
+            90,
+            6
+          ],
+          "b": [
+            60,
+            8
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            90,
+            6
+          ],
+          "b": [
+            60,
+            8
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 5760,
+          "cell_r0c1": 768,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          5760,
+          768
+        ],
+        "colSums": [
+          5760,
+          768
+        ],
+        "total": 6528
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-11x66-1081",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "11 x 66",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          11,
+          66
+        ],
+        "decomposition": {
+          "a": [
+            10,
+            1
+          ],
+          "b": [
+            60,
+            6
+          ]
+        },
+        "singleMissingTarget": "row_sum_1"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_1",
+            "kind": "integer",
+            "solutionPath": "rowSums.1"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            10,
+            1
+          ],
+          "b": [
+            60,
+            6
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 660,
+          "cell_r0c1": 66,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          660,
+          66
+        ],
+        "colSums": [
+          660,
+          66
+        ],
+        "total": 726
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-58x25-1082",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "58 x 25",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          58,
+          25
+        ],
+        "decomposition": {
+          "a": [
+            50,
+            8
+          ],
+          "b": [
+            20,
+            5
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            50,
+            8
+          ],
+          "b": [
+            20,
+            5
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 1160,
+          "cell_r0c1": 290,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          1160,
+          290
+        ],
+        "colSums": [
+          1160,
+          290
+        ],
+        "total": 1450
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-56x46-1083",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "56 x 46",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          56,
+          46
+        ],
+        "decomposition": {
+          "a": [
+            50,
+            6
+          ],
+          "b": [
+            40,
+            6
+          ]
+        },
+        "singleMissingTarget": "row_sum_1"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_1",
+            "kind": "integer",
+            "solutionPath": "rowSums.1"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            50,
+            6
+          ],
+          "b": [
+            40,
+            6
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 2240,
+          "cell_r0c1": 336,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          2240,
+          336
+        ],
+        "colSums": [
+          2240,
+          336
+        ],
+        "total": 2576
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-20x97-1084",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "20 x 97",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          20,
+          97
+        ],
+        "decomposition": {
+          "a": [
+            20,
+            0
+          ],
+          "b": [
+            90,
+            7
+          ]
+        },
+        "singleMissingTarget": "row_sum_1"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_1",
+            "kind": "integer",
+            "solutionPath": "rowSums.1"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            20,
+            0
+          ],
+          "b": [
+            90,
+            7
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 1800,
+          "cell_r0c1": 140,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          1800,
+          140
+        ],
+        "colSums": [
+          1800,
+          140
+        ],
+        "total": 1940
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-40x59-1085",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "40 x 59",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          40,
+          59
+        ],
+        "decomposition": {
+          "a": [
+            40,
+            0
+          ],
+          "b": [
+            50,
+            9
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            40,
+            0
+          ],
+          "b": [
+            50,
+            9
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 2000,
+          "cell_r0c1": 360,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          2000,
+          360
+        ],
+        "colSums": [
+          2000,
+          360
+        ],
+        "total": 2360
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-33x47-1086",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "33 x 47",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          33,
+          47
+        ],
+        "decomposition": {
+          "a": [
+            30,
+            3
+          ],
+          "b": [
+            40,
+            7
+          ]
+        },
+        "singleMissingTarget": "row_sum_1"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_1",
+            "kind": "integer",
+            "solutionPath": "rowSums.1"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            30,
+            3
+          ],
+          "b": [
+            40,
+            7
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 1320,
+          "cell_r0c1": 231,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          1320,
+          231
+        ],
+        "colSums": [
+          1320,
+          231
+        ],
+        "total": 1551
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-55x85-1087",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "55 x 85",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          55,
+          85
+        ],
+        "decomposition": {
+          "a": [
+            50,
+            5
+          ],
+          "b": [
+            80,
+            5
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            50,
+            5
+          ],
+          "b": [
+            80,
+            5
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 4400,
+          "cell_r0c1": 275,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          4400,
+          275
+        ],
+        "colSums": [
+          4400,
+          275
+        ],
+        "total": 4675
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-12x49-1088",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "12 x 49",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          12,
+          49
+        ],
+        "decomposition": {
+          "a": [
+            10,
+            2
+          ],
+          "b": [
+            40,
+            9
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            10,
+            2
+          ],
+          "b": [
+            40,
+            9
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 480,
+          "cell_r0c1": 108,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          480,
+          108
+        ],
+        "colSums": [
+          480,
+          108
+        ],
+        "total": 588
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-44x38-1089",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "44 x 38",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          44,
+          38
+        ],
+        "decomposition": {
+          "a": [
+            40,
+            4
+          ],
+          "b": [
+            30,
+            8
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            40,
+            4
+          ],
+          "b": [
+            30,
+            8
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 1320,
+          "cell_r0c1": 352,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          1320,
+          352
+        ],
+        "colSums": [
+          1320,
+          352
+        ],
+        "total": 1672
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-12x17-1090",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "12 x 17",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          12,
+          17
+        ],
+        "decomposition": {
+          "a": [
+            10,
+            2
+          ],
+          "b": [
+            10,
+            7
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            10,
+            2
+          ],
+          "b": [
+            10,
+            7
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 120,
+          "cell_r0c1": 84,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          120,
+          84
+        ],
+        "colSums": [
+          120,
+          84
+        ],
+        "total": 204
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-59x46-1091",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "59 x 46",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          59,
+          46
+        ],
+        "decomposition": {
+          "a": [
+            50,
+            9
+          ],
+          "b": [
+            40,
+            6
+          ]
+        },
+        "singleMissingTarget": "row_sum_1"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_1",
+            "kind": "integer",
+            "solutionPath": "rowSums.1"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            50,
+            9
+          ],
+          "b": [
+            40,
+            6
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 2360,
+          "cell_r0c1": 354,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          2360,
+          354
+        ],
+        "colSums": [
+          2360,
+          354
+        ],
+        "total": 2714
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-59x60-1092",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "59 x 60",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          59,
+          60
+        ],
+        "decomposition": {
+          "a": [
+            50,
+            9
+          ],
+          "b": [
+            60,
+            0
+          ]
+        },
+        "singleMissingTarget": "row_sum_1"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_1",
+            "kind": "integer",
+            "solutionPath": "rowSums.1"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            50,
+            9
+          ],
+          "b": [
+            60,
+            0
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 3540,
+          "cell_r0c1": 0,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          3540,
+          0
+        ],
+        "colSums": [
+          3540,
+          0
+        ],
+        "total": 3540
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-24x81-1093",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "24 x 81",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          24,
+          81
+        ],
+        "decomposition": {
+          "a": [
+            20,
+            4
+          ],
+          "b": [
+            80,
+            1
+          ]
+        },
+        "singleMissingTarget": "row_sum_1"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_1",
+            "kind": "integer",
+            "solutionPath": "rowSums.1"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            20,
+            4
+          ],
+          "b": [
+            80,
+            1
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 1920,
+          "cell_r0c1": 24,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          1920,
+          24
+        ],
+        "colSums": [
+          1920,
+          24
+        ],
+        "total": 1944
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-31x67-1094",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "31 x 67",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          31,
+          67
+        ],
+        "decomposition": {
+          "a": [
+            30,
+            1
+          ],
+          "b": [
+            60,
+            7
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            30,
+            1
+          ],
+          "b": [
+            60,
+            7
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 1860,
+          "cell_r0c1": 217,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          1860,
+          217
+        ],
+        "colSums": [
+          1860,
+          217
+        ],
+        "total": 2077
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-71x94-1095",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "71 x 94",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          71,
+          94
+        ],
+        "decomposition": {
+          "a": [
+            70,
+            1
+          ],
+          "b": [
+            90,
+            4
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            70,
+            1
+          ],
+          "b": [
+            90,
+            4
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 6390,
+          "cell_r0c1": 284,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          6390,
+          284
+        ],
+        "colSums": [
+          6390,
+          284
+        ],
+        "total": 6674
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-61x54-1096",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "61 x 54",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          61,
+          54
+        ],
+        "decomposition": {
+          "a": [
+            60,
+            1
+          ],
+          "b": [
+            50,
+            4
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            60,
+            1
+          ],
+          "b": [
+            50,
+            4
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 3050,
+          "cell_r0c1": 244,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          3050,
+          244
+        ],
+        "colSums": [
+          3050,
+          244
+        ],
+        "total": 3294
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-89x48-1097",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "89 x 48",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          89,
+          48
+        ],
+        "decomposition": {
+          "a": [
+            80,
+            9
+          ],
+          "b": [
+            40,
+            8
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            80,
+            9
+          ],
+          "b": [
+            40,
+            8
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 3560,
+          "cell_r0c1": 712,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          3560,
+          712
+        ],
+        "colSums": [
+          3560,
+          712
+        ],
+        "total": 4272
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-14x35-1098",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "14 x 35",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          14,
+          35
+        ],
+        "decomposition": {
+          "a": [
+            10,
+            4
+          ],
+          "b": [
+            30,
+            5
+          ]
+        },
+        "singleMissingTarget": "row_sum_0"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "row_sum_0",
+            "kind": "integer",
+            "solutionPath": "rowSums.0"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            10,
+            4
+          ],
+          "b": [
+            30,
+            5
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 420,
+          "cell_r0c1": 70,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          420,
+          70
+        ],
+        "colSums": [
+          420,
+          70
+        ],
+        "total": 490
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-62x53-1099",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "62 x 53",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          62,
+          53
+        ],
+        "decomposition": {
+          "a": [
+            60,
+            2
+          ],
+          "b": [
+            50,
+            3
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            60,
+            2
+          ],
+          "b": [
+            50,
+            3
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 3100,
+          "cell_r0c1": 186,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          3100,
+          186
+        ],
+        "colSums": [
+          3100,
+          186
+        ],
+        "total": 3286
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    },
+    {
+      "id": "pvam-single_missing-77x83-1100",
+      "schemaVersion": 2,
+      "type": "arithmetic",
+      "questionKind": "place_value_area_model",
+      "interactionKind": "structured",
+      "taskKind": "single_missing",
+      "difficulty": "basic",
+      "tags": [
+        "multiplication",
+        "place-value",
+        "area-model",
+        "2digitx2digit"
+      ],
+      "prompt": "세로셈의 세 칸 중 빈칸 1개를 채우세요.",
+      "question": "77 x 83",
+      "stem": {
+        "operator": "multiply",
+        "factors": [
+          77,
+          83
+        ],
+        "decomposition": {
+          "a": [
+            70,
+            7
+          ],
+          "b": [
+            80,
+            3
+          ]
+        },
+        "singleMissingTarget": "total"
+      },
+      "answerSpec": {
+        "inputs": [
+          {
+            "id": "total",
+            "kind": "integer",
+            "solutionKey": "total"
+          }
+        ]
+      },
+      "solution": {
+        "decomposition": {
+          "a": [
+            70,
+            7
+          ],
+          "b": [
+            80,
+            3
+          ]
+        },
+        "cells": {
+          "cell_r0c0": 6160,
+          "cell_r0c1": 231,
+          "cell_r1c0": 0,
+          "cell_r1c1": 0
+        },
+        "rowSums": [
+          6160,
+          231
+        ],
+        "colSums": [
+          6160,
+          231
+        ],
+        "total": 6391
+      },
+      "grading": {
+        "mode": "exact",
+        "allowWhitespace": true,
+        "normalizeIntegerString": true
+      }
+    }
+  ]
+}

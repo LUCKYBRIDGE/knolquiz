@@ -996,8 +996,8 @@ const buildPvamDemoQuestionBank = (settings) => {
   const params = new URLSearchParams(window.location.search);
   if (!parseQueryBool(params.get('pvamDemo'))) return null;
 
-  const countFallback = Math.max(1, Math.min(20, Number(settings?.questionCount) || 10));
-  const count = Math.max(1, Math.min(50, Number(params.get('pvamCount')) || countFallback));
+  const countFallback = Math.max(1, Math.min(500, Number(settings?.questionCount) || 10));
+  const count = Math.max(1, Math.min(500, Number(params.get('pvamCount')) || countFallback));
   const seedValue = params.get('pvamSeed');
   const seed = seedValue != null && seedValue !== '' ? Number.parseInt(seedValue, 10) : 1;
   const min = Math.max(10, Math.min(99, Number(params.get('pvamMin')) || 11));
@@ -1051,11 +1051,11 @@ const buildPvamPresetQuestionBank = (preset, settings) => {
     .map((item) => item.trim())
     .filter(Boolean);
 
-  const countFallback = Math.max(1, Math.min(20, Number(settings?.questionCount) || 10));
+  const countFallback = Math.max(1, Math.min(500, Number(settings?.questionCount) || 10));
   const countBase = queryOverrideEnabled && Number.isFinite(queryCount)
     ? queryCount
     : Number(config.count);
-  const count = Math.max(1, Math.min(50, countBase || countFallback));
+  const count = Math.max(1, Math.min(500, countBase || countFallback));
   const seed = queryOverrideEnabled && Number.isInteger(querySeed)
     ? querySeed
     : (Number.isInteger(config.seed) ? config.seed : 1);
@@ -1213,31 +1213,42 @@ const buildLauncherBasicQuizSettings = () => {
       settings.questionTypes[key] = { ...(settings.questionTypes[key] || {}), enabled, count: enabled ? countEach : 0 };
     });
   };
+  let presetQuestionCountBase = 12;
 
   switch (presetId) {
     case 'jumpmap-net-30':
       setAllTypeCounts(5);
+      presetQuestionCountBase = 30;
       break;
     case 'jumpmap-net-12':
       setAllTypeCounts(2);
+      presetQuestionCountBase = 12;
       break;
     case 'cube-only-24':
       setShapeOnlyCounts('cube_', 8);
+      presetQuestionCountBase = 24;
       break;
     case 'cuboid-only-24':
       setShapeOnlyCounts('cuboid_', 8);
+      presetQuestionCountBase = 24;
       break;
     case 'pvam-area-2digit':
       setAllTypeCounts(2);
+      presetQuestionCountBase = 12;
+      break;
+    case 'pvam-area-2digit-100':
+      setAllTypeCounts(2);
+      presetQuestionCountBase = 100;
       break;
     default:
       setAllTypeCounts(2);
+      presetQuestionCountBase = 12;
       break;
   }
 
   settings.questionCount = Object.values(settings.questionTypes || {})
     .reduce((sum, cfg) => sum + ((cfg && cfg.enabled) ? (cfg.count || 0) : 0), 0);
-  const baseQuestionCount = Math.max(1, settings.questionCount);
+  const baseQuestionCount = Math.max(1, Number(presetQuestionCountBase) || settings.questionCount);
   const launcherQuizCountLimit = launcherQuizCountLimitRaw > 0
     ? Math.max(1, Math.min(baseQuestionCount, launcherQuizCountLimitRaw))
     : baseQuestionCount;
@@ -1250,13 +1261,15 @@ const buildLauncherBasicQuizSettings = () => {
   const launcherCsv = presetId === 'csv-upload'
     ? buildCsvBankFromLauncherSetup(launcher)
     : { bank: null, message: '' };
+  const isPvamPreset = presetId === 'pvam-area-2digit' || presetId === 'pvam-area-2digit-100';
+  const pvamDefaultCount = presetId === 'pvam-area-2digit-100' ? 100 : 12;
   return {
     settings,
-    pvamConfig: presetId === 'pvam-area-2digit'
+    pvamConfig: isPvamPreset
       ? {
         count: launcherQuizEndMode === 'time'
-          ? 20
-          : Math.max(1, launcherQuizCountLimit || 12),
+          ? Math.max(20, pvamDefaultCount)
+          : Math.max(1, launcherQuizCountLimit || pvamDefaultCount),
         seed: 1,
         min: 11,
         max: 99,

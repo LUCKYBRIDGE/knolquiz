@@ -796,6 +796,11 @@
             id: 'pvam-area-2digit',
             title: '몇십몇×몇십몇(영역모델)',
             desc: '영역모델 + 자릿값 세로셈 과정을 채우는 학습 퀴즈'
+          },
+          {
+            id: 'pvam-area-2digit-100',
+            title: '몇십몇×몇십몇 100문제(영역모델)',
+            desc: '100문제 · 영역모델 + 자릿값 세로셈 집중 훈련'
           }
         ];
         const CSV_UPLOAD_PRESET_ID = 'csv-upload';
@@ -1020,6 +1025,8 @@
               return 24;
             case 'pvam-area-2digit':
               return 12;
+            case 'pvam-area-2digit-100':
+              return 100;
             case CSV_UPLOAD_PRESET_ID: {
               const preview = buildUploadPreviewModel(csvText || '', state.customCsvFileName || '');
               return preview.total > 0 ? preview.total : 0;
@@ -2183,7 +2190,8 @@
         function renderGameConditional() {
           const isJumpmap = state.gameMode === 'jumpmap';
           els.characterSection.classList.toggle('hidden', !isJumpmap);
-          const showPvamDifficulty = state.quizPresetId === 'pvam-area-2digit' && state.gameMode === 'basic-quiz';
+          const isPvamPreset = state.quizPresetId === 'pvam-area-2digit' || state.quizPresetId === 'pvam-area-2digit-100';
+          const showPvamDifficulty = isPvamPreset && state.gameMode === 'basic-quiz';
           if (els.pvamDifficultyField) {
             els.pvamDifficultyField.classList.toggle('hidden', !showPvamDifficulty);
           }
@@ -2322,6 +2330,7 @@
           const quizShort = state.customCsvEnabled && state.customCsvFileName
             ? `${quiz.title} (${state.customCsvFileName})`
             : quiz.title;
+          const isPvamPreset = state.quizPresetId === 'pvam-area-2digit' || state.quizPresetId === 'pvam-area-2digit-100';
           els.summaryBox.innerHTML = `
             <div class="summary-meta">
               <div class="summary-pill">
@@ -2342,7 +2351,7 @@
                 <div class="summary-item-k">퀴즈</div>
                 <div class="summary-item-v">${quizShort}</div>
               </div>
-              ${state.quizPresetId === 'pvam-area-2digit' ? `
+              ${isPvamPreset ? `
               <div class="summary-item">
                 <div class="summary-item-k">자리올림 난이도</div>
                 <div class="summary-item-v">${state.pvamCarryMode === 'none' ? '없음' : (state.pvamCarryMode === 'low' ? '1~2회' : (state.pvamCarryMode === 'high' ? '많음' : '혼합'))}</div>
