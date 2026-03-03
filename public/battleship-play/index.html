@@ -194,10 +194,6 @@
         touch-action: pan-y;
       }
       .test-quiz-header {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 10px;
         min-height: 0;
       }
       .test-quiz-prompt {
@@ -360,14 +356,25 @@
       .test-quiz-feedback.is-fail { color: #b91c1c; }
       .test-quiz-feedback.is-warn { color: #9a3412; }
       .test-quiz-actions {
+        position: sticky;
+        bottom: 0;
+        z-index: 60;
         display: flex;
         justify-content: flex-end;
-        gap: 8px;
+        gap: 12px;
+        padding-top: 8px;
+        background: linear-gradient(180deg, rgba(255, 248, 236, 0) 0%, rgba(255, 248, 236, 0.95) 38%);
       }
       .test-quiz-actions.hidden { display: none; }
       .test-quiz-actions .btn {
-        min-height: 40px;
-        min-width: 140px;
+        position: relative;
+        z-index: 61;
+        min-width: 168px;
+        min-height: 70px;
+        padding: 12px 18px;
+        border-radius: 14px;
+        font-size: 24px;
+        font-weight: 900;
       }
       .test-quiz-card.quiz-fx-success {
         animation: quiz-card-success-pop 760ms cubic-bezier(0.2, 1, 0.3, 1);
@@ -640,13 +647,11 @@
       <div class="test-quiz-card" id="quiz-card">
         <div class="test-quiz-header">
           <div class="test-quiz-prompt" id="quiz-prompt">문제를 불러오는 중...</div>
-          <button class="btn" id="quiz-close-btn" type="button">전투 복귀</button>
         </div>
         <div class="test-quiz-body">
           <div class="test-quiz-question-wrap hidden" id="quiz-question-wrap">
             <img class="test-quiz-question-img" id="quiz-question-asset" alt="문제 이미지" />
           </div>
-          <div class="test-quiz-choices" id="quiz-choices"></div>
           <div class="test-quiz-short-answer hidden" id="quiz-short-answer-wrap">
             <input
               id="quiz-short-answer-input"
@@ -657,8 +662,9 @@
               placeholder="정답을 입력하세요"
               aria-label="정답 입력"
             />
-            <button id="quiz-short-answer-submit" class="test-quiz-short-answer-submit" type="button">정답 제출</button>
+            <button id="quiz-short-answer-submit" class="test-quiz-short-answer-submit" type="button">제출</button>
           </div>
+          <div class="test-quiz-choices" id="quiz-choices"></div>
         </div>
         <div class="test-quiz-feedback" id="quiz-result"></div>
         <div class="test-quiz-actions hidden" id="quiz-actions">

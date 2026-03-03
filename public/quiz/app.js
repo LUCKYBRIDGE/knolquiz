@@ -2473,7 +2473,7 @@ const renderTextShortAnswerQuestion = ({ choicesEl, question, onSubmit }) => {
   const submitBtn = document.createElement('button');
   submitBtn.type = 'button';
   submitBtn.className = 'test-quiz-short-answer-submit';
-  submitBtn.textContent = '정답 제출';
+  submitBtn.textContent = '제출';
 
   const submit = () => {
     if (submitBtn.disabled || input.disabled) return;

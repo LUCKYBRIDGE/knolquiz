@@ -1558,7 +1558,7 @@ els.openQuizBtn.addEventListener('click', () => {
   openQuizLayer();
 });
 
-els.quizCloseBtn.addEventListener('click', () => {
+els.quizCloseBtn?.addEventListener('click', () => {
   closeQuizLayer({ keepStatus: false });
 });
 
