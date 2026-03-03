@@ -16,6 +16,7 @@ const QUIZ_PRESET_LABELS = {
   'jumpmap-net-100': '종합 100문제',
   'pvam-area-2digit': '몇십몇×몇십몇(영역모델)',
   'pvam-area-2digit-100': '몇십몇×몇십몇 100문제(영역모델)',
+  'gugudan-2to9-csv': '구구단 2단~9단 (CSV)',
   'csv-upload': '업로드 CSV 문제'
 };
 

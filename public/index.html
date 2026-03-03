@@ -891,6 +891,12 @@
             title: '몇십몇×몇십몇 100문제(영역모델)',
             desc: '100문제 · 영역모델 + 자릿값 세로셈 집중 훈련',
             thumbKind: 'pvam'
+          },
+          {
+            id: 'gugudan-2to9-csv',
+            title: '구구단 2단~9단 (CSV)',
+            desc: '72문제 · 단순 곱셈 반복 훈련',
+            thumbKind: 'upload'
           }
         ];
         const CSV_UPLOAD_PRESET_ID = 'csv-upload';
@@ -1121,6 +1127,8 @@
               return 12;
             case 'pvam-area-2digit-100':
               return 100;
+            case 'gugudan-2to9-csv':
+              return 72;
             case CSV_UPLOAD_PRESET_ID: {
               const preview = buildUploadPreviewModel(csvText || '', state.customCsvFileName || '');
               return preview.total > 0 ? preview.total : 0;

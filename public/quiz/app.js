@@ -1152,34 +1152,59 @@ const hydrateCsvBankFromLauncherStorage = () => {
 const LAUNCHER_STATIC_NET_PRESET_FILES = Object.freeze({
   'cube-only-100': './data/net-cube-100.json',
   'cuboid-only-100': './data/net-cuboid-100.json',
-  'jumpmap-net-100': './data/net-mixed-100.json'
+  'jumpmap-net-100': './data/net-mixed-100.json',
+  'gugudan-2to9-csv': './data/gugudan-2to9.csv'
 });
 
 const resolveLauncherStaticNetPresetPath = (presetId) => (
   LAUNCHER_STATIC_NET_PRESET_FILES[String(presetId || '').trim()] || ''
 );
 
+const isCsvPresetFilePath = (path) => /\.csv(?:[?#].*)?$/i.test(String(path || '').trim());
+
+const getLauncherStaticPresetLabel = (presetId) => (
+  String(presetId || '').trim() === 'gugudan-2to9-csv'
+    ? '구구단 2단~9단'
+    : '전개도 100문제'
+);
+
 const loadLauncherStaticNetPresetBank = async (presetId) => {
   const filePath = resolveLauncherStaticNetPresetPath(presetId);
   if (!filePath) return { bank: null, message: '' };
+  const label = getLauncherStaticPresetLabel(presetId);
   try {
+    if (isCsvPresetFilePath(filePath)) {
+      const response = await fetch(filePath, { cache: 'no-store' });
+      if (!response.ok) {
+        return { bank: null, message: `${label} 파일 로드 실패: ${response.status}` };
+      }
+      const csvText = await response.text();
+      const parsed = parseUploadedQuestionBankText(csvText, { fileName: filePath });
+      if (!parsed.bank) {
+        return { bank: null, message: `${label} 파싱 실패: ${parsed.error || 'invalid csv'}` };
+      }
+      return {
+        bank: cloneQuestionBank(parsed.bank),
+        message: `${label} ${parsed.bank.questions.length}개를 사용합니다.`
+      };
+    }
     const payload = await loadJson(filePath);
     const bankCandidate = Array.isArray(payload?.questions) ? payload : null;
     if (!bankCandidate?.questions?.length) {
-      return { bank: null, message: '전개도 100문제 파일에서 questions 목록을 찾지 못했습니다.' };
+      return { bank: null, message: `${label} 파일에서 questions 목록을 찾지 못했습니다.` };
     }
     const validation = validateQuestionBank(bankCandidate);
     if (!validation.valid) {
-      return { bank: null, message: `전개도 100문제 검증 실패: ${validation.errors[0]}` };
+      return { bank: null, message: `${label} 검증 실패: ${validation.errors[0]}` };
     }
     return {
       bank: cloneQuestionBank(bankCandidate),
-      message: `전개도 100문제 ${bankCandidate.questions.length}개를 사용합니다.`
+      message: `${label} ${bankCandidate.questions.length}개를 사용합니다.`
     };
   } catch (error) {
     return {
       bank: null,
-      message: `전개도 100문제 로드 실패: ${error?.message || error}`
+      message: `${label} 로드 실패: ${error?.message || error}`
     };
   }
 };

@@ -61,7 +61,8 @@ const PRESET_TYPE_COUNTS = Object.freeze({
 const LAUNCHER_STATIC_NET_PRESET_FILES = Object.freeze({
   'cube-only-100': '../quiz/data/net-cube-100.json',
   'cuboid-only-100': '../quiz/data/net-cuboid-100.json',
-  'jumpmap-net-100': '../quiz/data/net-mixed-100.json'
+  'jumpmap-net-100': '../quiz/data/net-mixed-100.json',
+  'gugudan-2to9-csv': '../quiz/data/gugudan-2to9.csv'
 });
 const MIN_LOADING_MS = 5000;
 const LOADING_ROTATE_MS = 1400;
@@ -549,6 +550,18 @@ const loadPvamPresetQuestions = async (presetId) => {
 const loadLauncherStaticNetQuestions = async (presetId) => {
   const filePath = resolveLauncherStaticNetPresetPath(presetId);
   if (!filePath) return [];
+  const isCsv = /\.csv(?:[?#].*)?$/i.test(filePath);
+  if (isCsv) {
+    const sourceText = await fetch(filePath, { cache: 'no-store' }).then((res) => {
+      if (!res.ok) throw new Error(`CSV 문제 파일 로드 실패 (${res.status})`);
+      return res.text();
+    });
+    const parsed = parseCsvQuestionBank(sourceText);
+    if (!parsed.valid || !parsed.bank?.questions?.length) {
+      throw new Error(parsed.errors?.[0] || 'CSV 문제 파싱 실패');
+    }
+    return parsed.bank.questions.filter(isBattleUsableQuestion);
+  }
   const payload = await fetch(filePath, { cache: 'no-store' }).then((res) => {
     if (!res.ok) throw new Error(`전개도 문제 파일 로드 실패 (${res.status})`);
     return res.json();

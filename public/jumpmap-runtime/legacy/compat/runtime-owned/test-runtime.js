@@ -1056,10 +1056,19 @@
     const LAUNCHER_STATIC_NET_PRESET_FILES = Object.freeze({
       'cube-only-100': '../../../../quiz/data/net-cube-100.json',
       'cuboid-only-100': '../../../../quiz/data/net-cuboid-100.json',
-      'jumpmap-net-100': '../../../../quiz/data/net-mixed-100.json'
+      'jumpmap-net-100': '../../../../quiz/data/net-mixed-100.json',
+      'gugudan-2to9-csv': '../../../../quiz/data/gugudan-2to9.csv'
     });
     const resolveLauncherStaticNetPresetPath = (presetId) => (
       LAUNCHER_STATIC_NET_PRESET_FILES[String(presetId || '').trim()] || ''
+    );
+    const isCsvPresetFilePath = (filePath) => (
+      /\.csv(?:[?#].*)?$/i.test(String(filePath || '').trim())
+    );
+    const getLauncherStaticPresetLabel = (presetId) => (
+      String(presetId || '').trim() === 'gugudan-2to9-csv'
+        ? '구구단 2단~9단'
+        : '전개도 100문제'
     );
     const shouldUseLauncherCsvBank = (launcherSetup) => {
       if (!launcherSetup || typeof launcherSetup !== 'object') return false;
@@ -1154,18 +1163,49 @@
       if (!filePath) {
         return { bank: null, message: '' };
       }
+      const label = getLauncherStaticPresetLabel(presetId);
+      if (isCsvPresetFilePath(filePath)) {
+        const csvUrl = resolveEditorRuntimeAssetUrl(filePath);
+        let sourceText = '';
+        try {
+          const response = await fetch(csvUrl, { cache: 'no-store' });
+          if (!response.ok) {
+            return {
+              bank: null,
+              message: `${label} 파일 로드 실패: ${response.status}`
+            };
+          }
+          sourceText = await response.text();
+        } catch (error) {
+          return {
+            bank: null,
+            message: `${label} 파일 로드 실패: ${error?.message || error}`
+          };
+        }
+        const parsed = parseLauncherQuestionBankPayload(resources, sourceText, filePath);
+        if (!parsed?.bank) {
+          return {
+            bank: null,
+            message: `${label} 파싱 실패: ${parsed?.message || 'invalid csv'}`
+          };
+        }
+        return {
+          bank: parsed.bank,
+          message: parsed.message || `${label} ${parsed.bank.questions.length}문항 적용`
+        };
+      }
       let payload = null;
       try {
         payload = await loadJson(resolveEditorRuntimeAssetUrl(filePath));
       } catch (error) {
         return {
           bank: null,
-          message: `전개도 100문제 파일 로드 실패: ${error?.message || error}`
+          message: `${label} 파일 로드 실패: ${error?.message || error}`
         };
       }
       const rawQuestions = Array.isArray(payload?.questions) ? payload.questions : [];
       if (!rawQuestions.length) {
-        return { bank: null, message: '전개도 100문제에서 questions 목록을 찾지 못했습니다.' };
+        return { bank: null, message: `${label}에서 questions 목록을 찾지 못했습니다.` };
       }
       const bank = { questions: rawQuestions };
       const validation = resources.validateQuestionBank
@@ -1174,12 +1214,12 @@
       if (!validation?.valid) {
         return {
           bank: null,
-          message: `전개도 100문제 검증 실패: ${validation?.errors?.[0] || 'invalid bank'}`
+          message: `${label} 검증 실패: ${validation?.errors?.[0] || 'invalid bank'}`
         };
       }
       return {
         bank,
-        message: `전개도 100문제 ${rawQuestions.length}개를 사용합니다.`
+        message: `${label} ${rawQuestions.length}문항 적용`
       };
     };
     const parseLauncherQuestionBankPayload = (resources, rawText, fileName) => {
