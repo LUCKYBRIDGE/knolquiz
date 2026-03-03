@@ -243,11 +243,75 @@
         display: grid;
         grid-template-columns: auto 1fr;
         gap: 10px;
-        align-items: start;
+        align-items: center;
         border: 2px solid rgba(47, 38, 31, 0.18);
         border-radius: 12px;
         padding: 10px;
         background: rgba(255, 255, 255, 0.75);
+      }
+      .quiz-item-body {
+        display: grid;
+        grid-template-columns: 112px 1fr;
+        gap: 10px;
+        align-items: center;
+        min-width: 0;
+      }
+      .quiz-item-thumb {
+        width: 112px;
+        height: 70px;
+        border: 2px solid rgba(47, 38, 31, 0.3);
+        border-radius: 10px;
+        background: #fff;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        color: #5d4d3f;
+        font-size: 12px;
+        font-weight: 900;
+        text-align: center;
+        padding: 6px;
+      }
+      .quiz-item-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+      }
+      .quiz-item-thumb.is-pvam {
+        position: relative;
+        background: #f9fcff;
+      }
+      .quiz-item-thumb-pvam-main {
+        position: absolute;
+        inset: 8px 22px 8px 8px;
+        border: 2px solid #20324b;
+        border-radius: 5px 0 0 5px;
+        background: #efc7de;
+      }
+      .quiz-item-thumb-pvam-side {
+        position: absolute;
+        inset: 8px 8px 8px auto;
+        width: 14px;
+        border: 2px solid #3f8bc0;
+        border-left: none;
+        border-radius: 0 5px 5px 0;
+        background: #bde6ff;
+      }
+      .quiz-item-thumb-pvam-label {
+        position: absolute;
+        left: 8px;
+        right: 8px;
+        bottom: 6px;
+        font-size: 10px;
+        line-height: 1;
+        font-weight: 900;
+        color: #2f4a73;
+      }
+      .quiz-item-thumb.is-upload {
+        background: linear-gradient(180deg, #fff9eb 0%, #f8efe0 100%);
+      }
+      .quiz-item-info {
+        min-width: 0;
       }
       .quiz-item.is-selected {
         border-color: rgba(208, 166, 46, 0.9);
@@ -581,6 +645,8 @@
         .name-row { grid-template-columns: 1fr 1fr; }
         .name-badge { grid-column: 1 / -1; }
         .quiz-search-row { grid-template-columns: 1fr; }
+        .quiz-item-body { grid-template-columns: 92px 1fr; gap: 8px; }
+        .quiz-item-thumb { width: 92px; height: 58px; }
         .tool-links { grid-template-columns: 1fr; }
         .start-btn { font-size: 19px; min-height: 56px; }
         .summary-item { grid-template-columns: 72px 1fr; }
@@ -775,47 +841,56 @@
           {
             id: 'jumpmap-net-30',
             title: '전개도 학습 30문제 (점프맵 기본 추천)',
-            desc: '30문제 · 전개도 유형 균형 · 점프맵 게이지 충전에 적합'
+            desc: '30문제 · 전개도 유형 균형 · 점프맵 게이지 충전에 적합',
+            thumbSrc: './quiz/nets/cube-01.svg'
           },
           {
             id: 'jumpmap-net-12',
             title: '전개도 학습 12문제 (짧은 라운드)',
-            desc: '12문제 · 빠른 반복 테스트용'
+            desc: '12문제 · 빠른 반복 테스트용',
+            thumbSrc: './quiz/nets/cuboid-01-01.svg'
           },
           {
             id: 'cube-only-24',
             title: '정육면체 중심 24문제',
-            desc: '정육면체 전개도 중심 출제'
+            desc: '정육면체 전개도 중심 출제',
+            thumbSrc: './quiz/nets/cube-06.svg'
           },
           {
             id: 'cuboid-only-24',
             title: '직육면체 중심 24문제',
-            desc: '직육면체 전개도 중심 출제'
+            desc: '직육면체 전개도 중심 출제',
+            thumbSrc: './quiz/nets/cuboid-04-01.svg'
           },
           {
             id: 'cube-only-100',
             title: '정육면체 100문제',
-            desc: '100문제 · 정육면체 전개도 집중 훈련'
+            desc: '100문제 · 정육면체 전개도 집중 훈련',
+            thumbSrc: './quiz/nets/cube-10.svg'
           },
           {
             id: 'cuboid-only-100',
             title: '직육면체 100문제',
-            desc: '100문제 · 직육면체 전개도 집중 훈련'
+            desc: '100문제 · 직육면체 전개도 집중 훈련',
+            thumbSrc: './quiz/nets/cuboid-10-01.svg'
           },
           {
             id: 'jumpmap-net-100',
             title: '종합 100문제',
-            desc: '100문제 · 정육면체/직육면체 종합'
+            desc: '100문제 · 정육면체/직육면체 종합',
+            thumbSrc: './quiz/nets/cuboid-08-02.svg'
           },
           {
             id: 'pvam-area-2digit',
             title: '몇십몇×몇십몇(영역모델)',
-            desc: '영역모델 + 자릿값 세로셈 과정을 채우는 학습 퀴즈'
+            desc: '영역모델 + 자릿값 세로셈 과정을 채우는 학습 퀴즈',
+            thumbKind: 'pvam'
           },
           {
             id: 'pvam-area-2digit-100',
             title: '몇십몇×몇십몇 100문제(영역모델)',
-            desc: '100문제 · 영역모델 + 자릿값 세로셈 집중 훈련'
+            desc: '100문제 · 영역모델 + 자릿값 세로셈 집중 훈련',
+            thumbKind: 'pvam'
           }
         ];
         const CSV_UPLOAD_PRESET_ID = 'csv-upload';
@@ -2025,7 +2100,8 @@
             presets.unshift({
               id: CSV_UPLOAD_PRESET_ID,
               title: `업로드 문제${state.customCsvFileName ? ` (${state.customCsvFileName})` : ''}`,
-              desc: `${preview.total}문항 · 로컬 업로드 파일`
+              desc: `${preview.total}문항 · 로컬 업로드 파일`,
+              thumbKind: 'upload'
             });
           }
           return presets;
@@ -2091,7 +2167,42 @@
               persistAndRefresh();
             });
             const box = document.createElement('div');
-            box.innerHTML = `<div class="quiz-item-title">${preset.title}</div><div class="quiz-item-desc">${preset.desc}</div>`;
+            box.className = 'quiz-item-body';
+            const thumb = document.createElement('div');
+            thumb.className = 'quiz-item-thumb';
+            if (preset.thumbKind === 'pvam') {
+              thumb.classList.add('is-pvam');
+              thumb.innerHTML = `
+                <div class="quiz-item-thumb-pvam-main"></div>
+                <div class="quiz-item-thumb-pvam-side"></div>
+                <div class="quiz-item-thumb-pvam-label">영역모델</div>
+              `;
+            } else if (preset.thumbKind === 'upload') {
+              thumb.classList.add('is-upload');
+              thumb.textContent = 'CSV/JSON';
+            } else if (preset.thumbSrc) {
+              const img = document.createElement('img');
+              img.loading = 'lazy';
+              img.decoding = 'async';
+              img.alt = `${preset.title} 미리보기`;
+              img.src = preset.thumbSrc;
+              img.addEventListener('error', () => {
+                thumb.textContent = '미리보기 없음';
+              }, { once: true });
+              thumb.appendChild(img);
+            } else {
+              thumb.textContent = '미리보기 없음';
+            }
+            const info = document.createElement('div');
+            info.className = 'quiz-item-info';
+            const title = document.createElement('div');
+            title.className = 'quiz-item-title';
+            title.textContent = String(preset.title || '');
+            const desc = document.createElement('div');
+            desc.className = 'quiz-item-desc';
+            desc.textContent = String(preset.desc || '');
+            info.append(title, desc);
+            box.append(thumb, info);
             row.append(radio, box);
             els.quizPresets.appendChild(row);
           });
