@@ -629,7 +629,7 @@ const buildHallSectionBoard = (section, { title = '' } = {}) => {
       nameEl.textContent = `${row.studentName} (${row.studentNo}번)`;
       const scoreEl = document.createElement('div');
       scoreEl.className = 'hall-podium-score';
-      scoreEl.textContent = `최고 ${formatHallMetric(row.bestScore, unit)} · 평균 ${formatHallMetric(row.averageScore, unit)}`;
+      scoreEl.textContent = `최고 ${formatHallMetric(row.bestScore, unit)}`;
       card.append(rankEl, nameEl, scoreEl);
       podium.appendChild(card);
     });
@@ -664,7 +664,7 @@ const buildHallSectionBoard = (section, { title = '' } = {}) => {
     top.append(titleWrap, scoreChip);
     const meta = document.createElement('div');
     meta.className = 'hall-row-meta';
-    meta.textContent = `평균 ${formatHallMetric(row.averageScore, unit)} · 도전 ${row.attemptCount}회`;
+    meta.textContent = `시도 ${row.attemptCount}회`;
     item.append(top, meta);
     list.appendChild(item);
   });
@@ -702,13 +702,13 @@ const renderLeaderboard = () => {
 
       const championScore = document.createElement('div');
       championScore.className = 'hall-hero-score';
-      championScore.textContent = `${showcaseSection.label} · ${formatHallMetric(champion.bestScore, unit)}`;
+      championScore.textContent = `대표 부문: ${showcaseSection.label} · ${formatHallMetric(champion.bestScore, unit)}`;
 
       const challenge = document.createElement('div');
       challenge.className = 'hall-hero-challenge';
       challenge.textContent = showcaseSection.rows.length >= 10
-        ? `다음 도전 목표: TOP10 진입선 ${formatHallMetric(top10Cut?.bestScore, unit)}`
-        : `다음 도전 목표: 기록 갱신으로 TOP3 진입`;
+        ? `TOP10 컷: ${formatHallMetric(top10Cut?.bestScore, unit)}`
+        : '기록이 쌓이면 TOP10 컷이 표시됩니다.';
       const personalGoal = getShowcasePersonalGoalText(showcaseSection);
       const goal = document.createElement('div');
       goal.className = 'hall-hero-goal';
@@ -730,10 +730,7 @@ const renderLeaderboard = () => {
     const statusPill = document.createElement('span');
     statusPill.className = 'hall-hero-pill';
     statusPill.textContent = `시즌 상태: ${lifecycle.label}`;
-    const categoryPill = document.createElement('span');
-    categoryPill.className = 'hall-hero-pill';
-    categoryPill.textContent = `부문 ${state.leaderboardSections.length}개`;
-    heroMeta.append(periodPill, statusPill, categoryPill);
+    heroMeta.append(periodPill, statusPill);
     hero.append(heroMeta);
     els.leaderboardList.appendChild(hero);
   }
@@ -748,34 +745,6 @@ const renderLeaderboard = () => {
     title: `🏆 대표 부문 · ${showcaseSection.label}`
   });
   els.leaderboardList.appendChild(mainBoard);
-
-  const otherSections = state.leaderboardSections.filter(
-    (section) => section !== showcaseSection && Array.isArray(section?.rows) && section.rows.length
-  );
-  if (otherSections.length) {
-    const details = document.createElement('details');
-    details.className = 'hall-other-sections';
-    const summary = document.createElement('summary');
-    summary.textContent = `다른 부문 ${otherSections.length}개 보기`;
-    const list = document.createElement('div');
-    list.className = 'hall-other-list';
-    otherSections.forEach((section) => {
-      const leader = section.rows[0];
-      const item = document.createElement('article');
-      item.className = 'hall-other-item';
-      const title = document.createElement('div');
-      title.className = 'hall-other-title';
-      title.textContent = section.label;
-      const unit = getHallSectionUnit(section);
-      const meta = document.createElement('div');
-      meta.className = 'hall-other-meta';
-      meta.textContent = `챔피언 ${leader.studentName} (${leader.studentNo}번) · ${formatHallMetric(leader.bestScore, unit)}`;
-      item.append(title, meta);
-      list.appendChild(item);
-    });
-    details.append(summary, list);
-    els.leaderboardList.appendChild(details);
-  }
 };
 
 const fetchLeaderboardSections = async (seasonId) => {

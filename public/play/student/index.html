@@ -106,7 +106,7 @@
       }
       .grid {
         display: grid;
-        grid-template-columns: 1.1fr 1fr 1fr;
+        grid-template-columns: 1fr 1fr;
         gap: 12px;
       }
       .card {
@@ -125,7 +125,7 @@
       }
       .card .body {
         padding: 10px;
-        max-height: 420px;
+        max-height: 440px;
         overflow: auto;
       }
       .kv {
@@ -176,10 +176,6 @@
         padding: 12px;
         text-align: center;
       }
-      @media (max-width: 1100px) {
-        .grid { grid-template-columns: 1fr 1fr; }
-        .full-span { grid-column: 1 / -1; }
-      }
       @media (max-width: 760px) {
         .topbar { flex-direction: column; align-items: stretch; }
         .grid { grid-template-columns: 1fr; }
@@ -212,7 +208,7 @@
             <option value="7">최근 7일</option>
           </select>
         </div>
-        <div class="toolbar-note" id="period-note">선택한 기간 기준으로 퀴즈/점프맵/거북선/오답/시즌 기록을 필터링합니다.</div>
+        <div class="toolbar-note" id="period-note">선택 기간 기준으로 최근 활동/명예의 전당/오답 TOP을 보여줍니다.</div>
       </div>
       <div class="grid">
         <section class="card">
@@ -220,24 +216,16 @@
           <div class="body"><div class="kv" id="summary-grid"></div></div>
         </section>
         <section class="card">
-          <h2>최근 기본 퀴즈</h2>
-          <div class="body"><div class="list" id="quiz-list"></div></div>
-        </section>
-        <section class="card">
-          <h2>최근 점프맵</h2>
-          <div class="body"><div class="list" id="jumpmap-list"></div></div>
-        </section>
-        <section class="card">
-          <h2>최근 거북선 디펜스</h2>
-          <div class="body"><div class="list" id="battleship-list"></div></div>
-        </section>
-        <section class="card">
-          <h2>명예의 전당 (시즌별)</h2>
+          <h2>명예의 전당 요약</h2>
           <div class="body"><div class="list" id="season-list"></div></div>
         </section>
-        <section class="card full-span">
-          <h2>오답문제모음 (최근)</h2>
+        <section class="card">
+          <h2>오답 TOP 12</h2>
           <div class="body"><div class="list" id="wrong-list"></div></div>
+        </section>
+        <section class="card full-span">
+          <h2>최근 활동</h2>
+          <div class="body"><div class="list" id="activity-list"></div></div>
         </section>
       </div>
     </div>

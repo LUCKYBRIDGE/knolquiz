@@ -16,10 +16,8 @@ const els = {
   clearStudentFilter: document.getElementById('clear-student-filter'),
   filterHint: document.getElementById('filter-hint'),
   summary: document.getElementById('summary-grid'),
-  players: document.getElementById('players-list'),
-  jumpmapSessions: document.getElementById('jumpmap-sessions'),
-  quizSessions: document.getElementById('quiz-sessions'),
-  battleshipSessions: document.getElementById('battleship-sessions'),
+  playerRank: document.getElementById('player-rank'),
+  activityFeed: document.getElementById('activity-feed'),
   wrongs: document.getElementById('wrongs-list')
 };
 
@@ -360,29 +358,30 @@ const updateFilterHint = () => {
   els.filterHint.textContent = `${studentText}을 ${periodText} 기준으로 표시 중입니다.`;
 };
 
+const truncateText = (value, maxLength = 52) => {
+  const normalized = String(value || '').replace(/\s+/g, ' ').trim();
+  if (!normalized) return '(문제 텍스트 없음)';
+  if (normalized.length <= maxLength) return normalized;
+  return `${normalized.slice(0, maxLength - 1)}…`;
+};
+
 const renderSummary = ({ players, jumpmapSessions, quizSessions, battleshipSessions, wrongs }) => {
   clearNode(els.summary);
-  const totalQuizRuns = quizSessions.length;
-  const totalJumpmapRuns = jumpmapSessions.length;
-  const totalBattleshipRuns = battleshipSessions.length;
   const totalPlayers = players.length;
-  const totalWrongs = wrongs.length;
-  const bestJumpmapHeightPx = players.reduce((max, player) => {
-    const value = Number(player?.jumpmapStats?.bestHeightPx) || 0;
-    return Math.max(max, value);
-  }, 0);
+  const totalSessions = jumpmapSessions.length + quizSessions.length + battleshipSessions.length;
   const totalQuizQuestions = players.reduce((sum, player) => sum + (Number(player?.stats?.totalQuestions) || 0), 0);
   const totalQuizCorrect = players.reduce((sum, player) => sum + (Number(player?.stats?.correctAnswers) || 0), 0);
   const overallAccuracy = totalQuizQuestions > 0 ? Math.round((totalQuizCorrect / totalQuizQuestions) * 1000) / 10 : 0;
+  const bestJumpmapHeightPx = players.reduce((max, player) => Math.max(max, Number(player?.jumpmapStats?.bestHeightPx) || 0), 0);
+  const bestBattleshipKills = players.reduce((max, player) => Math.max(max, Number(player?.battleshipStats?.bestScore) || 0), 0);
 
   const rows = [
-    ['플레이어 수', `${totalPlayers}명`],
-    ['최근 점프맵 기록', `${totalJumpmapRuns}건`],
-    ['최근 퀴즈 기록', `${totalQuizRuns}건`],
-    ['최근 거북선 기록', `${totalBattleshipRuns}건`],
-    ['오답문항(표시 범위)', `${totalWrongs}건`],
-    ['최고 높이(누적 기록 기준)', pxToMeterText(bestJumpmapHeightPx)],
-    ['누적 퀴즈 정답률', `${overallAccuracy.toFixed(1)}%`]
+    ['활성 학생', `${totalPlayers}명`],
+    ['최근 플레이', `${totalSessions}판`],
+    ['퀴즈 정답률', `${overallAccuracy.toFixed(1)}%`],
+    ['오답 TOP 집계', `${wrongs.length}건`],
+    ['점프맵 최고', pxToMeterText(bestJumpmapHeightPx)],
+    ['거북선 최고', `${bestBattleshipKills}킬`]
   ];
 
   rows.forEach(([k, v]) => {
@@ -399,212 +398,189 @@ const renderSummary = ({ players, jumpmapSessions, quizSessions, battleshipSessi
   });
 };
 
-const renderPlayers = (players) => {
-  clearNode(els.players);
+const renderPlayerRank = (players) => {
+  clearNode(els.playerRank);
   if (!players.length) {
-    appendEmpty(els.players, '저장된 플레이어 기록이 없습니다.');
+    appendEmpty(els.playerRank, '학생 누적 기록이 없습니다.');
     return;
   }
-  players.forEach((player) => {
+  const ranked = [...players]
+    .map((player) => {
+      const quizStats = player?.stats || {};
+      const jumpStats = player?.jumpmapStats || {};
+      const battleshipStats = player?.battleshipStats || {};
+      return {
+        player,
+        quizScore: Number(quizStats.totalScore) || 0,
+        accuracy: Number(quizStats.accuracy) || 0,
+        jumpBestPx: Number(jumpStats.bestHeightPx) || 0,
+        battleBestKills: Number(battleshipStats.bestScore) || 0,
+        totalRuns: (Number(quizStats.quizRuns) || 0) + (Number(jumpStats.runs) || 0) + (Number(battleshipStats.runs) || 0)
+      };
+    })
+    .sort((a, b) =>
+      b.quizScore - a.quizScore ||
+      b.accuracy - a.accuracy ||
+      b.totalRuns - a.totalRuns
+    )
+    .slice(0, 10);
+
+  ranked.forEach((entry, index) => {
+    const player = entry.player;
     const item = createItem();
     const row = document.createElement('div');
     row.className = 'row';
     const name = document.createElement('div');
     name.className = 'name';
-    const tag = player?.tag ? String(player.tag).trim() : '';
-    name.textContent = tag ? `${player?.name || player?.id || '이름 없음'}(${tag})` : (player?.name || player?.id || '이름 없음');
-    const updated = document.createElement('div');
-    updated.className = 'meta';
-    updated.textContent = formatTime(player?.updatedAt);
-    if (normalizeStudentNo(tag)) {
-      const studentNo = normalizeStudentNo(tag);
+    const studentNo = normalizeStudentNo(player?.tag);
+    const displayName = player?.name || player?.id || '이름 없음';
+    name.textContent = `${index + 1}위 · ${studentNo ? `${displayName}(${studentNo}번)` : displayName}`;
+
+    const score = document.createElement('div');
+    score.className = 'meta';
+    score.textContent = `퀴즈 ${entry.quizScore}점`;
+    row.append(name, score);
+
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    meta.textContent = `퀴즈 ${entry.quizScore}점 · 정답률 ${entry.accuracy}% · 플레이 ${entry.totalRuns}판`;
+
+    if (studentNo) {
       const link = document.createElement('a');
       link.className = 'detail-link';
       link.href = buildStudentDetailHref(studentNo, state.selectedPeriodDays);
-      link.textContent = '상세';
-      const wrap = document.createElement('div');
-      wrap.style.display = 'grid';
-      wrap.style.justifyItems = 'end';
-      wrap.style.gap = '2px';
-      wrap.append(updated, link);
-      row.append(name, wrap);
+      link.textContent = '학생 상세';
+      item.append(row, meta, link);
     } else {
-      row.append(name, updated);
+      item.append(row, meta);
     }
-
-    const quizStats = player?.stats || {};
-    const jumpmapStats = player?.jumpmapStats || {};
-    const battleshipStats = player?.battleshipStats || {};
-    const meta = document.createElement('div');
-    meta.className = 'meta';
-    meta.innerHTML = [
-      `퀴즈: ${Number(quizStats.quizRuns) || 0}판 · 정답률 ${Number(quizStats.accuracy) || 0}% · 누적점수 ${Number(quizStats.totalScore) || 0}`,
-      `점프맵: ${Number(jumpmapStats.runs) || 0}판 · 최고높이 ${pxToMeterText(jumpmapStats.bestHeightPx)} · 점프 ${Number(jumpmapStats.totalJumps) || 0}/${Number(jumpmapStats.totalDoubleJumps) || 0}(더블)`,
-      `거북선: ${Number(battleshipStats.runs) || 0}판 · 최고 ${Number(battleshipStats.bestScore) || 0}킬 · 누적 ${Number(battleshipStats.totalKills) || 0}킬`
-    ].join('<br>');
-
-    item.append(row, meta);
-    els.players.appendChild(item);
+    els.playerRank.appendChild(item);
   });
 };
 
-const renderBattleshipSessions = (sessions) => {
-  clearNode(els.battleshipSessions);
-  if (!sessions.length) {
-    appendEmpty(els.battleshipSessions, '거북선 디펜스 기록이 없습니다.');
-    return;
-  }
-  sessions.forEach((session) => {
-    const item = createItem();
-    const row = document.createElement('div');
-    row.className = 'row';
-    const title = document.createElement('div');
-    title.className = 'name';
-    title.textContent = `거북선 디펜스 · ${session.playerCount || 1}인`;
-    const time = document.createElement('div');
-    time.className = 'meta';
-    time.textContent = formatTime(session.createdAt);
-    row.append(title, time);
+const renderActivityFeed = ({ jumpmapSessions, quizSessions, battleshipSessions }) => {
+  clearNode(els.activityFeed);
+  const entries = [];
 
-    const players = Array.isArray(session.players) ? session.players : [];
-    const topPlayer = players.reduce((best, player) => {
-      const kills = Number(player?.summary?.kills) || 0;
-      if (!best || kills > (Number(best?.summary?.kills) || 0)) return player;
-      return best;
+  (Array.isArray(jumpmapSessions) ? jumpmapSessions : []).forEach((session) => {
+    const players = Array.isArray(session?.players) ? session.players : [];
+    const best = players.reduce((max, player) => {
+      const value = Number(player?.summary?.bestHeightPx) || 0;
+      if (!max || value > max.value) {
+        return { value, name: player?.name || player?.id || '-', summary: player?.summary || {} };
+      }
+      return max;
     }, null);
-
-    const meta = document.createElement('div');
-    meta.className = 'meta';
-    meta.innerHTML = [
-      `최고 플레이어: ${topPlayer?.name || '-'} (${Number(topPlayer?.summary?.kills) || 0}킬)`,
-      `생존 시간: ${Number(session?.settingsSummary?.survivedSec) || 0}초 · 최고 웨이브: Lv.${Number(session?.settingsSummary?.maxWaveLevel) || 0}`,
-      `퀴즈 정답 반영: ${Number(topPlayer?.summary?.quizSolved) || 0}개`
-    ].join('<br>');
-
-    item.append(row, meta);
-    els.battleshipSessions.appendChild(item);
+    entries.push({
+      mode: '점프맵',
+      createdAt: session?.createdAt || '',
+      title: `${session?.playerCount || 1}인`,
+      detail: best
+        ? `${best.name} · ${pxToMeterText(best.value)}`
+        : '기록 없음'
+    });
   });
-};
 
-const renderJumpmapSessions = (sessions) => {
-  clearNode(els.jumpmapSessions);
-  if (!sessions.length) {
-    appendEmpty(els.jumpmapSessions, '점프맵 기록이 없습니다.');
+  (Array.isArray(quizSessions) ? quizSessions : []).forEach((session) => {
+    const players = Array.isArray(session?.players) ? session.players : [];
+    const best = [...players].sort(
+      (a, b) => (Number(b?.summary?.totalScore) || 0) - (Number(a?.summary?.totalScore) || 0)
+    )[0];
+    entries.push({
+      mode: '기본 퀴즈',
+      createdAt: session?.createdAt || '',
+      title: `${session?.playerCount || 1}인`,
+      detail: best
+        ? `${best?.name || best?.id || '-'} · ${Number(best?.summary?.totalScore) || 0}점`
+        : '기록 없음'
+    });
+  });
+
+  (Array.isArray(battleshipSessions) ? battleshipSessions : []).forEach((session) => {
+    const players = Array.isArray(session?.players) ? session.players : [];
+    const best = [...players].sort(
+      (a, b) => (Number(b?.summary?.kills) || 0) - (Number(a?.summary?.kills) || 0)
+    )[0];
+    entries.push({
+      mode: '거북선',
+      createdAt: session?.createdAt || '',
+      title: `${session?.playerCount || 1}인`,
+      detail: best
+        ? `${best?.name || best?.id || '-'} · ${Number(best?.summary?.kills) || 0}킬`
+        : '기록 없음'
+    });
+  });
+
+  entries.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const topEntries = entries.slice(0, 12);
+
+  if (!topEntries.length) {
+    appendEmpty(els.activityFeed, '최근 활동 기록이 없습니다.');
     return;
   }
-  sessions.forEach((session) => {
+
+  topEntries.forEach((entry) => {
     const item = createItem();
     const row = document.createElement('div');
     row.className = 'row';
     const name = document.createElement('div');
     name.className = 'name';
-    name.textContent = `점프맵 · ${session.playerCount || 1}인`;
+    name.textContent = `${entry.mode} ${entry.title}`;
     const time = document.createElement('div');
     time.className = 'meta';
-    time.textContent = formatTime(session.createdAt);
+    time.textContent = formatTime(entry.createdAt);
     row.append(name, time);
 
-    const players = Array.isArray(session.players) ? session.players : [];
-    const bestPlayer = players.reduce((best, player) => {
-      const height = Number(player?.summary?.bestHeightPx) || 0;
-      if (!best || height > (Number(best?.summary?.bestHeightPx) || 0)) return player;
-      return best;
-    }, null);
-
     const meta = document.createElement('div');
     meta.className = 'meta';
-    const durationMs = Number(session?.mapSummary?.durationMs || session?.settingsSummary?.durationMs || 0);
-    const mapSize = `${Number(session?.mapSummary?.width) || 0}x${Number(session?.mapSummary?.height) || 0}`;
-    meta.innerHTML = [
-      `맵: ${mapSize} · 오브젝트 ${Number(session?.mapSummary?.objectCount) || 0}개 · 세이브포인트 ${Number(session?.mapSummary?.savePointCount) || 0}개`,
-      `최고 플레이어: ${bestPlayer?.name || '-'} (${pxToMeterText(bestPlayer?.summary?.bestHeightPx)})`,
-      `종료 사유: ${session?.mapSummary?.endReason || '-'}${durationMs ? ` · 플레이 ${Math.round(durationMs / 1000)}초` : ''}`
-    ].join('<br>');
-
+    meta.textContent = entry.detail;
     item.append(row, meta);
-    els.jumpmapSessions.appendChild(item);
-  });
-};
-
-const renderQuizSessions = (sessions) => {
-  clearNode(els.quizSessions);
-  if (!sessions.length) {
-    appendEmpty(els.quizSessions, '기본 퀴즈 기록이 없습니다.');
-    return;
-  }
-  sessions.forEach((session) => {
-    const item = createItem();
-    const row = document.createElement('div');
-    row.className = 'row';
-    const title = document.createElement('div');
-    title.className = 'name';
-    title.textContent = `기본 퀴즈 · ${session.playerCount || 1}인`;
-    const time = document.createElement('div');
-    time.className = 'meta';
-    time.textContent = formatTime(session.createdAt);
-    row.append(title, time);
-
-    const topPlayer = (Array.isArray(session.players) ? [...session.players] : [])
-      .sort((a, b) => (Number(b?.summary?.totalScore) || 0) - (Number(a?.summary?.totalScore) || 0))[0];
-    const questionTypes = Array.isArray(session?.settingsSummary?.questionTypeSummary)
-      ? session.settingsSummary.questionTypeSummary
-      : [];
-    const typeText = questionTypes.length
-      ? questionTypes.map((cfg) => `${cfg.key}(${cfg.count})`).join(', ')
-      : '-';
-    const questionIds = Array.isArray(session?.questionSummary?.questionIds)
-      ? session.questionSummary.questionIds
-      : [];
-    const questionIdPreview = questionIds.slice(0, 12).join(', ');
-    const questionIdSuffix = questionIds.length > 12 ? ' …' : '';
-    const meta = document.createElement('div');
-    meta.className = 'meta';
-    meta.innerHTML = [
-      `프리셋: ${session?.launcherQuizPresetId || '-'} · 제한시간 ${Number(session?.settingsSummary?.timeLimitSec) || 0}초`,
-      `최고 점수: ${topPlayer?.tag ? `${topPlayer?.name || '-'}(${topPlayer?.tag})` : (topPlayer?.name || '-')}` +
-        ` (${Number(topPlayer?.summary?.totalScore) || 0}점)`,
-      `출제 유형: ${typeText}`,
-      `문항 ID(일부): ${questionIdPreview}${questionIdSuffix}`
-    ].join('<br>');
-
-    item.append(row, meta);
-    els.quizSessions.appendChild(item);
+    els.activityFeed.appendChild(item);
   });
 };
 
 const renderWrongs = (wrongs) => {
   clearNode(els.wrongs);
   if (!wrongs.length) {
-    appendEmpty(els.wrongs, '오답문항 기록이 없습니다.');
+    appendEmpty(els.wrongs, '오답 기록이 없습니다.');
     return;
   }
+  const grouped = new Map();
   wrongs.forEach((wrong) => {
+    const key = String(wrong?.questionId || wrong?.prompt || wrong?.question || 'unknown');
+    const prev = grouped.get(key) || {
+      key,
+      question: truncateText(wrong?.prompt || wrong?.question || wrong?.questionId || '문제 텍스트 없음'),
+      count: 0,
+      lastAt: wrong?.createdAt || '',
+      type: wrong?.type || 'unknown'
+    };
+    prev.count += 1;
+    if (new Date(wrong?.createdAt || 0).getTime() > new Date(prev.lastAt || 0).getTime()) {
+      prev.lastAt = wrong?.createdAt || prev.lastAt;
+    }
+    grouped.set(key, prev);
+  });
+
+  const topWrongs = [...grouped.values()]
+    .sort((a, b) =>
+      b.count - a.count ||
+      new Date(b.lastAt || 0).getTime() - new Date(a.lastAt || 0).getTime()
+    )
+    .slice(0, 10);
+
+  topWrongs.forEach((wrong, index) => {
     const item = createItem();
     const row = document.createElement('div');
     row.className = 'row';
     const name = document.createElement('div');
     name.className = 'name';
-    const tag = wrong?.playerTag ? String(wrong.playerTag).trim() : '';
-    const baseName = wrong?.playerName || wrong?.playerId || '플레이어';
-    name.textContent = tag ? `${baseName}(${tag})` : baseName;
+    name.textContent = `${index + 1}위 · ${wrong.question}`;
     const time = document.createElement('div');
     time.className = 'meta';
-    time.textContent = formatTime(wrong?.createdAt);
+    time.textContent = `${wrong.count}회`;
     row.append(name, time);
-
-    const typePill = document.createElement('div');
-    typePill.className = 'pill';
-    typePill.textContent = wrong?.type || 'unknown';
-
-    const question = document.createElement('div');
-    question.className = 'wrong-question';
-    question.textContent = wrong?.prompt || wrong?.question || '(문제 텍스트 없음)';
-
-    const meta = document.createElement('div');
-    meta.className = 'meta';
-    meta.innerHTML = `선택: <b>${wrong?.selectedChoice ?? '-'}</b> · 정답: <b>${wrong?.correctChoice ?? '-'}</b> · 문제ID: ${wrong?.questionId || '-'}`;
-
-    item.append(row, typePill, question, meta);
+    item.append(row);
     els.wrongs.appendChild(item);
   });
 };
@@ -612,10 +588,8 @@ const renderWrongs = (wrongs) => {
 const renderFilteredView = () => {
   const filtered = applyFilters(state.raw, state.selectedStudentNo, state.selectedPeriodDays);
   renderSummary(filtered);
-  renderPlayers(filtered.players);
-  renderJumpmapSessions(filtered.jumpmapSessions);
-  renderQuizSessions(filtered.quizSessions);
-  renderBattleshipSessions(filtered.battleshipSessions);
+  renderPlayerRank(filtered.players);
+  renderActivityFeed(filtered);
   renderWrongs(filtered.wrongs);
   updateFilterHint();
   syncTopNavigationLinks();
@@ -626,7 +600,7 @@ const renderFilteredView = () => {
     ? ` · 기간필터 ${getPeriodLabel(state.selectedPeriodDays)}`
     : '';
   els.status.textContent =
-    `불러오기 완료 · 점프맵 ${filtered.jumpmapSessions.length}건 · 퀴즈 ${filtered.quizSessions.length}건 · 거북선 ${filtered.battleshipSessions.length}건 · 플레이어 ${filtered.players.length}명 · 오답 ${filtered.wrongs.length}건${studentText}${periodText}`;
+    `불러오기 완료 · 플레이 ${filtered.jumpmapSessions.length + filtered.quizSessions.length + filtered.battleshipSessions.length}건 · 학생 ${filtered.players.length}명 · 오답 ${filtered.wrongs.length}건${studentText}${periodText}`;
 };
 
 const loadAndRender = async () => {
