@@ -102,6 +102,10 @@ const resultRecordsLink = $('#result-records-link');
 const resultClassroomLink = $('#result-classroom-link');
 const LAUNCHER_SETUP_STORAGE_KEY = 'jumpmap.launcher.setup.v1';
 
+const setQuizPlayingChrome = (playing) => {
+  document.body.classList.toggle('quiz-playing', Boolean(playing));
+};
+
 const settingsInputs = {
   players: $('#setting-players'),
   endMode: $('#setting-end-mode'),
@@ -3269,6 +3273,7 @@ const renderRanking = (logs, rankingEnabled) => {
 };
 
 const finishAllPlayers = () => {
+  setQuizPlayingChrome(false);
   summaryCard.classList.remove('hidden');
   quizGrid?.classList.add('hidden');
   const logs = players.map((player) => player.getLog());
@@ -3410,6 +3415,7 @@ const startQuizWithSettings = (settings, faceToFace, customBank) => {
 
   settingsCard.classList.add('hidden');
   summaryCard.classList.add('hidden');
+  setQuizPlayingChrome(true);
   quizGrid?.classList.remove('hidden');
   quizGrid.innerHTML = '';
   quizGrid?.classList.toggle('face-to-face', enableFaceToFace);
@@ -3481,6 +3487,7 @@ const resetSettings = () => {
 };
 
 const restartQuiz = () => {
+  setQuizPlayingChrome(false);
   settingsCard.classList.remove('hidden');
   quizGrid?.classList.add('hidden');
   summaryCard.classList.add('hidden');

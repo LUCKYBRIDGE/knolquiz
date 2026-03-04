@@ -3464,3 +3464,13 @@ select {
     font-size: clamp(14px, 3.2vw, 20px);
   }
 }
+
+/* Hide non-essential top chrome while actively solving quiz */
+body.quiz-playing > #quiz-app-title {
+  display: none;
+}
+
+body.quiz-playing > main {
+  min-height: 100vh;
+  padding-top: 14px;
+}
