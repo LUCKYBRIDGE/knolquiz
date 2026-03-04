@@ -2204,6 +2204,19 @@
         quizBox.appendChild(quizResize);
       }
 
+      const suppressContextMenu = (target) => {
+        if (!target) return;
+        target.addEventListener('contextmenu', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        });
+        target.addEventListener('auxclick', (e) => {
+          if (e.button !== 2) return;
+          e.preventDefault();
+          e.stopPropagation();
+        });
+      };
+
       const bind = (btn, key) => {
         const activePointers = new Set();
         const setPressedState = (pressed) => {
@@ -2260,6 +2273,16 @@
       bind(left, 'left');
       bind(right, 'right');
       bind(jump, 'jump');
+      suppressContextMenu(wrap);
+      suppressContextMenu(dpadBox);
+      suppressContextMenu(jumpBox);
+      suppressContextMenu(dpad);
+      suppressContextMenu(jumpWrap);
+      suppressContextMenu(left);
+      suppressContextMenu(right);
+      suppressContextMenu(jump);
+      if (quizBox) suppressContextMenu(quizBox);
+      if (quizButton) suppressContextMenu(quizButton);
 
       const bindBoxEditor = (boxEl, key) => {
         boxEl.addEventListener('pointerdown', (e) => {

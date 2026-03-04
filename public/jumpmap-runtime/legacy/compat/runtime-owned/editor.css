@@ -2351,6 +2351,9 @@ body.play-launch .test-header {
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.9);
   touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .jump-btn button {
