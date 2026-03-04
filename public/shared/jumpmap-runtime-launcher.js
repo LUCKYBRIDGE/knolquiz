@@ -45,7 +45,7 @@ export const readJumpmapLauncherSetup = () => {
 
 const normalizeLauncherEndMode = (setup) => {
   const raw = String(setup?.endMode || '').trim().toLowerCase();
-  if (raw === 'count' || raw === 'time' || raw === 'reach-top') return raw;
+  if (raw === 'count' || raw === 'time' || raw === 'time-attack' || raw === 'reach-top') return raw;
   const legacyJumpmap = String(setup?.jumpmapEndMode || '').trim().toLowerCase();
   if (legacyJumpmap === 'reach-top') return 'reach-top';
   const legacyQuiz = String(setup?.quizEndMode || '').trim().toLowerCase();
@@ -74,9 +74,9 @@ export const normalizeJumpmapLauncherSetup = (setup) => {
     jumpmapStartPointId: typeof setup.jumpmapStartPointId === 'string' ? setup.jumpmapStartPointId : '',
     endMode,
     jumpmapEndMode: endMode === 'reach-top' ? 'reach-top' : 'none',
-    quizEndMode: endMode === 'time' ? 'time' : 'count',
-    quizCountLimit: Math.max(1, Math.min(500, Math.round(Number(setup.quizCountLimit) || 30))),
-    quizTimeLimitSec: Math.max(10, Math.min(3600, Math.round(Number(setup.quizTimeLimitSec) || 180))),
+    quizEndMode: (endMode === 'time' || endMode === 'time-attack') ? 'time' : 'count',
+    quizCountLimit: Math.max(20, Math.min(500, Math.round(Number(setup.quizCountLimit) || 20))),
+    quizTimeLimitSec: Math.max(10, Math.min(3600, Math.round(Number(setup.quizTimeLimitSec) || 300))),
     playerNames: names.slice(0, players).map((name, index) => {
       const trimmed = typeof name === 'string' ? name.trim() : '';
       return trimmed || `사용자${index + 1}`;

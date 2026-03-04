@@ -237,8 +237,8 @@
       reached: false,
       winnerIndex: -1,
       mode: 'none',
-      quizCountLimit: 30,
-      quizTimeLimitSec: 180,
+      quizCountLimit: 20,
+      quizTimeLimitSec: 300,
       topObstacleRef: null,
       topObstacle: null
     };
@@ -759,14 +759,17 @@
     };
     const getJumpmapEndConfig = () => {
       const setup = getLauncherSetup();
-      const quizCountLimit = Math.max(1, Math.min(500, Math.round(Number(setup?.quizCountLimit) || 30)));
-      const quizTimeLimitSec = Math.max(10, Math.min(3600, Math.round(Number(setup?.quizTimeLimitSec) || 180)));
+      const quizCountLimit = Math.max(20, Math.min(500, Math.round(Number(setup?.quizCountLimit) || 20)));
+      const quizTimeLimitSec = Math.max(10, Math.min(3600, Math.round(Number(setup?.quizTimeLimitSec) || 300)));
       if (!setup || typeof setup !== 'object') {
         return { mode: 'none', quizCountLimit, quizTimeLimitSec };
       }
       const direct = String(setup.endMode || '').trim().toLowerCase();
       if (direct === 'count' || direct === 'time' || direct === 'reach-top') {
         return { mode: direct, quizCountLimit, quizTimeLimitSec };
+      }
+      if (direct === 'time-attack') {
+        return { mode: 'time', quizCountLimit, quizTimeLimitSec };
       }
       const legacyJumpmap = String(setup.jumpmapEndMode || '').trim().toLowerCase();
       if (legacyJumpmap === 'reach-top') {
@@ -3412,7 +3415,7 @@
         }
 
         if (goalFinishEnabled && jumpmapGoalState.mode === 'count') {
-          const requiredCount = Math.max(1, Math.round(Number(jumpmapGoalState.quizCountLimit) || 1));
+          const requiredCount = Math.max(20, Math.round(Number(jumpmapGoalState.quizCountLimit) || 20));
           const solvedCount = views.reduce((maxValue, playerView) => (
             Math.max(maxValue, Math.max(0, Math.round(Number(playerView?.sessionStats?.quizAttempts) || 0)))
           ), 0);
@@ -3423,7 +3426,7 @@
         }
 
         if (goalFinishEnabled && jumpmapGoalState.mode === 'time') {
-          const timeLimitSec = Math.max(10, Math.round(Number(jumpmapGoalState.quizTimeLimitSec) || 180));
+          const timeLimitSec = Math.max(10, Math.round(Number(jumpmapGoalState.quizTimeLimitSec) || 300));
           const startedAt = Number(recordRuntimeState.sessionStartedAt) || 0;
           if (startedAt > 0) {
             const elapsedSec = Math.max(0, Math.ceil((frameNow - startedAt) / 1000));

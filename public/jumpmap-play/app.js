@@ -25,7 +25,7 @@ const readSetup = () => {
 
 const normalizeLauncherEndMode = (setup) => {
   const raw = String(setup?.endMode || '').trim().toLowerCase();
-  if (raw === 'count' || raw === 'time' || raw === 'reach-top') return raw;
+  if (raw === 'count' || raw === 'time' || raw === 'time-attack' || raw === 'reach-top') return raw;
   const legacyJumpmap = String(setup?.jumpmapEndMode || '').trim().toLowerCase();
   if (legacyJumpmap === 'reach-top') return 'reach-top';
   const legacyQuiz = String(setup?.quizEndMode || '').trim().toLowerCase();
@@ -116,8 +116,10 @@ const renderSummary = (setup) => {
       setup.endMode === 'reach-top'
         ? '꼭대기 도달 시 종료'
         : (setup.endMode === 'time'
-          ? `시간 종료 (${Math.max(10, Math.min(3600, Math.round(Number(setup.quizTimeLimitSec) || 180)))}초)`
-          : `몇 문제 풀면 종료 (${Math.max(1, Math.min(500, Math.round(Number(setup.quizCountLimit) || 30)))}문제)`)
+          ? `시간 종료 (${Math.max(10, Math.min(3600, Math.round(Number(setup.quizTimeLimitSec) || 300)))}초)`
+          : (setup.endMode === 'time-attack'
+            ? `타임어택 (${Math.max(10, Math.min(3600, Math.round(Number(setup.quizTimeLimitSec) || 300)))}초 내 최대 풀이)`
+            : `몇 문제 풀면 종료 (${Math.max(20, Math.min(500, Math.round(Number(setup.quizCountLimit) || 20)))}문제)`))
     ],
     ['스타트 후보', setup.jumpmapStartPointId || '시작지점'],
     [

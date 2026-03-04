@@ -39,7 +39,7 @@ const readLauncherSetup = () => {
 
 const normalizeLauncherEndMode = (setup, gameMode) => {
   const raw = String(setup?.endMode || '').trim().toLowerCase();
-  let mode = (raw === 'count' || raw === 'time' || raw === 'reach-top') ? raw : '';
+  let mode = (raw === 'count' || raw === 'time' || raw === 'time-attack' || raw === 'reach-top') ? raw : '';
   if (!mode) {
     const legacyJumpmap = String(setup?.jumpmapEndMode || '').trim().toLowerCase();
     if (legacyJumpmap === 'reach-top') {
@@ -72,9 +72,9 @@ const normalizeSetup = (setup) => {
     : '';
   const endMode = normalizeLauncherEndMode(setup, gameMode);
   const jumpmapEndMode = endMode === 'reach-top' ? 'reach-top' : 'none';
-  const quizEndMode = endMode === 'time' ? 'time' : 'count';
-  const quizCountLimit = Math.max(1, Math.min(500, Math.round(Number(setup.quizCountLimit) || 30)));
-  const quizTimeLimitSec = Math.max(10, Math.min(3600, Math.round(Number(setup.quizTimeLimitSec) || 180)));
+  const quizEndMode = (endMode === 'time' || endMode === 'time-attack') ? 'time' : 'count';
+  const quizCountLimit = Math.max(20, Math.min(500, Math.round(Number(setup.quizCountLimit) || 20)));
+  const quizTimeLimitSec = Math.max(10, Math.min(3600, Math.round(Number(setup.quizTimeLimitSec) || 300)));
   const battleshipEndMode = normalizeBattleshipEndMode(setup.battleshipEndMode);
   const battleshipTimeLimitSec = Math.max(10, Math.min(7200, Math.round(Number(setup.battleshipTimeLimitSec) || 180)));
   const battleshipKillLimit = Math.max(1, Math.min(9999, Math.round(Number(setup.battleshipKillLimit) || 120)));
@@ -164,7 +164,9 @@ const renderSummary = (box, setup) => {
           ? '꼭대기 도달 시 종료'
           : (setup.endMode === 'time'
             ? `시간 종료 (${setup.quizTimeLimitSec}초)`
-            : `몇 문제 풀면 종료 (${setup.quizCountLimit}문제)`))
+            : (setup.endMode === 'time-attack'
+              ? `타임어택 (${setup.quizTimeLimitSec}초 내 최대 풀이)`
+              : `몇 문제 풀면 종료 (${setup.quizCountLimit}문제)`)))
     ],
     [
       '문제 소스',

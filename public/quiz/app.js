@@ -1221,9 +1221,14 @@ const buildLauncherBasicQuizSettings = () => {
   const launcherCarryMode = ['none', 'low', 'high', 'any'].includes(String(launcher.pvamCarryMode || '').trim().toLowerCase())
     ? String(launcher.pvamCarryMode || '').trim().toLowerCase()
     : 'none';
-  const launcherQuizEndMode = launcher.quizEndMode === 'time' ? 'time' : 'count';
+  const launcherEndMode = String(launcher.endMode || '').trim().toLowerCase();
+  const launcherQuizEndMode = (
+    launcher.quizEndMode === 'time' ||
+    launcherEndMode === 'time' ||
+    launcherEndMode === 'time-attack'
+  ) ? 'time' : 'count';
   const launcherQuizCountLimitRaw = Math.round(Number(launcher.quizCountLimit) || 0);
-  const launcherQuizTimeLimitSec = Math.max(10, Math.min(3600, Math.round(Number(launcher.quizTimeLimitSec) || 180)));
+  const launcherQuizTimeLimitSec = Math.max(10, Math.min(3600, Math.round(Number(launcher.quizTimeLimitSec) || 300)));
   const playerCount = Math.max(1, Math.min(6, Math.round(Number(launcher.players) || 1)));
   const playerNames = Array.isArray(launcher.playerNames)
     ? launcher.playerNames
@@ -1321,9 +1326,10 @@ const buildLauncherBasicQuizSettings = () => {
   settings.questionCount = Object.values(settings.questionTypes || {})
     .reduce((sum, cfg) => sum + ((cfg && cfg.enabled) ? (cfg.count || 0) : 0), 0);
   const baseQuestionCount = Math.max(1, Number(presetQuestionCountBase) || settings.questionCount);
+  const minQuizCountLimit = Math.min(20, baseQuestionCount);
   const launcherQuizCountLimit = launcherQuizCountLimitRaw > 0
-    ? Math.max(1, Math.min(baseQuestionCount, launcherQuizCountLimitRaw))
-    : baseQuestionCount;
+    ? Math.max(minQuizCountLimit, Math.min(baseQuestionCount, launcherQuizCountLimitRaw))
+    : Math.max(minQuizCountLimit, baseQuestionCount);
   if (launcherQuizEndMode !== 'time') {
     settings.questionCount = launcherQuizCountLimit;
   }

@@ -733,11 +733,11 @@
                 <div class="endmode-row" id="endmode-buttons"></div>
                 <div class="field" id="quiz-count-field">
                   <label for="quiz-count-limit-input">몇 문제 풀면 종료</label>
-                  <input type="number" id="quiz-count-limit-input" min="1" max="500" value="30" />
+                  <input type="number" id="quiz-count-limit-input" min="1" max="500" value="20" />
                 </div>
                 <div class="field" id="quiz-time-field">
                   <label for="quiz-time-limit-input">총 플레이 시간(초)</label>
-                  <input type="number" id="quiz-time-limit-input" min="10" max="3600" value="180" />
+                  <input type="number" id="quiz-time-limit-input" min="10" max="3600" value="300" />
                 </div>
                 <div class="field hidden" id="pvam-difficulty-field">
                   <label for="pvam-difficulty-select">자리올림 난이도(영역모델)</label>
@@ -913,6 +913,7 @@
         const END_MODE_OPTIONS = [
           { id: 'count', label: '몇 문제 풀면 종료' },
           { id: 'time', label: '시간 종료 시 종료' },
+          { id: 'time-attack', label: '타임어택(시간 내 최대 풀이)' },
           { id: 'reach-top', label: '꼭대기 도달 시 종료', jumpmapOnly: true }
         ];
         const BATTLESHIP_END_MODE_OPTIONS = [
@@ -936,8 +937,8 @@
           studentCharacterMap: {},
           jumpmapStartPointId: '',
           endMode: 'count',
-          quizCountLimit: 30,
-          quizTimeLimitSec: 180,
+          quizCountLimit: 20,
+          quizTimeLimitSec: 300,
           battleshipEndMode: 'ship-hp',
           battleshipTimeLimitSec: 180,
           battleshipKillLimit: 120,
@@ -1079,7 +1080,7 @@
           persistAndRefresh();
         });
         els.quizTimeLimitInput?.addEventListener('change', () => {
-          const value = Math.max(10, Math.min(3600, Math.round(Number(els.quizTimeLimitInput.value) || 180)));
+          const value = Math.max(10, Math.min(3600, Math.round(Number(els.quizTimeLimitInput.value) || 300)));
           state.quizTimeLimitSec = value;
           els.quizTimeLimitInput.value = String(value);
           persistAndRefresh();
@@ -1090,9 +1091,10 @@
           persistAndRefresh();
         });
         els.quizCountLimitInput?.addEventListener('change', () => {
-          const fallback = resolveQuizPresetQuestionCount(state.quizPresetId, state.customCsvText) || 1;
-          const normalized = normalizeQuizCountLimit(els.quizCountLimitInput.value, fallback);
-          const value = fallback > 0 ? Math.min(fallback, normalized) : normalized;
+          const availableCount = resolveQuizPresetQuestionCount(state.quizPresetId, state.customCsvText) || state.quizCountLimit || 20;
+          const minLimit = resolveMinQuizCountLimit(availableCount);
+          const normalized = normalizeQuizCountLimit(els.quizCountLimitInput.value, availableCount, minLimit);
+          const value = availableCount > 0 ? Math.min(availableCount, normalized) : normalized;
           state.quizCountLimit = value;
           els.quizCountLimitInput.value = String(value);
           persistAndRefresh();
@@ -1138,11 +1140,17 @@
           }
         }
 
-        function normalizeQuizCountLimit(rawValue, fallback) {
+        function resolveMinQuizCountLimit(availableCount) {
+          const maxAvailable = Math.max(1, Math.min(500, Math.round(Number(availableCount) || 1)));
+          return Math.min(20, maxAvailable);
+        }
+
+        function normalizeQuizCountLimit(rawValue, fallback, minLimit = 1) {
           const parsed = Math.round(Number(rawValue));
-          const fallbackSafe = Math.max(1, Math.min(500, Math.round(Number(fallback) || 1)));
+          const safeMin = Math.max(1, Math.min(500, Math.round(Number(minLimit) || 1)));
+          const fallbackSafe = Math.max(safeMin, Math.min(500, Math.round(Number(fallback) || safeMin)));
           if (!Number.isFinite(parsed) || parsed <= 0) return fallbackSafe;
-          return Math.max(1, Math.min(500, parsed));
+          return Math.max(safeMin, Math.min(500, parsed));
         }
 
         function makeSavedCsvId() {
@@ -1420,7 +1428,7 @@
         function normalizeEndModeWithFallback(rawEndMode, gameMode, legacySource) {
           const normalizedGameMode = gameMode === 'jumpmap' ? 'jumpmap' : 'basic-quiz';
           const direct = String(rawEndMode || '').trim().toLowerCase();
-          let mode = (direct === 'count' || direct === 'time' || direct === 'reach-top') ? direct : '';
+          let mode = (direct === 'count' || direct === 'time' || direct === 'time-attack' || direct === 'reach-top') ? direct : '';
           if (!mode && legacySource && typeof legacySource === 'object') {
             const legacyJumpmapMode = String(legacySource.jumpmapEndMode || '').trim().toLowerCase();
             if (legacyJumpmapMode === 'reach-top') {
@@ -1449,7 +1457,7 @@
             ? source.gameMode
             : 'jumpmap';
           const endMode = normalizeEndModeWithFallback(source.endMode, normalizedGameMode, source);
-          const quizEndMode = endMode === 'time' ? 'time' : 'count';
+          const quizEndMode = (endMode === 'time' || endMode === 'time-attack') ? 'time' : 'count';
           const jumpmapEndMode = endMode === 'reach-top' ? 'reach-top' : 'none';
           return {
             version: 1,
@@ -1464,8 +1472,8 @@
             endMode,
             jumpmapEndMode,
             quizEndMode,
-            quizCountLimit: Math.max(1, Math.min(500, Math.round(Number(source.quizCountLimit) || 30))),
-            quizTimeLimitSec: Math.max(10, Math.min(3600, Math.round(Number(source.quizTimeLimitSec) || 180))),
+            quizCountLimit: Math.max(1, Math.min(500, Math.round(Number(source.quizCountLimit) || 20))),
+            quizTimeLimitSec: Math.max(10, Math.min(3600, Math.round(Number(source.quizTimeLimitSec) || 300))),
             battleshipEndMode: normalizeBattleshipEndMode(source.battleshipEndMode),
             battleshipTimeLimitSec: Math.max(10, Math.min(7200, Math.round(Number(source.battleshipTimeLimitSec) || 180))),
             battleshipKillLimit: Math.max(1, Math.min(9999, Math.round(Number(source.battleshipKillLimit) || 120))),
@@ -1581,7 +1589,7 @@
           applyClassroomNamesByTag(target);
           target.jumpmapStartPointId = typeof target.jumpmapStartPointId === 'string' ? target.jumpmapStartPointId : '';
           target.endMode = normalizeEndModeWithFallback(target.endMode, target.gameMode, target);
-          target.quizTimeLimitSec = Math.max(10, Math.min(3600, Math.round(Number(target.quizTimeLimitSec) || 180)));
+          target.quizTimeLimitSec = Math.max(10, Math.min(3600, Math.round(Number(target.quizTimeLimitSec) || 300)));
           target.battleshipEndMode = normalizeBattleshipEndMode(target.battleshipEndMode);
           target.battleshipTimeLimitSec = Math.max(10, Math.min(7200, Math.round(Number(target.battleshipTimeLimitSec) || 180)));
           target.battleshipKillLimit = Math.max(1, Math.min(9999, Math.round(Number(target.battleshipKillLimit) || 120)));
@@ -1607,7 +1615,9 @@
             target.quizPresetId = QUIZ_PRESETS[0].id;
           }
           const presetQuestionCount = resolveQuizPresetQuestionCount(target.quizPresetId, target.customCsvText);
-          const normalizedCountLimit = normalizeQuizCountLimit(target.quizCountLimit, presetQuestionCount || 1);
+          const availableCount = presetQuestionCount || target.quizCountLimit || 20;
+          const minCountLimit = resolveMinQuizCountLimit(availableCount);
+          const normalizedCountLimit = normalizeQuizCountLimit(target.quizCountLimit, availableCount, minCountLimit);
           target.quizCountLimit = presetQuestionCount > 0
             ? Math.min(presetQuestionCount, normalizedCountLimit)
             : normalizedCountLimit;
@@ -2031,7 +2041,8 @@
           });
           const presetQuestionCount = resolveQuizPresetQuestionCount(state.quizPresetId, state.customCsvText);
           const availableCount = Math.max(1, presetQuestionCount || state.quizCountLimit || 1);
-          const appliedCount = Math.max(1, Math.min(availableCount, state.quizCountLimit || availableCount));
+          const minCountLimit = resolveMinQuizCountLimit(availableCount);
+          const appliedCount = Math.max(minCountLimit, Math.min(availableCount, state.quizCountLimit || availableCount));
           if (els.quizCountLimitInput) {
             els.quizCountLimitInput.value = String(appliedCount);
           }
@@ -2045,7 +2056,8 @@
             els.quizCountField.classList.toggle('hidden', isBattleship || state.endMode !== 'count');
           }
           if (els.quizTimeField) {
-            els.quizTimeField.classList.toggle('hidden', isBattleship || state.endMode !== 'time');
+            const usesTimeLimit = state.endMode === 'time' || state.endMode === 'time-attack';
+            els.quizTimeField.classList.toggle('hidden', isBattleship || !usesTimeLimit);
           }
           if (els.battleshipTimeLimitInput) {
             els.battleshipTimeLimitInput.value = String(state.battleshipTimeLimitSec);
@@ -2070,14 +2082,18 @@
               }
             } else if (state.endMode === 'reach-top') {
               els.endModeNote.textContent = '점프맵에서만 사용 가능하며, 맨 위 오브젝트에 닿으면 종료됩니다.';
+            } else if (state.endMode === 'time-attack') {
+              els.endModeNote.textContent = state.gameMode === 'jumpmap'
+                ? '점프맵 타임어택: 제한 시간 동안 최대한 많은 문제를 해결하고 높은 기록을 노리세요.'
+                : '기본 퀴즈 타임어택: 제한 시간 동안 최대한 많은 문제를 해결하세요.';
             } else if (state.endMode === 'time') {
               els.endModeNote.textContent = state.gameMode === 'jumpmap'
                 ? '점프맵 전체 플레이 시간이 다 되면 종료됩니다.'
                 : '기본 퀴즈 플레이 시간이 다 되면 종료됩니다.';
             } else {
               els.endModeNote.textContent = state.gameMode === 'jumpmap'
-                ? `점프맵에서 전체 ${availableCount}문제 중 무작위 ${appliedCount}문제를 풀면 종료됩니다.`
-                : `기본 퀴즈에서 전체 ${availableCount}문제 중 무작위 ${appliedCount}문제를 냅니다.`;
+                ? `점프맵에서 전체 ${availableCount}문제 중 무작위 ${appliedCount}문제를 풀면 종료됩니다. (기본 권장 최소 ${minCountLimit}문제)`
+                : `기본 퀴즈에서 전체 ${availableCount}문제 중 무작위 ${appliedCount}문제를 냅니다. (기본 권장 최소 ${minCountLimit}문제)`;
             }
           }
         }
@@ -2086,7 +2102,7 @@
           if (!els.modeSettingsNote) return;
           const currentGame = GAME_OPTIONS.find((item) => item.id === state.gameMode) || GAME_OPTIONS[0];
           if (state.gameMode === 'jumpmap') {
-            els.modeSettingsNote.textContent = `현재 선택 게임: ${currentGame.label} · 종료 기준(문제 수/시간/꼭대기 도달) 중 하나가 점프맵 종료 조건으로 적용됩니다.`;
+            els.modeSettingsNote.textContent = `현재 선택 게임: ${currentGame.label} · 종료 기준(문제 수/시간/타임어택/꼭대기 도달) 중 하나가 점프맵 종료 조건으로 적용됩니다.`;
             return;
           }
           if (state.gameMode === 'battleship-defense') {
@@ -2098,7 +2114,7 @@
             els.modeSettingsNote.textContent = `현재 선택 게임: ${currentGame.label} · 종료 기준(${battleshipSummary})을 적용합니다. 거북선 체력 0은 항상 즉시 종료 조건입니다.`;
             return;
           }
-          els.modeSettingsNote.textContent = `현재 선택 게임: ${currentGame.label} · 종료 기준(문제 수/시간)이 기본 퀴즈 종료 조건으로 적용됩니다.`;
+          els.modeSettingsNote.textContent = `현재 선택 게임: ${currentGame.label} · 종료 기준(문제 수/시간/타임어택)이 기본 퀴즈 종료 조건으로 적용됩니다.`;
         }
 
         function getQuizPresetOptions() {
@@ -2441,13 +2457,16 @@
             : '업로드 문제 사용 안 함';
           const presetQuestionCount = resolveQuizPresetQuestionCount(state.quizPresetId, state.customCsvText);
           const availableCount = Math.max(1, presetQuestionCount || state.quizCountLimit || 1);
-          const appliedCount = Math.max(1, Math.min(availableCount, state.quizCountLimit || availableCount));
+          const minCountLimit = resolveMinQuizCountLimit(availableCount);
+          const appliedCount = Math.max(minCountLimit, Math.min(availableCount, state.quizCountLimit || availableCount));
           const endModeSummary = state.endMode === 'reach-top'
             ? '꼭대기 도달 시 종료'
             : (
               state.endMode === 'time'
                 ? `시간 종료 (${state.quizTimeLimitSec}초)`
-                : `몇 문제 풀면 종료 (${appliedCount}문제 / 전체 ${availableCount})`
+                : (state.endMode === 'time-attack'
+                  ? `타임어택 (${state.quizTimeLimitSec}초 내 최대 풀이)`
+                  : `몇 문제 풀면 종료 (${appliedCount}문제 / 전체 ${availableCount})`)
             );
           const battleshipEndSummary = state.battleshipEndMode === 'time'
             ? `시간 도달 시 종료 (${state.battleshipTimeLimitSec}초)`
@@ -2458,7 +2477,11 @@
             ? (state.battleshipEndMode === 'time'
               ? '시간'
               : (state.battleshipEndMode === 'kills' ? '격파 수' : '체력'))
-            : (state.endMode === 'reach-top' ? '꼭대기' : (state.endMode === 'time' ? '시간' : '문제 수'));
+            : (state.endMode === 'reach-top'
+              ? '꼭대기'
+              : (state.endMode === 'time'
+                ? '시간'
+                : (state.endMode === 'time-attack' ? '타임어택' : '문제 수')));
           const endModeSummaryLabel = state.gameMode === 'battleship-defense'
             ? battleshipEndSummary
             : endModeSummary;
