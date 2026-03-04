@@ -216,6 +216,7 @@
     });
     const quizRuntimeState = {
       resourcesPromise: null,
+      resources: null,
       gatewayInstalled: false,
       sessions: new Map(),
       launcherCsvCache: {
@@ -1097,25 +1098,11 @@
       return null;
     };
     const normalizePvamQuestionForRuntime = (question, index = 0) => {
-      const total = Number(question?.solution?.total);
-      if (!Number.isFinite(total)) return null;
-      const factors = Array.isArray(question?.stem?.factors)
-        ? question.stem.factors
-        : [];
-      const expression = (typeof question?.question === 'string' && question.question.trim())
-        ? question.question.trim()
-        : (factors.length >= 2 ? `${factors[0]} x ${factors[1]}` : '곱셈 문제');
-      const answer = String(Math.trunc(total));
+      if (!question || typeof question !== 'object') return null;
+      const id = String(question?.id || `pvam-runtime-${index + 1}`);
       return {
-        id: String(question?.id || `pvam-runtime-${index + 1}`),
-        type: 'csv_subjective',
-        renderKind: 'text_short_answer',
-        prompt: `${expression}의 값을 입력하세요.`,
-        question: expression,
-        answer,
-        acceptedAnswers: [answer],
-        acceptedMatchContains: false,
-        tags: Array.isArray(question?.tags) ? question.tags.slice() : ['multiplication', 'place-value', 'area-model']
+        ...question,
+        id
       };
     };
     const resolveLauncherPvamQuestionBank = async (resources) => {
@@ -1495,6 +1482,7 @@
           bankMod,
           csvImporterMod,
           validateMod,
+          pvamRendererMod,
           defaults,
           facecolor,
           edgecolor,
@@ -1504,23 +1492,28 @@
           import(resolveEditorRuntimeAssetUrl('../../../../quiz/core/bank.js')),
           import(resolveEditorRuntimeAssetUrl('../../../../quiz/core/importers/csv-question-bank.js')),
           import(resolveEditorRuntimeAssetUrl('../../../../quiz/core/validate.js')),
+          import(resolveEditorRuntimeAssetUrl('../../../../quiz/renderers/place-value-area-model.js')),
           loadJson(buildQuizDataUrl('quiz-settings.default.json')),
           loadJson(buildQuizDataUrl('facecolor-questions.json')),
           loadJson(buildQuizDataUrl('edgecolor-questions.json')),
           loadJson(buildQuizDataUrl('validity-questions.json'))
         ]);
         console.log('[JumpmapTestRuntime] quiz resources: loading done');
-
-        return {
+        const resources = {
           createQuizEngine: engineMod.createQuizEngine,
           buildWeightedQuestionBank: bankMod.buildWeightedQuestionBank,
           parseCsvQuestionBank: csvImporterMod.parseCsvQuestionBank,
           validateQuestionBank: validateMod.validateQuestionBank,
+          isPlaceValueAreaModelQuestion: pvamRendererMod.isPlaceValueAreaModelQuestion,
+          renderPlaceValueAreaModelQuestion: pvamRendererMod.renderPlaceValueAreaModelQuestion,
           defaults: mergeQuizSettings(defaults),
           banks: { facecolor, edgecolor, validity }
         };
+        quizRuntimeState.resources = resources;
+        return resources;
       })().catch((error) => {
         quizRuntimeState.resourcesPromise = null;
+        quizRuntimeState.resources = null;
         console.error('[JumpmapTestRuntime] quiz resources load failed', error);
         throw error;
       });
@@ -2667,6 +2660,10 @@
       if (!ui || !question) return;
       const textChoiceQuestion = isTextChoiceQuestion(question);
       const shortAnswerQuestion = isTextShortAnswerQuestion(question);
+      const structuredPvamQuestion = Boolean(
+        quizRuntimeState.resources?.isPlaceValueAreaModelQuestion
+        && quizRuntimeState.resources.isPlaceValueAreaModelQuestion(question)
+      );
       ui.panelPrompt.textContent = question.type === 'validity'
         ? (question.mode === 'invalid' ? '잘못된 형태의 전개도를 고르세요' : '올바른 형태의 전개도를 고르세요')
         : (question.prompt || '문제를 풀어주세요');
@@ -2675,6 +2672,7 @@
       const showQuestionImage = question.type !== 'validity'
         && !textChoiceQuestion
         && !shortAnswerQuestion
+        && !structuredPvamQuestion
         && hasQuestionAsset;
       ui.questionWrap.classList.toggle('hidden', !showQuestionImage);
       if (showQuestionImage) {
@@ -2690,7 +2688,19 @@
         ui.choices.classList.toggle('hidden', !!shortAnswerQuestion);
       }
       ui.choices.innerHTML = '';
-      if (shortAnswerQuestion) {
+      if (structuredPvamQuestion && typeof quizRuntimeState.resources?.renderPlaceValueAreaModelQuestion === 'function') {
+        if (ui.shortAnswerWrap) {
+          ui.shortAnswerWrap.classList.add('hidden');
+        }
+        ui.choices.classList.remove('hidden');
+        quizRuntimeState.resources.renderPlaceValueAreaModelQuestion({
+          choicesEl: ui.choices,
+          question,
+          onSubmit: (payload) => {
+            submitQuizAnswer(playerView, payload);
+          }
+        });
+      } else if (shortAnswerQuestion) {
         if (ui.shortAnswerInput) {
           ui.shortAnswerInput.value = '';
           ui.shortAnswerInput.disabled = false;

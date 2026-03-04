@@ -1,6 +1,11 @@
 import { buildWeightedQuestionBank } from '../quiz/core/bank.js';
 import { cloneWithShuffledChoices } from '../quiz/core/selection.js';
 import { parseCsvQuestionBank } from '../quiz/core/importers/csv-question-bank.js';
+import { gradePlaceValueAreaModelQuestion } from '../quiz/core/graders/place-value-area-model.js';
+import {
+  isPlaceValueAreaModelQuestion,
+  renderPlaceValueAreaModelQuestion
+} from '../quiz/renderers/place-value-area-model.js';
 import { saveBattleshipSessionRecord } from '../shared/local-game-records.js';
 
 const STORAGE_KEY = 'jumpmap.launcher.setup.v1';
@@ -238,6 +243,7 @@ const collectAcceptedAnswers = (question) => {
 
 const isBattleUsableQuestion = (question) => {
   if (!question) return false;
+  if (isPlaceValueAreaModelQuestion(question)) return true;
   if (isTextShortAnswerQuestion(question)) {
     const acceptedAnswers = collectAcceptedAnswers(question);
     return acceptedAnswers.length > 0 || String(question.answer ?? '').trim().length > 0;
@@ -513,24 +519,11 @@ const getLauncherPvamQuestionCount = (presetId) => (
 );
 
 const normalizePvamQuestionForBattleship = (question, index = 0) => {
-  const total = Number(question?.solution?.total);
-  if (!Number.isFinite(total)) return null;
-  const factors = Array.isArray(question?.stem?.factors)
-    ? question.stem.factors
-    : [];
-  const expression = (typeof question?.question === 'string' && question.question.trim())
-    ? question.question.trim()
-    : (factors.length >= 2 ? `${factors[0]} x ${factors[1]}` : '곱셈 문제');
-  const answer = String(Math.trunc(total));
+  if (!question || typeof question !== 'object') return null;
+  const id = String(question?.id || `pvam-battle-${index + 1}`);
   return {
-    id: String(question?.id || `pvam-battle-${index + 1}`),
-    type: 'csv_subjective',
-    renderKind: 'text_short_answer',
-    prompt: `${expression}의 값을 입력하세요.`,
-    question: expression,
-    answer,
-    acceptedAnswers: [answer],
-    acceptedMatchContains: false
+    ...question,
+    id
   };
 };
 
@@ -1052,10 +1045,31 @@ const submitQuizAnswer = (rawAnswer) => {
   const question = state.quiz.currentQuestion;
   if (!question || state.quiz.answerLocked) return;
   state.quiz.answerLocked = true;
+  const structuredPvamQuestion = isPlaceValueAreaModelQuestion(question);
   const shortAnswerQuestion = isTextShortAnswerQuestion(question);
   let correct = false;
 
-  if (shortAnswerQuestion) {
+  if (structuredPvamQuestion) {
+    const graded = gradePlaceValueAreaModelQuestion(
+      question,
+      rawAnswer && typeof rawAnswer === 'object' ? rawAnswer : {}
+    );
+    correct = !!graded.correct;
+    const wrongFieldSet = new Set(
+      Array.isArray(graded?.wrongFields)
+        ? graded.wrongFields.map((field) => String(field))
+        : []
+    );
+    els.quizChoices
+      .querySelectorAll('[data-structured-input]')
+      .forEach((node) => {
+        if (!(node instanceof HTMLInputElement)) return;
+        node.disabled = true;
+        const inputId = String(node.dataset.structuredInput || '');
+        node.classList.toggle('is-correct', !wrongFieldSet.has(inputId));
+        node.classList.toggle('is-wrong', wrongFieldSet.has(inputId));
+      });
+  } else if (shortAnswerQuestion) {
     const graded = gradeShortAnswerForBattleship(question, rawAnswer);
     correct = graded.correct;
     if (els.quizShortAnswerInput) {
@@ -1097,6 +1111,8 @@ const closeQuizLayer = ({ keepStatus = false } = {}) => {
   els.quizCard?.classList.remove('question-hidden');
   els.quizChoices.innerHTML = '';
   els.quizChoices.classList.remove('hidden');
+  els.quizChoices.classList.remove('structured-choices');
+  els.quizChoices.style.removeProperty('height');
   els.quizQuestionWrap?.classList.add('hidden');
   els.quizQuestionAsset.removeAttribute('src');
   els.quizShortAnswerWrap?.classList.add('hidden');
@@ -1129,6 +1145,8 @@ const resolveNextQuizQuestion = () => {
 
 const renderQuizQuestion = (question) => {
   els.quizChoices.innerHTML = '';
+  els.quizChoices.classList.remove('structured-choices');
+  els.quizChoices.style.removeProperty('height');
   clearQuizVisualFx();
   setQuizFeedback('', '');
   state.quiz.answerLocked = false;
@@ -1151,13 +1169,30 @@ const renderQuizQuestion = (question) => {
   const choices = Array.isArray(question?.choices) ? question.choices.slice() : [];
   const textChoiceQuestion = isTextChoiceQuestion(question);
   const shortAnswerQuestion = isTextShortAnswerQuestion(question);
-  const showQuestionAsset = !textChoiceQuestion && !shortAnswerQuestion && isImageAssetPath(questionAsset);
+  const structuredPvamQuestion = isPlaceValueAreaModelQuestion(question);
+  const showQuestionAsset = !textChoiceQuestion
+    && !shortAnswerQuestion
+    && !structuredPvamQuestion
+    && isImageAssetPath(questionAsset);
   els.quizCard?.classList.toggle('question-hidden', !showQuestionAsset);
   els.quizQuestionWrap?.classList.toggle('hidden', !showQuestionAsset);
   if (showQuestionAsset) {
     els.quizQuestionAsset.src = questionAsset;
   } else {
     els.quizQuestionAsset.removeAttribute('src');
+  }
+
+  if (structuredPvamQuestion) {
+    els.quizChoices.classList.remove('hidden');
+    els.quizShortAnswerWrap?.classList.add('hidden');
+    renderPlaceValueAreaModelQuestion({
+      choicesEl: els.quizChoices,
+      question,
+      onSubmit: (payload) => {
+        submitQuizAnswer(payload);
+      }
+    });
+    return;
   }
 
   if (shortAnswerQuestion) {
