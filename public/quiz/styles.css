@@ -2919,6 +2919,12 @@ select {
   font-size: 18px;
 }
 
+.pvam-keypad-btn.is-submit {
+  border-color: rgba(147, 111, 18, 0.38);
+  background: linear-gradient(180deg, #fff1b8 0%, #f6cf58 100%);
+  color: #513a09;
+}
+
 .pvam-keypad-popup[data-keypad-rows="1"] {
   --pvam-keypad-gap: 4px;
 }
