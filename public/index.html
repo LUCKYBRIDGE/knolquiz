@@ -656,16 +656,76 @@
         font-weight: 900;
         word-break: break-word;
       }
-      .confirm-player-list {
-        margin: 0;
-        padding-left: 18px;
-        display: grid;
-        gap: 4px;
+      .confirm-value-line {
+        margin-top: 2px;
+        font-size: 16px;
+        color: #2f261f;
+        font-weight: 900;
+        word-break: break-word;
       }
-      .confirm-player-list li {
-        font-size: 14px;
-        color: #352a20;
-        line-height: 1.35;
+      .confirm-choice-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 6px;
+        margin-top: 6px;
+      }
+      .confirm-choice-btn {
+        border: 2px solid var(--line);
+        border-radius: 10px;
+        background: #fffaf0;
+        min-height: 40px;
+        font-size: 13px;
+        font-weight: 900;
+        cursor: pointer;
+      }
+      .confirm-choice-btn.is-active {
+        background: linear-gradient(180deg, #fff3c4 0%, #f0c74b 100%);
+        box-shadow: inset 0 2px 0 rgba(97, 68, 21, 0.18);
+      }
+      .confirm-player-fields {
+        display: grid;
+        gap: 6px;
+        margin-top: 6px;
+      }
+      .confirm-player-row {
+        display: grid;
+        grid-template-columns: 46px 1fr;
+        gap: 8px;
+        align-items: center;
+      }
+      .confirm-player-badge {
+        border-radius: 8px;
+        text-align: center;
+        padding: 7px 6px;
+        font-size: 12px;
+        font-weight: 900;
+        border: 1px solid rgba(47, 38, 31, 0.2);
+      }
+      .confirm-player-input,
+      .confirm-inline-field input,
+      .confirm-inline-field select {
+        width: 100%;
+        border: 2px solid rgba(47, 38, 31, 0.55);
+        border-radius: 9px;
+        background: #fff;
+        min-height: 38px;
+        padding: 6px 9px;
+        font: inherit;
+      }
+      .confirm-inline-field {
+        display: grid;
+        gap: 6px;
+        margin-top: 6px;
+      }
+      .confirm-inline-field label {
+        font-size: 12px;
+        color: #5e4f40;
+        font-weight: 800;
+      }
+      .confirm-detail-note {
+        margin-top: 2px;
+        font-size: 12px;
+        color: #5a4b3e;
       }
       .confirm-actions {
         display: grid;
@@ -709,6 +769,7 @@
         .quiz-item-thumb { width: 92px; height: 58px; }
         .tool-links { grid-template-columns: 1fr; }
         .start-btn { font-size: 19px; min-height: 56px; }
+        .confirm-choice-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .confirm-actions { grid-template-columns: 1fr; }
       }
     </style>
@@ -859,7 +920,7 @@
       <div class="confirm-modal-backdrop" id="start-confirm-backdrop"></div>
       <div class="confirm-modal-card" role="dialog" aria-modal="true" aria-labelledby="start-confirm-title">
         <h3 class="confirm-title" id="start-confirm-title">시작 전 최종 확인</h3>
-        <p class="confirm-sub">종료/진행 설정과 참여 플레이어를 확인한 뒤 시작하세요.</p>
+        <p class="confirm-sub">종료/진행 설정과 참여 플레이어를 이 팝업에서 최종 변경한 뒤 시작하세요.</p>
         <div class="confirm-grid">
           <div class="confirm-item">
             <div class="confirm-item-k">게임</div>
@@ -871,27 +932,53 @@
           </div>
           <div class="confirm-item">
             <div class="confirm-item-k">종료 기준</div>
-            <div class="confirm-item-v" id="start-confirm-endmode">-</div>
+            <div class="confirm-value-line" id="start-confirm-endmode">-</div>
+            <div class="confirm-choice-row" id="start-confirm-endmode-buttons"></div>
           </div>
           <div class="confirm-item">
-            <div class="confirm-item-k">종료 상세</div>
-            <div class="confirm-item-v" id="start-confirm-enddetail">-</div>
+            <div class="confirm-item-k">종료 상세 설정</div>
+            <div class="confirm-inline-field hidden" id="start-confirm-count-field">
+              <label for="start-confirm-count-input">몇 문제 풀면 종료</label>
+              <input type="number" id="start-confirm-count-input" min="1" max="500" value="20" />
+            </div>
+            <div class="confirm-inline-field hidden" id="start-confirm-time-field">
+              <label for="start-confirm-time-input">총 플레이 시간(초)</label>
+              <input type="number" id="start-confirm-time-input" min="10" max="3600" value="300" />
+            </div>
+            <div class="confirm-inline-field hidden" id="start-confirm-battleship-time-field">
+              <label for="start-confirm-battleship-time-input">거북선 디펜스 제한 시간(초)</label>
+              <input type="number" id="start-confirm-battleship-time-input" min="10" max="7200" value="180" />
+            </div>
+            <div class="confirm-inline-field hidden" id="start-confirm-battleship-kill-field">
+              <label for="start-confirm-battleship-kill-input">거북선 디펜스 목표 격파 수</label>
+              <input type="number" id="start-confirm-battleship-kill-input" min="1" max="9999" value="120" />
+            </div>
+            <div class="confirm-detail-note" id="start-confirm-enddetail">-</div>
           </div>
           <div class="confirm-item hidden" id="start-confirm-pvam-item">
             <div class="confirm-item-k">자리올림 난이도</div>
-            <div class="confirm-item-v" id="start-confirm-pvam">-</div>
+            <div class="confirm-inline-field">
+              <label for="start-confirm-pvam-select">자리올림 난이도(영역모델)</label>
+              <select id="start-confirm-pvam-select">
+                <option value="none">자리올림 없음</option>
+                <option value="low">자리올림 1~2회</option>
+                <option value="high">자리올림 많음</option>
+                <option value="any">혼합</option>
+              </select>
+            </div>
           </div>
           <div class="confirm-item">
             <div class="confirm-item-k">플레이어 수</div>
-            <div class="confirm-item-v" id="start-confirm-player-count">-</div>
+            <div class="confirm-value-line" id="start-confirm-player-count">-</div>
+            <div class="confirm-choice-row" id="start-confirm-player-buttons"></div>
           </div>
           <div class="confirm-item">
-            <div class="confirm-item-k">참여 플레이어</div>
-            <ul class="confirm-player-list" id="start-confirm-player-list"></ul>
+            <div class="confirm-item-k">참여 플레이어 이름</div>
+            <div class="confirm-player-fields" id="start-confirm-player-fields"></div>
           </div>
         </div>
         <div class="confirm-actions">
-          <button class="confirm-btn" type="button" id="start-confirm-cancel">설정으로 돌아가기</button>
+          <button class="confirm-btn" type="button" id="start-confirm-cancel">닫기</button>
           <button class="confirm-btn primary" type="button" id="start-confirm-submit">확정하고 시작</button>
         </div>
       </div>
@@ -1064,11 +1151,21 @@
           startConfirmGame: document.getElementById('start-confirm-game'),
           startConfirmQuiz: document.getElementById('start-confirm-quiz'),
           startConfirmEndMode: document.getElementById('start-confirm-endmode'),
+          startConfirmEndModeButtons: document.getElementById('start-confirm-endmode-buttons'),
           startConfirmEndDetail: document.getElementById('start-confirm-enddetail'),
+          startConfirmCountField: document.getElementById('start-confirm-count-field'),
+          startConfirmCountInput: document.getElementById('start-confirm-count-input'),
+          startConfirmTimeField: document.getElementById('start-confirm-time-field'),
+          startConfirmTimeInput: document.getElementById('start-confirm-time-input'),
+          startConfirmBattleshipTimeField: document.getElementById('start-confirm-battleship-time-field'),
+          startConfirmBattleshipTimeInput: document.getElementById('start-confirm-battleship-time-input'),
+          startConfirmBattleshipKillField: document.getElementById('start-confirm-battleship-kill-field'),
+          startConfirmBattleshipKillInput: document.getElementById('start-confirm-battleship-kill-input'),
           startConfirmPvamItem: document.getElementById('start-confirm-pvam-item'),
-          startConfirmPvam: document.getElementById('start-confirm-pvam'),
+          startConfirmPvamSelect: document.getElementById('start-confirm-pvam-select'),
           startConfirmPlayerCount: document.getElementById('start-confirm-player-count'),
-          startConfirmPlayerList: document.getElementById('start-confirm-player-list')
+          startConfirmPlayerButtons: document.getElementById('start-confirm-player-buttons'),
+          startConfirmPlayerFields: document.getElementById('start-confirm-player-fields')
         };
 
         renderAll();
@@ -1096,6 +1193,38 @@
           if (event.key !== 'Escape') return;
           if (els.startConfirmModal?.classList.contains('hidden')) return;
           closeStartConfirmModal();
+        });
+        els.startConfirmCountInput?.addEventListener('change', () => {
+          const availableCount = resolveQuizPresetQuestionCount(state.quizPresetId, state.customCsvText) || state.quizCountLimit || 20;
+          const minLimit = resolveMinQuizCountLimit(availableCount);
+          const normalized = normalizeQuizCountLimit(els.startConfirmCountInput.value, availableCount, minLimit);
+          const value = availableCount > 0 ? Math.min(availableCount, normalized) : normalized;
+          state.quizCountLimit = value;
+          els.startConfirmCountInput.value = String(value);
+          persistAndRefresh();
+        });
+        els.startConfirmTimeInput?.addEventListener('change', () => {
+          const value = Math.max(10, Math.min(3600, Math.round(Number(els.startConfirmTimeInput.value) || 300)));
+          state.quizTimeLimitSec = value;
+          els.startConfirmTimeInput.value = String(value);
+          persistAndRefresh();
+        });
+        els.startConfirmBattleshipTimeInput?.addEventListener('change', () => {
+          const value = Math.max(10, Math.min(7200, Math.round(Number(els.startConfirmBattleshipTimeInput.value) || 180)));
+          state.battleshipTimeLimitSec = value;
+          els.startConfirmBattleshipTimeInput.value = String(value);
+          persistAndRefresh();
+        });
+        els.startConfirmBattleshipKillInput?.addEventListener('change', () => {
+          const value = Math.max(1, Math.min(9999, Math.round(Number(els.startConfirmBattleshipKillInput.value) || 120)));
+          state.battleshipKillLimit = value;
+          els.startConfirmBattleshipKillInput.value = String(value);
+          persistAndRefresh();
+        });
+        els.startConfirmPvamSelect?.addEventListener('change', () => {
+          const value = String(els.startConfirmPvamSelect.value || 'none');
+          state.pvamCarryMode = ['none', 'low', 'high', 'any'].includes(value) ? value : 'none';
+          persistAndRefresh();
         });
 
         els.characterSelect.addEventListener('change', (e) => {
@@ -1716,6 +1845,9 @@
           renderModeSettingsSummary();
           renderGameConditional();
           renderSummary();
+          if (els.startConfirmModal && !els.startConfirmModal.classList.contains('hidden')) {
+            renderStartConfirmModal();
+          }
         }
 
         function buildCsvTemplate() {
@@ -2013,14 +2145,16 @@
           }
         }
 
+        function getAvailableEndModes() {
+          if (state.gameMode === 'battleship-defense') return BATTLESHIP_END_MODE_OPTIONS;
+          if (state.gameMode === 'jumpmap') return END_MODE_OPTIONS;
+          return END_MODE_OPTIONS.filter((mode) => !mode.jumpmapOnly);
+        }
+
         function renderEndModeControls() {
           if (!els.endModeButtons) return;
           const isBattleship = state.gameMode === 'battleship-defense';
-          const availableModes = isBattleship
-            ? BATTLESHIP_END_MODE_OPTIONS
-            : (state.gameMode === 'jumpmap'
-              ? END_MODE_OPTIONS
-              : END_MODE_OPTIONS.filter((mode) => !mode.jumpmapOnly));
+          const availableModes = getAvailableEndModes();
           state.endMode = normalizeEndModeWithFallback(state.endMode, state.gameMode, state);
           state.battleshipEndMode = normalizeBattleshipEndMode(state.battleshipEndMode);
           els.endModeButtons.innerHTML = '';
@@ -2495,8 +2629,109 @@
           };
         }
 
-        function openStartConfirmModal() {
-          if (!els.startConfirmModal) return;
+        function renderStartConfirmEndModeButtons() {
+          if (!els.startConfirmEndModeButtons) return;
+          const isBattleship = state.gameMode === 'battleship-defense';
+          const availableModes = getAvailableEndModes();
+          state.endMode = normalizeEndModeWithFallback(state.endMode, state.gameMode, state);
+          state.battleshipEndMode = normalizeBattleshipEndMode(state.battleshipEndMode);
+          els.startConfirmEndModeButtons.innerHTML = '';
+          availableModes.forEach((mode) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            const isActive = isBattleship
+              ? state.battleshipEndMode === mode.id
+              : state.endMode === mode.id;
+            btn.className = `confirm-choice-btn${isActive ? ' is-active' : ''}`;
+            btn.textContent = mode.label;
+            btn.addEventListener('click', () => {
+              if (isBattleship) {
+                state.battleshipEndMode = mode.id;
+              } else {
+                state.endMode = mode.id;
+              }
+              persistAndRefresh();
+            });
+            els.startConfirmEndModeButtons.appendChild(btn);
+          });
+        }
+
+        function renderStartConfirmPlayerButtons() {
+          if (!els.startConfirmPlayerButtons) return;
+          els.startConfirmPlayerButtons.innerHTML = '';
+          PLAYER_OPTIONS.forEach((count) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = `confirm-choice-btn${state.players === count ? ' is-active' : ''}`;
+            btn.textContent = `${count}인`;
+            btn.addEventListener('click', () => {
+              state.players = count;
+              persistAndRefresh();
+            });
+            els.startConfirmPlayerButtons.appendChild(btn);
+          });
+        }
+
+        function renderStartConfirmPlayerFields() {
+          if (!els.startConfirmPlayerFields) return;
+          els.startConfirmPlayerFields.innerHTML = '';
+          for (let i = 0; i < state.players; i += 1) {
+            const row = document.createElement('div');
+            row.className = 'confirm-player-row';
+            const badge = document.createElement('div');
+            badge.className = 'confirm-player-badge';
+            badge.textContent = `${i + 1}P`;
+            badge.style.background = PLAYER_COLORS[i % PLAYER_COLORS.length];
+            badge.style.color = PLAYER_TEXT_COLORS[i % PLAYER_TEXT_COLORS.length];
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'confirm-player-input';
+            input.maxLength = 20;
+            input.value = state.playerNames[i] || `사용자${i + 1}`;
+            input.placeholder = `사용자${i + 1}`;
+            input.addEventListener('change', () => {
+              state.playerNames[i] = input.value.trim() || `사용자${i + 1}`;
+              persistAndRefresh();
+            });
+            row.append(badge, input);
+            els.startConfirmPlayerFields.appendChild(row);
+          }
+        }
+
+        function renderStartConfirmDetailFields() {
+          const isBattleship = state.gameMode === 'battleship-defense';
+          const presetQuestionCount = resolveQuizPresetQuestionCount(state.quizPresetId, state.customCsvText);
+          const availableCount = Math.max(1, presetQuestionCount || state.quizCountLimit || 1);
+          const minCountLimit = resolveMinQuizCountLimit(availableCount);
+          const appliedCount = Math.max(minCountLimit, Math.min(availableCount, state.quizCountLimit || availableCount));
+          if (els.startConfirmCountInput) {
+            els.startConfirmCountInput.value = String(appliedCount);
+          }
+          if (els.startConfirmTimeInput) {
+            els.startConfirmTimeInput.value = String(state.quizTimeLimitSec);
+          }
+          if (els.startConfirmBattleshipTimeInput) {
+            els.startConfirmBattleshipTimeInput.value = String(state.battleshipTimeLimitSec);
+          }
+          if (els.startConfirmBattleshipKillInput) {
+            els.startConfirmBattleshipKillInput.value = String(state.battleshipKillLimit);
+          }
+          if (els.startConfirmCountField) {
+            els.startConfirmCountField.classList.toggle('hidden', isBattleship || state.endMode !== 'count');
+          }
+          if (els.startConfirmTimeField) {
+            const usesTimeLimit = state.endMode === 'time' || state.endMode === 'time-attack';
+            els.startConfirmTimeField.classList.toggle('hidden', isBattleship || !usesTimeLimit);
+          }
+          if (els.startConfirmBattleshipTimeField) {
+            els.startConfirmBattleshipTimeField.classList.toggle('hidden', !isBattleship || state.battleshipEndMode !== 'time');
+          }
+          if (els.startConfirmBattleshipKillField) {
+            els.startConfirmBattleshipKillField.classList.toggle('hidden', !isBattleship || state.battleshipEndMode !== 'kills');
+          }
+        }
+
+        function renderStartConfirmModal() {
           const preview = buildLaunchPreview();
           if (els.startConfirmGame) els.startConfirmGame.textContent = preview.gameLabel;
           if (els.startConfirmQuiz) els.startConfirmQuiz.textContent = preview.quizLabel;
@@ -2506,17 +2741,18 @@
           if (els.startConfirmPvamItem) {
             els.startConfirmPvamItem.classList.toggle('hidden', !preview.isPvamPreset);
           }
-          if (preview.isPvamPreset && els.startConfirmPvam) {
-            els.startConfirmPvam.textContent = preview.pvamCarryLabel;
+          if (preview.isPvamPreset && els.startConfirmPvamSelect) {
+            els.startConfirmPvamSelect.value = state.pvamCarryMode || 'none';
           }
-          if (els.startConfirmPlayerList) {
-            els.startConfirmPlayerList.innerHTML = '';
-            preview.players.forEach((playerName, index) => {
-              const li = document.createElement('li');
-              li.textContent = `${index + 1}P · ${playerName}`;
-              els.startConfirmPlayerList.appendChild(li);
-            });
-          }
+          renderStartConfirmEndModeButtons();
+          renderStartConfirmDetailFields();
+          renderStartConfirmPlayerButtons();
+          renderStartConfirmPlayerFields();
+        }
+
+        function openStartConfirmModal() {
+          if (!els.startConfirmModal) return;
+          renderStartConfirmModal();
           els.startConfirmModal.classList.remove('hidden');
           els.startConfirmModal.setAttribute('aria-hidden', 'false');
         }
@@ -2544,7 +2780,7 @@
                 <span class="summary-pill-v">${preview.quizLabel}</span>
               </div>
             </div>
-            <div class="summary-help">시작 전 확인 버튼을 누르면 종료/진행 설정과 참여 플레이어를 한 번 더 확인할 수 있습니다.</div>
+            <div class="summary-help">시작 전 확인 팝업에서 종료/진행 설정과 참여 플레이어를 바로 수정한 뒤 시작할 수 있습니다.</div>
           `;
           els.startBtn.textContent = state.gameMode === 'jumpmap'
             ? '점프맵 시작 전 확인'
