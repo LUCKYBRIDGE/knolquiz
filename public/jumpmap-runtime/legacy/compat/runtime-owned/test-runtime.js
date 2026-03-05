@@ -2139,7 +2139,7 @@
       const line2 = document.createElement('div');
       line2.className = 'test-start-guide-line';
       line2.classList.add('is-secondary');
-      line2.textContent = line2Text || '결과를 확인한 뒤 다시 시작하거나 기록/학급관리 화면으로 이동할 수 있습니다.';
+      line2.textContent = line2Text || '결과를 확인한 뒤 메인화면, 명예의 전당, 내 지난 기록보기로 이동할 수 있습니다.';
       guide.append(title, icon, line1, line2);
 
       if (Array.isArray(rankingRows) && rankingRows.length) {
@@ -2162,54 +2162,21 @@
 
       const actions = document.createElement('div');
       actions.className = 'test-start-guide-actions';
-      if (typeof onRestart === 'function') {
-        const restartBtn = document.createElement('button');
-        restartBtn.type = 'button';
-        restartBtn.className = 'test-start-guide-action-btn is-primary';
-        restartBtn.textContent = '즉시 재시작';
-        restartBtn.addEventListener('click', () => {
-          onRestart();
-        });
-        actions.appendChild(restartBtn);
-      }
-      if (typeof onClose === 'function') {
-        const closeBtn = document.createElement('button');
-        closeBtn.type = 'button';
-        closeBtn.className = 'test-start-guide-action-btn';
-        closeBtn.textContent = '테스트 완전 종료';
-        closeBtn.addEventListener('click', () => {
-          onClose();
-        });
-        actions.appendChild(closeBtn);
-      }
       const studentNos = new Set();
       (Array.isArray(rankingRows) ? rankingRows : []).forEach((row) => {
         const studentNo = normalizeStudentNo(row?.studentNo);
         if (studentNo) studentNos.add(studentNo);
       });
       const singleStudentNo = studentNos.size === 1 ? Array.from(studentNos)[0] : null;
-      if (snapshot) {
-        const csvBtn = document.createElement('button');
-        csvBtn.type = 'button';
-        csvBtn.className = 'test-start-guide-action-btn';
-        csvBtn.textContent = '결과 CSV';
-        csvBtn.addEventListener('click', () => {
-          const csvText = buildJumpmapResultCsv(snapshot, rankingRows);
-          const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
-          const fileName = `jumpmap-result-${stamp}.csv`;
-          downloadCsvFile(fileName, csvText);
-        });
-        actions.appendChild(csvBtn);
-      }
       const recordsLink = document.createElement('a');
       recordsLink.className = 'test-start-guide-action-btn';
       recordsLink.href = buildResultNavigationHref('../../../../play/records/', singleStudentNo);
-      recordsLink.textContent = '전체 기록 보기(로컬)';
+      recordsLink.textContent = '내 지난 기록보기';
       actions.appendChild(recordsLink);
       const classroomLink = document.createElement('a');
       classroomLink.className = 'test-start-guide-action-btn';
       classroomLink.href = buildResultNavigationHref('../../../../play/classroom/', singleStudentNo);
-      classroomLink.textContent = '학급관리 / 명예의 전당';
+      classroomLink.textContent = '명예의 전당';
       actions.appendChild(classroomLink);
       const launcherLink = document.createElement('a');
       launcherLink.className = 'test-start-guide-action-btn';
@@ -3725,7 +3692,7 @@
           line1Text,
           line2Text: snapshot
             ? buildSessionSummaryLineText(snapshot, reason)
-            : '결과를 확인한 뒤 다시 시작하거나 기록/학급관리 화면으로 이동할 수 있습니다.',
+            : '결과를 확인한 뒤 메인화면, 명예의 전당, 내 지난 기록보기로 이동할 수 있습니다.',
           rankingRows,
           snapshot,
           onRestart: () => {

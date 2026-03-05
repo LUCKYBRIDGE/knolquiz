@@ -966,12 +966,14 @@ export const renderPlaceValueAreaModelQuestion = ({ choicesEl, question, onSubmi
       { label: '9', action: 'digit', value: '9' },
       { label: '←', action: 'backspace' },
       { label: '지움', action: 'clear' },
-      { label: '다음칸', action: 'next', wide: true }
+      { label: '다음칸', action: 'next', wide: true },
+      { label: '제출', action: 'submit' }
     ];
 
     const keypadButtonMap = new Map();
     keypadButtons.forEach(({ label, action, value, wide }) => {
-      const btn = createEl('button', `pvam-keypad-btn${wide ? ' is-next' : ''}`, label);
+      const submitClass = action === 'submit' ? ' is-submit' : '';
+      const btn = createEl('button', `pvam-keypad-btn${wide ? ' is-next' : ''}${submitClass}`, label);
       btn.type = 'button';
       btn.dataset.action = action;
       if (value != null) btn.dataset.value = value;
@@ -985,7 +987,7 @@ export const renderPlaceValueAreaModelQuestion = ({ choicesEl, question, onSubmi
     const reorderKeypadButtons = (cols) => {
       const safeCols = Math.max(1, Number(cols) || 1);
       const digits = getDigitOrderForCols(safeCols);
-      const controls = ['←', '지움', '다음칸'];
+      const controls = ['←', '지움', '다음칸', '제출'];
       const ordered = [];
 
       for (let index = 0; index < digits.length; index += safeCols) {
@@ -1017,6 +1019,10 @@ export const renderPlaceValueAreaModelQuestion = ({ choicesEl, question, onSubmi
       }
       if (action === 'next') {
         moveToNextInput();
+        return;
+      }
+      if (action === 'submit') {
+        submit();
       }
     });
 
