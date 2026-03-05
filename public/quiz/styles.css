@@ -3472,5 +3472,11 @@ body.quiz-playing > #quiz-app-title {
 
 body.quiz-playing > main {
   min-height: 100vh;
-  padding-top: 14px;
+  max-width: none;
+  padding: 10px 12px 14px;
+}
+
+body.quiz-playing #settings-card,
+body.quiz-playing #summary-card {
+  display: none !important;
 }

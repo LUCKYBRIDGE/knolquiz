@@ -1,3 +1,28 @@
+const PVAM_STYLE_LINK_ID = 'pvam-renderer-style';
+
+let pvamStylesEnsured = false;
+
+const ensurePvamRendererStyles = () => {
+  if (pvamStylesEnsured) return;
+  if (typeof document === 'undefined') {
+    pvamStylesEnsured = true;
+    return;
+  }
+  const headEl = document.head || document.getElementsByTagName('head')[0];
+  if (!headEl) return;
+  if (document.getElementById(PVAM_STYLE_LINK_ID)) {
+    pvamStylesEnsured = true;
+    return;
+  }
+  const link = document.createElement('link');
+  link.id = PVAM_STYLE_LINK_ID;
+  link.rel = 'stylesheet';
+  link.href = new URL('./place-value-area-model.css', import.meta.url).toString();
+  link.setAttribute('data-pvam-renderer-style', 'true');
+  headEl.appendChild(link);
+  pvamStylesEnsured = true;
+};
+
 const decomposeTensOnes = (value) => {
   const tens = Math.floor(Number(value || 0) / 10) * 10;
   const ones = Number(value || 0) % 10;
@@ -276,6 +301,7 @@ export const isPlaceValueAreaModelQuestion = (question) => (
 
 export const renderPlaceValueAreaModelQuestion = ({ choicesEl, question, onSubmit }) => {
   if (!choicesEl || !isPlaceValueAreaModelQuestion(question)) return;
+  ensurePvamRendererStyles();
 
   const inputSpecs = getInputSpecsById(question);
   const [factorA, factorB] = getStemFactors(question);
