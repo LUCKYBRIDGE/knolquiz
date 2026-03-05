@@ -10,6 +10,8 @@ import {
 
 const els = {
   status: document.getElementById('status-box'),
+  audienceTeacherLink: document.getElementById('audience-teacher-link'),
+  audienceStudentLink: document.getElementById('audience-student-link'),
   roleTeacher: document.getElementById('role-teacher-btn'),
   roleStudent: document.getElementById('role-student-btn'),
   roleNote: document.getElementById('role-note'),
@@ -375,7 +377,13 @@ const applyRoleModeUi = () => {
   if (els.roleNote) {
     els.roleNote.textContent = isStudentMode
       ? '학생 모드: 명예의 전당과 개인 기록 확인 중심으로 표시됩니다.'
-      : '교사 모드: 학생/시즌 설정과 명예의 전당을 함께 관리합니다.';
+      : '교사 모드: 학생/시즌 설정과 명예의 전당을 함께 관리합니다. (추후 교사 PW 인증 후 접속 예정)';
+  }
+  if (els.audienceTeacherLink) {
+    els.audienceTeacherLink.classList.toggle('is-active', !isStudentMode);
+  }
+  if (els.audienceStudentLink) {
+    els.audienceStudentLink.classList.toggle('is-active', isStudentMode);
   }
 };
 

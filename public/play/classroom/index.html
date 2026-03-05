@@ -129,6 +129,43 @@
         font-weight: 700;
       }
       .status.error { color: #b91c1c; }
+      .audience-switch {
+        display: grid;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .audience-links {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .audience-link {
+        border: 2px solid rgba(24, 41, 75, 0.35);
+        border-radius: 12px;
+        background: rgba(255,255,255,0.78);
+        color: #2a3f66;
+        min-height: 46px;
+        font-size: 14px;
+        font-weight: 900;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .audience-link.is-active {
+        border-color: #0f7a4c;
+        background: linear-gradient(180deg, #0f7a4c, #0d5d3a);
+        color: #f3fff8;
+      }
+      .audience-note {
+        border: 1px solid rgba(24,41,75,0.14);
+        border-radius: 10px;
+        background: rgba(255,255,255,0.72);
+        color: #3d4d6b;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 8px 10px;
+      }
       .grid {
         display: grid;
         grid-template-columns: 1fr;
@@ -810,6 +847,9 @@
         .grid { grid-template-columns: 1fr; }
       }
       @media (max-width: 760px) {
+        .audience-links {
+          grid-template-columns: 1fr;
+        }
         .role-tabs {
           display: grid;
           grid-template-columns: 1fr 1fr;
@@ -857,6 +897,13 @@
         </div>
       </div>
       <div class="status" id="status-box">학급 데이터를 불러오는 중...</div>
+      <div class="audience-switch">
+        <div class="audience-links">
+          <a class="audience-link" id="audience-teacher-link" href="./teacher/">교사용 페이지</a>
+          <a class="audience-link" id="audience-student-link" href="./student/">학생용 페이지</a>
+        </div>
+        <div class="audience-note">안내: 추후 교사용 페이지는 교사 PW 인증 후 접속 가능하도록 적용할 예정입니다.</div>
+      </div>
       <div class="role-tabs" id="role-tabs">
         <button class="role-tab active" id="role-teacher-btn" data-role="teacher" type="button">교사 모드</button>
         <button class="role-tab" id="role-student-btn" data-role="student" type="button">학생 모드</button>

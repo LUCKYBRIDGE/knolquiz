@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>학급관리 교사용 페이지</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        font-family: "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+        background: #f3efe2;
+        color: #1f2f4e;
+      }
+      .card {
+        width: min(560px, calc(100% - 24px));
+        border: 2px solid rgba(24, 41, 75, 0.2);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.92);
+        padding: 16px;
+        display: grid;
+        gap: 10px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 22px;
+      }
+      p {
+        margin: 0;
+        line-height: 1.5;
+      }
+      a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 42px;
+        border-radius: 10px;
+        border: 2px solid #2c456d;
+        text-decoration: none;
+        color: #1f2f4e;
+        font-weight: 900;
+        background: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="card">
+      <h1>교사용 페이지로 이동 중...</h1>
+      <p>잠시 후 교사용 학급관리 화면으로 이동합니다.</p>
+      <p>안내: 추후 교사용 페이지는 교사 PW 인증 후 접속 가능하도록 적용할 예정입니다.</p>
+      <a href="../?role=teacher&view=students">자동 이동이 안 되면 눌러서 이동</a>
+    </section>
+    <script>
+      window.location.replace('../?role=teacher&view=students');
+    </script>
+  </body>
+</html>
