@@ -298,6 +298,47 @@
         color: #33281f;
         background: #f5edda;
       }
+      .quick-player-list {
+        display: grid;
+        gap: 8px;
+      }
+      .quick-player-row {
+        display: grid;
+        grid-template-columns: 74px minmax(0, 170px) 1fr;
+        align-items: center;
+        gap: 8px;
+      }
+      .quick-player-badge {
+        border-radius: 10px;
+        text-align: center;
+        padding: 8px 6px;
+        font-size: 12px;
+        font-weight: 900;
+        border: 2px solid rgba(47, 38, 31, 0.2);
+        color: #33281f;
+        background: #f5edda;
+      }
+      .quick-player-select {
+        width: 100%;
+        border: 2px solid rgba(47, 38, 31, 0.5);
+        border-radius: 10px;
+        background: #fff;
+        min-height: 42px;
+        padding: 8px 8px;
+        font: inherit;
+      }
+      .quick-player-name {
+        min-height: 42px;
+        border: 1px solid rgba(47, 38, 31, 0.2);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.8);
+        padding: 8px 10px;
+        font-size: 13px;
+        font-weight: 800;
+        color: #3f3227;
+        display: flex;
+        align-items: center;
+      }
       .quiz-presets {
         display: grid;
         gap: 8px;
@@ -862,6 +903,7 @@
         .field-grid { grid-template-columns: 1fr; }
         .name-row { grid-template-columns: 1fr 1fr; }
         .name-badge { grid-column: 1 / -1; }
+        .quick-player-row { grid-template-columns: 1fr; }
         .quiz-search-row { grid-template-columns: 1fr; }
         .quiz-item-body { grid-template-columns: 92px 1fr; gap: 8px; }
         .quiz-item-thumb { width: 92px; height: 58px; }
@@ -898,6 +940,12 @@
           <div class="section">
             <div class="section-title">2. 플레이 인원</div>
             <div class="player-buttons" id="player-buttons"></div>
+          </div>
+
+          <div class="section" id="quick-player-section">
+            <div class="section-title">2-1. 플레이어 선택 (간편)</div>
+            <div class="quick-player-list" id="quick-player-list"></div>
+            <div class="note">자기 번호를 선택하면 학급관리 이름이 자동으로 연결됩니다.</div>
           </div>
 
           <div class="section">
@@ -1232,6 +1280,8 @@
           gameSettingsPanel: document.getElementById('game-settings-panel'),
           launchModeButtons: document.getElementById('launch-mode-buttons'),
           playerButtons: document.getElementById('player-buttons'),
+          quickPlayerSection: document.getElementById('quick-player-section'),
+          quickPlayerList: document.getElementById('quick-player-list'),
           quizPresets: document.getElementById('quiz-presets'),
           quizSearchInput: document.getElementById('quiz-search-input'),
           quizFilterSelect: document.getElementById('quiz-filter-select'),
@@ -2022,6 +2072,7 @@
         function renderAll() {
           renderLaunchModeButtons();
           renderPlayerButtons();
+          renderQuickPlayerList();
           renderQuizPresets();
           renderGameButtons();
           renderNameInputs();
@@ -2464,6 +2515,9 @@
           if (els.gameSettingsPanel) {
             els.gameSettingsPanel.dataset.launchUiMode = state.launchUiMode;
           }
+          if (els.quickPlayerSection) {
+            els.quickPlayerSection.classList.toggle('hidden', isTeacherMode);
+          }
           if (els.csvToolsSection) {
             els.csvToolsSection.classList.toggle('hidden', !isTeacherMode);
           }
@@ -2517,6 +2571,55 @@
             });
             els.playerButtons.appendChild(button);
           });
+        }
+
+        function renderQuickPlayerList() {
+          if (!els.quickPlayerList) return;
+          els.quickPlayerList.innerHTML = '';
+          for (let i = 0; i < state.players; i += 1) {
+            const row = document.createElement('div');
+            row.className = 'quick-player-row';
+
+            const badge = document.createElement('div');
+            badge.className = 'quick-player-badge';
+            badge.textContent = `플레이어 ${i + 1}`;
+            badge.style.background = PLAYER_COLORS[i % PLAYER_COLORS.length];
+            badge.style.color = PLAYER_TEXT_COLORS[i % PLAYER_TEXT_COLORS.length];
+
+            const select = document.createElement('select');
+            select.className = 'quick-player-select';
+            for (let no = 1; no <= 50; no += 1) {
+              const option = document.createElement('option');
+              const studentNo = String(no);
+              const candidates = getClassroomNameCandidates(studentNo);
+              option.value = studentNo;
+              option.textContent = candidates.length ? `${studentNo}번 · ${candidates[0]}` : `${studentNo}번`;
+              select.appendChild(option);
+            }
+            select.value = normalizeStudentTag(state.playerTags[i]) || String(i + 1);
+            select.addEventListener('change', () => {
+              const studentTag = normalizeStudentTag(select.value) || String(i + 1);
+              state.playerTags[i] = studentTag;
+              const candidates = getClassroomNameCandidates(studentTag);
+              if (candidates.length) {
+                state.playerNames[i] = candidates[0];
+              } else {
+                const defaultName = `사용자${i + 1}`;
+                const currentName = typeof state.playerNames[i] === 'string' ? state.playerNames[i].trim() : '';
+                if (!currentName || currentName === defaultName || currentName.startsWith('사용자')) {
+                  state.playerNames[i] = defaultName;
+                }
+              }
+              persistAndRefresh();
+            });
+
+            const namePreview = document.createElement('div');
+            namePreview.className = 'quick-player-name';
+            namePreview.textContent = state.playerNames[i] || `사용자${i + 1}`;
+
+            row.append(badge, select, namePreview);
+            els.quickPlayerList.appendChild(row);
+          }
         }
 
         function renderQuizPresets() {
