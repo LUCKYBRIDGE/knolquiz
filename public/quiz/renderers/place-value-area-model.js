@@ -151,7 +151,7 @@ const createStackDigitStatic = ({ value, slotCount }) => {
 };
 
 const canonicalizeDigitText = (rawText) => {
-  const onlyDigits = String(rawText || '').replace(/\D+/g, '');
+  const onlyDigits = String(rawText ?? '').replace(/\D+/g, '');
   if (!onlyDigits) return '';
   const normalized = onlyDigits.replace(/^0+(?=\d)/, '');
   return normalized || '0';
