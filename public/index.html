@@ -76,6 +76,67 @@
         margin: 0 0 10px;
         font-size: 20px;
       }
+      .launch-mode-hub {
+        border: 2px solid rgba(47, 38, 31, 0.3);
+        border-radius: 14px;
+        padding: 10px;
+        margin-bottom: 12px;
+        background:
+          radial-gradient(circle at 6% 10%, rgba(255, 248, 221, 0.72), transparent 42%),
+          rgba(255, 253, 248, 0.86);
+        display: grid;
+        gap: 8px;
+      }
+      .launch-mode-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .launch-mode-title {
+        font-size: 14px;
+        font-weight: 900;
+        color: #2f261f;
+      }
+      .launch-mode-sub {
+        font-size: 12px;
+        color: #5f4f3f;
+        font-weight: 700;
+      }
+      .launch-mode-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .launch-mode-btn {
+        border: 2px solid rgba(47, 38, 31, 0.75);
+        border-radius: 12px;
+        min-height: 78px;
+        padding: 10px 12px;
+        text-align: left;
+        cursor: pointer;
+        background: #fffdf6;
+        box-shadow: 0 3px 0 rgba(63, 46, 26, 0.14);
+        display: grid;
+        gap: 4px;
+      }
+      .launch-mode-btn:hover { transform: translateY(-1px); }
+      .launch-mode-btn-k {
+        font-size: 15px;
+        font-weight: 900;
+        color: #2e241b;
+      }
+      .launch-mode-btn-v {
+        font-size: 12px;
+        font-weight: 700;
+        color: #5b4a3a;
+        line-height: 1.35;
+      }
+      .launch-mode-btn.is-active {
+        border-color: rgba(157, 116, 17, 0.95);
+        background: linear-gradient(180deg, #fff3c4 0%, #f0c74b 100%);
+        box-shadow: inset 0 2px 0 rgba(97, 68, 21, 0.16);
+      }
       .section {
         border: 2px solid rgba(47, 38, 31, 0.24);
         border-radius: 14px;
@@ -794,6 +855,8 @@
       @media (max-width: 720px) {
         main { width: calc(100% - 12px); margin-top: 8px; }
         .hero { padding: 14px; }
+        .launch-mode-head { display: grid; gap: 2px; }
+        .launch-mode-buttons { grid-template-columns: 1fr; }
         .player-buttons { grid-template-columns: repeat(3, minmax(0, 1fr)); }
         .game-buttons { grid-template-columns: 1fr; }
         .field-grid { grid-template-columns: 1fr; }
@@ -813,12 +876,19 @@
     <main>
       <section class="hero">
         <h1>퀴즈 게임 시작</h1>
-        <p>게임, 인원, 퀴즈를 먼저 고르고 바로 시작합니다. 점프맵 선택 시 캐릭터도 고를 수 있습니다(현재 2종).</p>
+        <p>상단에서 간편 시작/교사 설정 모드를 먼저 고르고, 게임 · 인원 · 퀴즈를 선택해 바로 시작하세요.</p>
       </section>
 
       <section class="grid">
-        <section class="panel">
+        <section class="panel" id="game-settings-panel">
           <h2>게임 시작 설정</h2>
+          <div class="launch-mode-hub">
+            <div class="launch-mode-head">
+              <div class="launch-mode-title">실행 모드 선택</div>
+              <div class="launch-mode-sub">간편 시작 / 교사 설정</div>
+            </div>
+            <div class="launch-mode-buttons" id="launch-mode-buttons"></div>
+          </div>
 
           <div class="section">
             <div class="section-title">1. 게임 선택</div>
@@ -853,7 +923,7 @@
             <div class="quiz-presets" id="quiz-presets"></div>
           </div>
 
-          <div class="section">
+          <div class="section" id="csv-tools-section">
             <div class="section-title">3-1. 문제 생성/업로드</div>
             <div class="csv-tools">
               <div class="csv-tools-row">
@@ -931,7 +1001,7 @@
             <p class="note" id="startpoint-note">시작 위치 목록을 불러오는 중입니다.</p>
           </div>
 
-          <div class="section">
+          <div class="section" id="names-section">
             <div class="section-title">5. 플레이어 이름</div>
             <div class="names-list" id="names-list"></div>
           </div>
@@ -1031,6 +1101,18 @@
         const PLAYER_COLORS = ['#ffe3e3', '#e0ebff', '#e5f8e9', '#fff4c8', '#f2e5ff', '#dff7f8'];
         const PLAYER_TEXT_COLORS = ['#b91c1c', '#1d4ed8', '#15803d', '#a16207', '#7e22ce', '#0f766e'];
         const PLAYER_OPTIONS = [1, 2, 3, 4, 5, 6];
+        const LAUNCH_UI_MODE_OPTIONS = [
+          {
+            id: 'quick',
+            label: '간편 시작 모드',
+            desc: '학생용 빠른 시작. 핵심 선택만 보여줍니다.'
+          },
+          {
+            id: 'teacher',
+            label: '교사 설정 모드',
+            desc: '종료/업로드/캐릭터/플레이어 상세 설정을 엽니다.'
+          }
+        ];
         const GAME_OPTIONS = [
           {
             id: 'jumpmap',
@@ -1112,6 +1194,7 @@
 
         const defaultSetup = () => ({
           version: 2,
+          launchUiMode: 'quick',
           players: 1,
           gameMode: 'jumpmap',
           quizPresetId: 'jumpmap-net-100',
@@ -1146,11 +1229,15 @@
         normalizeState(state);
 
         const els = {
+          gameSettingsPanel: document.getElementById('game-settings-panel'),
+          launchModeButtons: document.getElementById('launch-mode-buttons'),
           playerButtons: document.getElementById('player-buttons'),
           quizPresets: document.getElementById('quiz-presets'),
           quizSearchInput: document.getElementById('quiz-search-input'),
           quizFilterSelect: document.getElementById('quiz-filter-select'),
           gameButtons: document.getElementById('game-buttons'),
+          csvToolsSection: document.getElementById('csv-tools-section'),
+          namesSection: document.getElementById('names-section'),
           namesList: document.getElementById('names-list'),
           summaryBox: document.getElementById('summary-box'),
           startBtn: document.getElementById('start-btn'),
@@ -1746,6 +1833,11 @@
           return 'ship-hp';
         }
 
+        function normalizeLaunchUiMode(rawMode) {
+          const value = String(rawMode || '').trim().toLowerCase();
+          return value === 'teacher' ? 'teacher' : 'quick';
+        }
+
         function buildPersistableSetup(setup) {
           const source = setup && typeof setup === 'object' ? setup : {};
           const savedCsvFallback = supportsIndexedDb() ? [] : normalizeSavedCsvItems(source.savedCsvItems);
@@ -1757,6 +1849,7 @@
           const jumpmapEndMode = endMode === 'reach-top' ? 'reach-top' : 'none';
           return {
             version: 2,
+            launchUiMode: normalizeLaunchUiMode(source.launchUiMode),
             players: Math.max(1, Math.min(6, Math.round(Number(source.players) || 1))),
             gameMode: normalizedGameMode,
             quizPresetId: typeof source.quizPresetId === 'string' ? source.quizPresetId : 'jumpmap-net-100',
@@ -1849,6 +1942,7 @@
         }
 
         function normalizeState(target) {
+          target.launchUiMode = normalizeLaunchUiMode(target.launchUiMode);
           target.players = Math.max(1, Math.min(6, Math.round(Number(target.players) || 1)));
           if (!GAME_OPTIONS.some((item) => item.id === target.gameMode)) target.gameMode = 'jumpmap';
           target.characterId = normalizeCharacterId(target.characterId, 'sejong');
@@ -1926,6 +2020,7 @@
         }
 
         function renderAll() {
+          renderLaunchModeButtons();
           renderPlayerButtons();
           renderQuizPresets();
           renderGameButtons();
@@ -1934,6 +2029,7 @@
           renderEndModeControls();
           renderModeSettingsSummary();
           renderGameConditional();
+          renderLaunchModeVisibility();
           renderSummary();
           if (els.startConfirmModal && !els.startConfirmModal.classList.contains('hidden')) {
             renderStartConfirmModal();
@@ -2343,6 +2439,42 @@
           els.modeSettingsNote.textContent = '기본 퀴즈 종료 기준을 선택해 주세요. 시작 전 확인 팝업에서 한 번 더 확인됩니다.';
         }
 
+        function renderLaunchModeButtons() {
+          if (!els.launchModeButtons) return;
+          els.launchModeButtons.innerHTML = '';
+          LAUNCH_UI_MODE_OPTIONS.forEach((mode) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = `launch-mode-btn${state.launchUiMode === mode.id ? ' is-active' : ''}`;
+            btn.innerHTML = `
+              <span class="launch-mode-btn-k">${mode.label}</span>
+              <span class="launch-mode-btn-v">${mode.desc}</span>
+            `;
+            btn.addEventListener('click', () => {
+              if (state.launchUiMode === mode.id) return;
+              state.launchUiMode = mode.id;
+              persistAndRefresh();
+            });
+            els.launchModeButtons.appendChild(btn);
+          });
+        }
+
+        function renderLaunchModeVisibility() {
+          const isTeacherMode = state.launchUiMode === 'teacher';
+          if (els.gameSettingsPanel) {
+            els.gameSettingsPanel.dataset.launchUiMode = state.launchUiMode;
+          }
+          if (els.csvToolsSection) {
+            els.csvToolsSection.classList.toggle('hidden', !isTeacherMode);
+          }
+          if (els.modeSettingsSection) {
+            els.modeSettingsSection.classList.toggle('hidden', !isTeacherMode);
+          }
+          if (els.namesSection) {
+            els.namesSection.classList.toggle('hidden', !isTeacherMode);
+          }
+        }
+
         function getQuizPresetOptions() {
           const presets = QUIZ_PRESETS.slice();
           if (state.customCsvEnabled && state.customCsvText.trim()) {
@@ -2601,7 +2733,8 @@
 
         function renderGameConditional() {
           const isJumpmap = state.gameMode === 'jumpmap';
-          els.characterSection.classList.toggle('hidden', !isJumpmap);
+          const isTeacherMode = state.launchUiMode === 'teacher';
+          els.characterSection.classList.toggle('hidden', !isJumpmap || !isTeacherMode);
           const isPvamPreset = state.quizPresetId === 'pvam-area-2digit-100';
           const showPvamDifficulty = isPvamPreset && state.gameMode === 'basic-quiz';
           if (els.pvamDifficultyField) {
@@ -2701,6 +2834,7 @@
           const quizOptions = getQuizPresetOptions();
           const quiz = quizOptions.find((item) => item.id === state.quizPresetId) || quizOptions[0] || QUIZ_PRESETS[0];
           const game = GAME_OPTIONS.find((item) => item.id === state.gameMode) || GAME_OPTIONS[0];
+          const launchUiMode = LAUNCH_UI_MODE_OPTIONS.find((item) => item.id === state.launchUiMode) || LAUNCH_UI_MODE_OPTIONS[0];
           const names = state.playerNames.slice(0, state.players).map((name, idx) => {
             const tag = state.playerTags[idx];
             return tag ? `${name} (${tag}번)` : name;
@@ -2741,6 +2875,7 @@
           const isPvamPreset = state.quizPresetId === 'pvam-area-2digit-100' && state.gameMode === 'basic-quiz';
           return {
             gameLabel: game.label,
+            launchUiModeLabel: launchUiMode.label,
             quizLabel: quizShort,
             players: names,
             playerCount: state.players,
@@ -2922,6 +3057,10 @@
           const preview = buildLaunchPreview();
           els.summaryBox.innerHTML = `
             <div class="summary-meta">
+              <div class="summary-pill">
+                <span class="summary-pill-k">실행 모드</span>
+                <span class="summary-pill-v">${preview.launchUiModeLabel}</span>
+              </div>
               <div class="summary-pill">
                 <span class="summary-pill-k">게임</span>
                 <span class="summary-pill-v">${preview.gameLabel}</span>
