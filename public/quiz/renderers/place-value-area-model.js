@@ -742,6 +742,31 @@ export const renderPlaceValueAreaModelQuestion = ({ choicesEl, question, onSubmi
 
   const hasEmptySlots = (meta) => meta.digits.some((digit) => !digit);
 
+  const findNearestEmptyTarget = (fromInput) => {
+    if (!structuredInputs.length) return null;
+    const fromIndex = Math.max(0, structuredInputs.indexOf(fromInput));
+    let best = null;
+    structuredInputs.forEach((input, inputIndex) => {
+      const stackMeta = getStackMeta(input);
+      if (stackMeta) {
+        if (!hasEmptySlots(stackMeta)) return;
+        const slotIndex = getNextPlaceIndex(stackMeta);
+        const distance = Math.abs(inputIndex - fromIndex);
+        if (!best || distance < best.distance) {
+          best = { input, slotIndex, distance };
+        }
+        return;
+      }
+      const raw = String(input.value || '').trim();
+      if (raw) return;
+      const distance = Math.abs(inputIndex - fromIndex);
+      if (!best || distance < best.distance) {
+        best = { input, slotIndex: null, distance };
+      }
+    });
+    return best;
+  };
+
   const syncStackInputValue = (input, meta) => {
     const digitText = canonicalizeDigitText(meta.digits.join(''));
     input.value = digitText;
@@ -829,16 +854,31 @@ export const renderPlaceValueAreaModelQuestion = ({ choicesEl, question, onSubmi
       activeInput.dispatchEvent(new Event('input', { bubbles: true }));
       return;
     }
+    const currentInput = activeInput;
     const idx = clampSlotIndex(stackMeta, stackMeta.activeIndex);
     stackMeta.digits[idx] = digitChar;
+    syncStackInputValue(currentInput, stackMeta);
     if (hasEmptySlots(stackMeta)) {
-      // After overwrite, jump to the next still-empty place.
+      // Default auto move: ones -> tens -> hundreds -> thousands among empty slots.
       stackMeta.activeIndex = getNextPlaceIndex(stackMeta);
+      refreshStackInputUi(currentInput, stackMeta);
+      return;
+    }
+
+    // If current field is fully filled, move to the nearest field that still has an empty slot.
+    const nearest = findNearestEmptyTarget(currentInput);
+    if (nearest?.input instanceof HTMLInputElement && nearest.input !== currentInput) {
+      setActiveInput(nearest.input, Number.isFinite(nearest.slotIndex)
+        ? { slotIndex: nearest.slotIndex }
+        : {});
+      return;
+    }
+    if (nearest?.input === currentInput && Number.isFinite(nearest.slotIndex)) {
+      stackMeta.activeIndex = clampSlotIndex(stackMeta, nearest.slotIndex);
     } else {
       stackMeta.activeIndex = idx;
     }
-    syncStackInputValue(activeInput, stackMeta);
-    refreshStackInputUi(activeInput, stackMeta);
+    refreshStackInputUi(currentInput, stackMeta);
   };
 
   const backspaceActive = () => {
@@ -966,7 +1006,7 @@ export const renderPlaceValueAreaModelQuestion = ({ choicesEl, question, onSubmi
       { label: '8', action: 'digit', value: '8' },
       { label: '9', action: 'digit', value: '9' },
       { label: '←', action: 'backspace' },
-      { label: '지움', action: 'clear' },
+      { label: '전체지움', action: 'clear' },
       { label: '다음칸', action: 'next', wide: true },
       { label: '제출', action: 'submit' }
     ];
@@ -988,7 +1028,7 @@ export const renderPlaceValueAreaModelQuestion = ({ choicesEl, question, onSubmi
     const reorderKeypadButtons = (cols) => {
       const safeCols = Math.max(1, Number(cols) || 1);
       const digits = getDigitOrderForCols(safeCols);
-      const controls = ['←', '지움', '다음칸', '제출'];
+      const controls = ['←', '전체지움', '다음칸', '제출'];
       const ordered = [];
 
       for (let index = 0; index < digits.length; index += safeCols) {
