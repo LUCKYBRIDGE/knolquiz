@@ -168,6 +168,7 @@
     const RUNTIME_MOVE_SPEED_SCALE = 0.9;
     const RUNTIME_AIRTIME_SCALE = 1.1;
     const RUNTIME_VERTICAL_SPEED_SCALE = 1 / RUNTIME_AIRTIME_SCALE;
+    const JUMP_INPUT_BUFFER_MS = 70;
     const BACKGROUND_POSITION_PRECISION_DIGITS = 0;
     const HEIGHT_PX_PER_METER = 200;
     const TOP_GOAL_CONTACT_EPSILON_PX = 2;
@@ -254,9 +255,20 @@
     };
     const createRuntimeSfx = () => {
       const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+      const playCorrectHaptic = () => {
+        try {
+          if (document.hidden) return;
+          if (typeof navigator === 'undefined' || typeof navigator.vibrate !== 'function') return;
+          navigator.vibrate(12);
+        } catch (_error) {
+          // best effort only
+        }
+      };
       if (typeof AudioContextCtor !== 'function') {
         return {
-          playQuizResult: () => {},
+          playQuizResult: (correct) => {
+            if (correct) playCorrectHaptic();
+          },
           playJump: () => {}
         };
       }
@@ -313,6 +325,7 @@
       return {
         playQuizResult: (correct) => {
           if (correct) {
+            playCorrectHaptic();
             playPattern([
               { t: 0, f: 820, d: 0.06, w: 'triangle', g: 0.12, glide: 45 },
               { t: 0.06, f: 1200, d: 0.08, w: 'triangle', g: 0.13, glide: 65 }
@@ -2032,6 +2045,7 @@
       playerState.input.jumpQueued = false;
       playerState.input.jumpHeld = false;
       playerState.input.jumpLock = false;
+      playerState.input.jumpBufferUntil = 0;
       playerState.maxHeight = getPlayerHeightValue(playerState, metrics);
       playerState.startHeightPx = playerState.maxHeight;
     };
@@ -2143,6 +2157,9 @@
         if (view?.virtualInput) {
           view.virtualInput.left = false;
           view.virtualInput.right = false;
+          view.virtualInput.preferredDir = '';
+          view.virtualInput.lastLeftAt = 0;
+          view.virtualInput.lastRightAt = 0;
         }
         const input = view?.state?.input;
         if (!input) return;
@@ -2151,6 +2168,7 @@
         input.jumpQueued = false;
         input.jumpHeld = false;
         input.jumpLock = false;
+        input.jumpBufferUntil = 0;
       });
     };
     const getViewScale = (viewRect) => {
@@ -2335,6 +2353,7 @@
               if (isStartGuideBlocking(player)) return;
               if (player.state.input.jumpHeld || player.state.input.jumpLock) return;
               player.state.input.jumpQueued = true;
+              player.state.input.jumpBufferUntil = Date.now() + JUMP_INPUT_BUFFER_MS;
               player.state.input.jumpHeld = true;
               player.state.input.jumpLock = true;
               return;
@@ -2343,8 +2362,26 @@
             player.state.input.jumpLock = false;
             return;
           }
-          if (!player.virtualInput) player.virtualInput = { left: false, right: false };
+          if (!player.virtualInput) {
+            player.virtualInput = {
+              left: false,
+              right: false,
+              preferredDir: '',
+              lastLeftAt: 0,
+              lastRightAt: 0
+            };
+          }
           player.virtualInput[key] = !!pressed;
+          if (pressed) {
+            const nowMs = performance.now();
+            if (key === 'left') {
+              player.virtualInput.preferredDir = 'left';
+              player.virtualInput.lastLeftAt = nowMs;
+            } else if (key === 'right') {
+              player.virtualInput.preferredDir = 'right';
+              player.virtualInput.lastRightAt = nowMs;
+            }
+          }
         };
         const releasePointer = (e) => {
           if (e?.pointerId != null) activePointers.delete(e.pointerId);
@@ -3292,7 +3329,13 @@
           debugInfo,
           bgLayer,
           state: playerState,
-          virtualInput: { left: false, right: false },
+          virtualInput: {
+            left: false,
+            right: false,
+            preferredDir: '',
+            lastLeftAt: 0,
+            lastRightAt: 0
+          },
           renderCache: {
             heightText: '',
             gaugeTransform: '',
@@ -3454,7 +3497,13 @@
         let reachedTopPlayerIndex = -1;
         views.forEach((playerView) => {
           const ps = playerView.state;
-          const vi = playerView.virtualInput || { left: false, right: false };
+          const vi = playerView.virtualInput || {
+            left: false,
+            right: false,
+            preferredDir: '',
+            lastLeftAt: 0,
+            lastRightAt: 0
+          };
           const useKeyboard = playerView === views[0];
           const quizState = getQuizState(playerView);
           const now = frameNow;
@@ -3468,9 +3517,28 @@
           const prevX = ps.x;
           const prevJumpsUsed = ps.jumpsUsed || 0;
           const prevJumpedFromGround = !!ps.jumpedFromGround;
+          const queuedBeforeStep = !!ps.input.jumpQueued;
+          const bufferedUntilBeforeStep = Number(ps.input.jumpBufferUntil) || 0;
 
-          const wantLeft = !!vi.left || (useKeyboard && keyboardState.left);
-          const wantRight = !!vi.right || (useKeyboard && keyboardState.right);
+          const touchLeftRaw = !!vi.left;
+          const touchRightRaw = !!vi.right;
+          let touchLeft = touchLeftRaw;
+          let touchRight = touchRightRaw;
+          if (touchLeftRaw && touchRightRaw) {
+            const leftAt = Number(vi.lastLeftAt) || 0;
+            const rightAt = Number(vi.lastRightAt) || 0;
+            const preferredDir = vi.preferredDir === 'left' || vi.preferredDir === 'right'
+              ? vi.preferredDir
+              : (leftAt >= rightAt ? 'left' : 'right');
+            touchLeft = preferredDir === 'left';
+            touchRight = preferredDir === 'right';
+          }
+          let wantLeft = touchLeft || (useKeyboard && keyboardState.left);
+          let wantRight = touchRight || (useKeyboard && keyboardState.right);
+          if (wantLeft && wantRight && (touchLeftRaw || touchRightRaw) && touchLeft !== touchRight) {
+            wantLeft = touchLeft;
+            wantRight = touchRight;
+          }
           ps.input.left = controlBlocking ? false : wantLeft;
           ps.input.right = controlBlocking ? false : wantRight;
           const hadMoveInput = !!ps.input.left || !!ps.input.right;
@@ -3479,12 +3547,25 @@
             ps.input.jumpQueued = false;
             ps.input.jumpHeld = false;
             ps.input.jumpLock = false;
+            ps.input.jumpBufferUntil = 0;
           } else if (ps.input.jumpQueued && gaugeNow <= 0) {
+            const bufferUntil = Number(ps.input.jumpBufferUntil) || 0;
+            if (bufferUntil > 0 && now > bufferUntil) {
+              ps.input.jumpQueued = false;
+              ps.input.jumpBufferUntil = 0;
+            }
             const wantsGroundJump = wasOnGround;
             if (wantsGroundJump) {
               ps.input.jumpQueued = false;
               ps.input.jumpHeld = false;
               ps.input.jumpLock = false;
+              ps.input.jumpBufferUntil = 0;
+            }
+          } else if (ps.input.jumpQueued) {
+            const bufferUntil = Number(ps.input.jumpBufferUntil) || 0;
+            if (bufferUntil > 0 && now > bufferUntil) {
+              ps.input.jumpQueued = false;
+              ps.input.jumpBufferUntil = 0;
             }
           }
 
@@ -3521,6 +3602,17 @@
           }
 
           const nextJumpsUsed = ps.jumpsUsed || 0;
+          if (!controlBlocking && queuedBeforeStep && nextJumpsUsed <= prevJumpsUsed) {
+            const bufferedUntil = bufferedUntilBeforeStep || (Number(ps.input.jumpBufferUntil) || 0);
+            if (bufferedUntil > now) {
+              ps.input.jumpQueued = true;
+              ps.input.jumpBufferUntil = bufferedUntil;
+            } else {
+              ps.input.jumpBufferUntil = 0;
+            }
+          } else if (nextJumpsUsed > prevJumpsUsed) {
+            ps.input.jumpBufferUntil = 0;
+          }
           if (!controlBlocking && nextJumpsUsed > prevJumpsUsed) {
             const action = prevJumpsUsed === 0 ? 'jump' : 'doubleJump';
             runtimeSfx.playJump(action === 'doubleJump');
@@ -3908,6 +4000,7 @@
         if (e.repeat) return;
         if (first.state.input.jumpHeld || first.state.input.jumpLock) return;
         first.state.input.jumpQueued = true;
+        first.state.input.jumpBufferUntil = Date.now() + JUMP_INPUT_BUFFER_MS;
         first.state.input.jumpHeld = true;
         first.state.input.jumpLock = true;
       }

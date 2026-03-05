@@ -109,6 +109,13 @@ const els = {
   projectileLevelStat: document.getElementById('projectile-level-stat'),
   dpsStat: document.getElementById('dps-stat'),
   status: document.getElementById('status-text'),
+  battleFlowBadge: document.getElementById('battle-flow-badge'),
+  upgradeRank: document.getElementById('upgrade-rank'),
+  upgradeExpFill: document.getElementById('upgrade-exp-fill'),
+  upgradeExpText: document.getElementById('upgrade-exp-text'),
+  enemyTierText: document.getElementById('enemy-tier-text'),
+  enemyTierTrack: document.getElementById('enemy-tier-track'),
+  enemyTierDots: [...document.querySelectorAll('#enemy-tier-track .enemy-tier-dot')],
   buyHealBtn: document.getElementById('buy-heal-btn'),
   openQuizBtn: document.getElementById('open-quiz-btn'),
   upgradeSpeedBtn: document.getElementById('upgrade-speed-btn'),
@@ -1695,20 +1702,67 @@ const refreshHud = () => {
   }
 
   const healCost = getHealCost();
-  els.buyHealBtn.textContent = `체력 회복 (${healCost}G)`;
-  els.buyHealBtn.disabled = state.score.gold < healCost || state.ship.hp >= state.ship.maxHp || state.gameover;
+  if (els.buyHealBtn) {
+    els.buyHealBtn.textContent = `체력 회복 (${healCost}G)`;
+    els.buyHealBtn.disabled = state.score.gold < healCost || state.ship.hp >= state.ship.maxHp || state.gameover;
+  }
 
   const speedCost = getSpeedUpgradeCost();
-  els.upgradeSpeedBtn.textContent = `공격속도 업 (${speedCost}EXP)`;
-  els.upgradeSpeedBtn.disabled = state.score.exp < speedCost || state.gameover;
+  if (els.upgradeSpeedBtn) {
+    els.upgradeSpeedBtn.textContent = `공격속도 업 (${speedCost}EXP)`;
+    els.upgradeSpeedBtn.disabled = state.score.exp < speedCost || state.gameover;
+  }
 
   const powerCost = getPowerUpgradeCost();
-  els.upgradePowerBtn.textContent = `공격력 업 (${powerCost}EXP)`;
-  els.upgradePowerBtn.disabled = state.score.exp < powerCost || state.gameover;
+  if (els.upgradePowerBtn) {
+    els.upgradePowerBtn.textContent = `공격력 업 (${powerCost}EXP)`;
+    els.upgradePowerBtn.disabled = state.score.exp < powerCost || state.gameover;
+  }
 
   const bulletCost = getBulletUpgradeCost();
-  els.upgradeBulletBtn.textContent = `총알 개수 업 (${bulletCost}EXP)`;
-  els.upgradeBulletBtn.disabled = state.score.exp < bulletCost || state.gameover;
+  if (els.upgradeBulletBtn) {
+    els.upgradeBulletBtn.textContent = `총알 개수 업 (${bulletCost}EXP)`;
+    els.upgradeBulletBtn.disabled = state.score.exp < bulletCost || state.gameover;
+  }
+
+  const totalUpgradeLevel =
+    state.ship.attackSpeedLevel + state.ship.attackPowerLevel + state.ship.projectileLevel;
+  const combatRank = 1 + totalUpgradeLevel;
+  const nextUpgradeCost = Math.max(1, Math.min(speedCost, powerCost, bulletCost));
+  const nextUpgradeRemain = Math.max(0, nextUpgradeCost - state.score.exp);
+  if (els.upgradeRank) {
+    els.upgradeRank.textContent = String(combatRank);
+  }
+  if (els.upgradeExpFill) {
+    const ratio = clamp(state.score.exp / nextUpgradeCost, 0, 1);
+    els.upgradeExpFill.style.transform = `scaleX(${ratio.toFixed(4)})`;
+  }
+  if (els.upgradeExpText) {
+    els.upgradeExpText.textContent = nextUpgradeRemain > 0
+      ? `다음 강화까지 EXP ${nextUpgradeRemain}`
+      : '강화 가능! 버튼을 눌러 바로 성장하세요.';
+  }
+
+  const unlockedTier = getUnlockedEnemyTier(state.waves.elapsedSec);
+  const eliteUnlockedTier = getEliteUnlockedTier(state.waves.elapsedSec);
+  if (els.enemyTierText) {
+    const eliteLabel = eliteUnlockedTier > 0
+      ? ` · 붉은특수 01~${String(eliteUnlockedTier).padStart(2, '0')}`
+      : '';
+    els.enemyTierText.textContent = `일반 적 01~${String(unlockedTier).padStart(2, '0')}${eliteLabel}`;
+  }
+  if (Array.isArray(els.enemyTierDots) && els.enemyTierDots.length) {
+    els.enemyTierDots.forEach((dot, index) => {
+      const tier = index + 1;
+      dot.classList.toggle('is-unlocked', tier <= unlockedTier);
+      dot.classList.toggle('is-elite', eliteUnlockedTier > 0 && tier <= eliteUnlockedTier);
+    });
+  }
+  if (els.battleFlowBadge) {
+    const dangerLevel = getDangerLevel();
+    const flowLabel = state.flow?.label || '보통';
+    els.battleFlowBadge.textContent = `위협 Lv.${dangerLevel} · ${flowLabel}`;
+  }
 
   if (state.quiz.loading) {
     els.openQuizBtn.textContent = '퀴즈 준비 중...';
@@ -1717,7 +1771,9 @@ const refreshHud = () => {
   } else {
     els.openQuizBtn.textContent = '퀴즈 열기';
   }
-  els.openQuizBtn.disabled = state.quiz.loading || state.gameover;
+  if (els.openQuizBtn) {
+    els.openQuizBtn.disabled = state.quiz.loading || state.gameover;
+  }
 };
 
 let sessionSaved = false;

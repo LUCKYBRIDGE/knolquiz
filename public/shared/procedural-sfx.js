@@ -1,7 +1,18 @@
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+const triggerCorrectHaptic = () => {
+  try {
+    if (document.hidden) return;
+    if (typeof navigator === 'undefined' || typeof navigator.vibrate !== 'function') return;
+    navigator.vibrate(12);
+  } catch (_error) {
+    // best effort only
+  }
+};
 
 const buildNoopSfx = () => ({
-  playCorrect: () => {},
+  playCorrect: () => {
+    triggerCorrectHaptic();
+  },
   playWrong: () => {},
   playKill: () => {},
   playJump: () => {}
@@ -76,6 +87,7 @@ export const createProceduralSfx = (options = {}) => {
   };
 
   const playCorrect = () => {
+    triggerCorrectHaptic();
     playPattern([
       { t: 0, f: 820, d: 0.06, w: 'triangle', g: 0.12, glide: 40 },
       { t: 0.06, f: 1210, d: 0.08, w: 'triangle', g: 0.14, glide: 70 }
@@ -119,4 +131,3 @@ export const createProceduralSfx = (options = {}) => {
     playJump
   };
 };
-
