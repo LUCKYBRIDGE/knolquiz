@@ -10,6 +10,9 @@ import {
 
 const els = {
   status: document.getElementById('status-box'),
+  roleTeacher: document.getElementById('role-teacher-btn'),
+  roleStudent: document.getElementById('role-student-btn'),
+  roleNote: document.getElementById('role-note'),
   refresh: document.getElementById('refresh-btn'),
   viewStudents: document.getElementById('view-students-btn'),
   viewHall: document.getElementById('view-hall-btn'),
@@ -60,6 +63,7 @@ const state = {
   leaderboardSections: [],
   loadedLeaderboardSeasonId: '',
   selectedSeasonId: '',
+  roleMode: 'teacher',
   activeView: 'students',
   navStudentNo: null,
   navPeriodDays: null,
@@ -122,6 +126,7 @@ const getPeriodLabel = (periodDays) => {
   return `최근 ${periodDays}일`;
 };
 
+const normalizeRoleMode = (raw) => (String(raw || '').trim().toLowerCase() === 'student' ? 'student' : 'teacher');
 const normalizeView = (raw) => (String(raw || '').trim().toLowerCase() === 'hall' ? 'hall' : 'students');
 
 const isWithinSelectedPeriod = (iso, periodDays) => {
@@ -138,12 +143,14 @@ const readFiltersFromQuery = () => {
   try {
     const params = new URLSearchParams(window.location.search);
     return {
+      role: normalizeRoleMode(params.get('role')),
       studentNo: normalizeStudentNo(params.get('studentNo')),
       periodDays: normalizePeriodDays(params.get('periodDays')),
       view: normalizeView(params.get('view'))
     };
   } catch (_error) {
     return {
+      role: 'teacher',
       studentNo: null,
       periodDays: null,
       view: 'students'
@@ -151,9 +158,12 @@ const readFiltersFromQuery = () => {
   }
 };
 
-const writeFiltersToQuery = (studentNo, periodDays, view = state.activeView) => {
+const writeFiltersToQuery = (studentNo, periodDays, view = state.activeView, roleMode = state.roleMode) => {
   try {
     const params = new URLSearchParams(window.location.search);
+    const role = normalizeRoleMode(roleMode);
+    if (role === 'student') params.set('role', 'student');
+    else params.delete('role');
     if (studentNo) params.set('studentNo', String(studentNo));
     else params.delete('studentNo');
     if (periodDays) params.set('periodDays', String(periodDays));
@@ -347,8 +357,33 @@ const renderClassroomKpis = () => {
   }
 };
 
+const applyRoleModeUi = () => {
+  const isStudentMode = state.roleMode === 'student';
+  document.body.classList.toggle('role-student', isStudentMode);
+  document.body.classList.toggle('role-teacher', !isStudentMode);
+
+  if (els.roleTeacher) {
+    const isActive = !isStudentMode;
+    els.roleTeacher.classList.toggle('active', isActive);
+    els.roleTeacher.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+  }
+  if (els.roleStudent) {
+    const isActive = isStudentMode;
+    els.roleStudent.classList.toggle('active', isActive);
+    els.roleStudent.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+  }
+  if (els.roleNote) {
+    els.roleNote.textContent = isStudentMode
+      ? '학생 모드: 명예의 전당과 개인 기록 확인 중심으로 표시됩니다.'
+      : '교사 모드: 학생/시즌 설정과 명예의 전당을 함께 관리합니다.';
+  }
+};
+
 const setActiveView = (nextView, { persist = true } = {}) => {
-  const view = normalizeView(nextView);
+  const requestedView = normalizeView(nextView);
+  const view = (state.roleMode === 'student' && requestedView === 'students')
+    ? 'hall'
+    : requestedView;
   state.activeView = view;
 
   const panes = [els.studentsPane, els.hallPane];
@@ -366,7 +401,19 @@ const setActiveView = (nextView, { persist = true } = {}) => {
   });
 
   if (persist) {
-    writeFiltersToQuery(state.navStudentNo, state.navPeriodDays, view);
+    writeFiltersToQuery(state.navStudentNo, state.navPeriodDays, view, state.roleMode);
+  }
+};
+
+const setRoleMode = (nextRole, { persist = true } = {}) => {
+  state.roleMode = normalizeRoleMode(nextRole);
+  if (state.roleMode === 'student' && state.activeView === 'students') {
+    state.activeView = 'hall';
+  }
+  applyRoleModeUi();
+  setActiveView(state.activeView, { persist: false });
+  if (persist) {
+    writeFiltersToQuery(state.navStudentNo, state.navPeriodDays, state.activeView, state.roleMode);
   }
 };
 
@@ -1163,16 +1210,23 @@ const addManualScore = async () => {
 };
 
 const queryFilters = readFiltersFromQuery();
+state.roleMode = queryFilters.role;
 state.navStudentNo = queryFilters.studentNo;
 state.navPeriodDays = queryFilters.periodDays;
 state.selectedLeaderboardPeriodDays = queryFilters.periodDays;
 state.activeView = queryFilters.view;
 syncTopNavigationLinks();
 syncLeaderboardPeriodUi();
-setActiveView(state.activeView, { persist: false });
+setRoleMode(state.roleMode, { persist: false });
 
 els.refresh?.addEventListener('click', () => {
   reloadData();
+});
+els.roleTeacher?.addEventListener('click', () => {
+  setRoleMode('teacher');
+});
+els.roleStudent?.addEventListener('click', () => {
+  setRoleMode('student');
 });
 els.viewStudents?.addEventListener('click', () => {
   setActiveView('students');
@@ -1202,7 +1256,7 @@ els.seasonSelect?.addEventListener('change', () => {
 els.leaderboardPeriodSelect?.addEventListener('change', () => {
   state.selectedLeaderboardPeriodDays = normalizePeriodDays(els.leaderboardPeriodSelect?.value || '');
   state.navPeriodDays = state.selectedLeaderboardPeriodDays;
-  writeFiltersToQuery(state.navStudentNo, state.navPeriodDays, state.activeView);
+  writeFiltersToQuery(state.navStudentNo, state.navPeriodDays, state.activeView, state.roleMode);
   syncTopNavigationLinks();
   syncLeaderboardPeriodUi();
   state.leaderboardSections = filterLeaderboardSectionsByPeriod(

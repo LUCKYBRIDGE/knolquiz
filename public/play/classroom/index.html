@@ -65,6 +65,41 @@
         border-color: rgba(12, 38, 70, 0.96);
         color: #f5f9ff;
       }
+      .role-tabs {
+        display: inline-flex;
+        gap: 8px;
+        padding: 6px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(255,255,255,0.7);
+        margin-bottom: 8px;
+      }
+      .role-tab {
+        border: 1px solid rgba(24, 41, 75, 0.22);
+        background: rgba(255,255,255,0.78);
+        color: #2d3c5b;
+        border-radius: 10px;
+        padding: 9px 14px;
+        font-size: 14px;
+        font-weight: 900;
+        min-height: 40px;
+        cursor: pointer;
+      }
+      .role-tab.active {
+        background: linear-gradient(180deg, #0f7a4c, #0d5d3a);
+        border-color: rgba(5, 75, 47, 0.96);
+        color: #f3fff8;
+      }
+      .role-note {
+        margin-bottom: 10px;
+        padding: 8px 12px;
+        border: 1px solid rgba(24,41,75,0.14);
+        border-radius: 10px;
+        background: rgba(255,255,255,0.72);
+        color: #3d4d6b;
+        font-size: 12px;
+        font-weight: 700;
+      }
       .btn {
         border: 2px solid rgba(24, 41, 75, 0.85);
         background: #fff;
@@ -768,10 +803,18 @@
         font-size: 13px;
         font-weight: 700;
       }
+      body.role-student .teacher-only {
+        display: none !important;
+      }
       @media (max-width: 1100px) {
         .grid { grid-template-columns: 1fr; }
       }
       @media (max-width: 760px) {
+        .role-tabs {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          width: 100%;
+        }
         .view-tabs {
           display: grid;
           grid-template-columns: 1fr 1fr;
@@ -809,17 +852,22 @@
         <div class="top-actions">
           <button class="btn primary" id="refresh-btn" type="button">새로고침</button>
           <a class="btn" id="student-page-link" href="../student/">학생 상세 기록</a>
-          <a class="btn" id="records-page-link" href="../records/">전체 기록 보기(로컬)</a>
+          <a class="btn teacher-only" id="records-page-link" href="../records/">전체 기록 보기(로컬)</a>
           <a class="btn" href="../../">메인화면으로</a>
         </div>
       </div>
       <div class="status" id="status-box">학급 데이터를 불러오는 중...</div>
+      <div class="role-tabs" id="role-tabs">
+        <button class="role-tab active" id="role-teacher-btn" data-role="teacher" type="button">교사 모드</button>
+        <button class="role-tab" id="role-student-btn" data-role="student" type="button">학생 모드</button>
+      </div>
+      <div class="role-note" id="role-note">교사 모드: 학생/시즌 설정과 명예의 전당을 함께 관리합니다.</div>
       <div class="view-tabs" id="view-tabs">
-        <button class="view-tab active" id="view-students-btn" data-view="students" type="button">학급관리</button>
+        <button class="view-tab active teacher-only" id="view-students-btn" data-view="students" type="button">학급관리</button>
         <button class="view-tab" id="view-hall-btn" data-view="hall" type="button">명예의 전당</button>
       </div>
       <div class="grid">
-        <section class="card view-pane active" id="students-pane" data-view="students">
+        <section class="card view-pane active teacher-only" id="students-pane" data-view="students">
           <h2>학생 1~50 관리</h2>
           <div class="body">
             <div class="kpi-strip">
@@ -874,7 +922,7 @@
             <div class="leaderboard-list leaderboard-showcase" id="leaderboard-list"></div>
             <div class="note">핵심 순위만 먼저 보여주고, 상세 항목은 아래에서 확장해 볼 수 있습니다.</div>
 
-            <details class="teacher-tools" id="teacher-tools-panel">
+            <details class="teacher-tools teacher-only" id="teacher-tools-panel">
               <summary>교사용 시즌/점수 설정</summary>
               <div class="teacher-tools-body">
                 <div class="panel">
