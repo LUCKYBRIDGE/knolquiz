@@ -189,6 +189,28 @@
         gap: 8px;
         align-items: center;
       }
+      .name-field-stack {
+        display: grid;
+        gap: 4px;
+      }
+      .name-input {
+        width: 100%;
+        border: 2px solid rgba(47, 38, 31, 0.5);
+        border-radius: 10px;
+        background: #fff;
+        min-height: 42px;
+        padding: 8px 10px;
+        font: inherit;
+      }
+      .name-preset-select {
+        width: 100%;
+        border: 1px solid rgba(47, 38, 31, 0.35);
+        border-radius: 8px;
+        background: #fffdf7;
+        min-height: 30px;
+        padding: 4px 8px;
+        font-size: 12px;
+      }
       .name-tag {
         border: 2px solid rgba(47, 38, 31, 0.5);
         border-radius: 10px;
@@ -693,6 +715,10 @@
         gap: 8px;
         align-items: center;
       }
+      .confirm-player-field {
+        display: grid;
+        gap: 4px;
+      }
       .confirm-player-badge {
         border-radius: 8px;
         text-align: center;
@@ -711,6 +737,15 @@
         min-height: 38px;
         padding: 6px 9px;
         font: inherit;
+      }
+      .confirm-player-preset-select {
+        width: 100%;
+        border: 1px solid rgba(47, 38, 31, 0.35);
+        border-radius: 8px;
+        background: #fffdf7;
+        min-height: 30px;
+        padding: 4px 8px;
+        font-size: 12px;
       }
       .confirm-inline-field {
         display: grid;
@@ -1547,10 +1582,20 @@
           const map = {};
           (Array.isArray(rows) ? rows : []).forEach((row) => {
             const tag = normalizeStudentTag(row?.studentNo);
-            const name = typeof row?.name === 'string' ? row.name.trim() : '';
-            if (!tag || !name) return;
+            if (!tag) return;
+            const nameCandidates = [];
+            const appendCandidate = (value) => {
+              const normalized = typeof value === 'string' ? value.trim() : '';
+              if (!normalized) return;
+              if (nameCandidates.includes(normalized)) return;
+              nameCandidates.push(normalized);
+            };
+            appendCandidate(row?.playName);
+            appendCandidate(row?.name);
+            if (!nameCandidates.length) return;
             map[tag] = {
-              name,
+              name: nameCandidates[0],
+              names: nameCandidates,
               active: row?.active !== false
             };
           });
@@ -1574,6 +1619,29 @@
               target.playerNames[i] = classroomName;
             }
           }
+        }
+
+        function getClassroomNameCandidates(studentTag) {
+          const tag = normalizeStudentTag(studentTag);
+          if (!tag) return [];
+          const map = state.classroomStudentsByTag && typeof state.classroomStudentsByTag === 'object'
+            ? state.classroomStudentsByTag
+            : {};
+          const student = map[tag];
+          if (!student || typeof student !== 'object') return [];
+          const candidates = [];
+          const appendCandidate = (value) => {
+            const normalized = typeof value === 'string' ? value.trim() : '';
+            if (!normalized) return;
+            if (candidates.includes(normalized)) return;
+            candidates.push(normalized);
+          };
+          if (Array.isArray(student.names)) {
+            student.names.forEach((name) => appendCandidate(name));
+          }
+          appendCandidate(student.playName);
+          appendCandidate(student.name);
+          return candidates.slice(0, 6);
         }
 
         async function bootstrapClassroomStudents() {
@@ -2456,6 +2524,9 @@
               state.playerNames[i] = input.value.trim() || `사용자${i + 1}`;
               persistAndRefresh();
             });
+            const nameField = document.createElement('div');
+            nameField.className = 'name-field-stack';
+            nameField.appendChild(input);
             const tagInput = document.createElement('select');
             tagInput.className = 'name-tag';
             for (let no = 1; no <= 50; no += 1) {
@@ -2478,6 +2549,35 @@
               }
               persistAndRefresh();
             });
+            const classroomNameCandidates = getClassroomNameCandidates(tagInput.value);
+            if (classroomNameCandidates.length) {
+              const namePresetSelect = document.createElement('select');
+              namePresetSelect.className = 'name-preset-select';
+              const directOption = document.createElement('option');
+              directOption.value = '';
+              directOption.textContent = '이름 직접 입력';
+              namePresetSelect.appendChild(directOption);
+              classroomNameCandidates.forEach((candidate) => {
+                const option = document.createElement('option');
+                option.value = candidate;
+                option.textContent = `학급관리 이름: ${candidate}`;
+                namePresetSelect.appendChild(option);
+              });
+              const currentName = String(input.value || '').trim();
+              namePresetSelect.value = classroomNameCandidates.includes(currentName) ? currentName : '';
+              namePresetSelect.addEventListener('change', () => {
+                const selected = String(namePresetSelect.value || '').trim();
+                if (!selected) return;
+                input.value = selected;
+                state.playerNames[i] = selected;
+                persistAndRefresh();
+              });
+              input.addEventListener('input', () => {
+                const current = String(input.value || '').trim();
+                namePresetSelect.value = classroomNameCandidates.includes(current) ? current : '';
+              });
+              nameField.appendChild(namePresetSelect);
+            }
             const characterInput = document.createElement('select');
             characterInput.className = 'name-character';
             CHARACTER_OPTIONS.forEach((option) => {
@@ -2494,7 +2594,7 @@
               if (studentTag) state.studentCharacterMap[studentTag] = characterId;
               persistAndRefresh();
             });
-            row.append(badge, input, tagInput, characterInput);
+            row.append(badge, nameField, tagInput, characterInput);
             els.namesList.appendChild(row);
           }
         }
@@ -2715,7 +2815,40 @@
               state.playerNames[i] = input.value.trim() || `사용자${i + 1}`;
               persistAndRefresh();
             });
-            row.append(badge, input);
+            const field = document.createElement('div');
+            field.className = 'confirm-player-field';
+            field.appendChild(input);
+            const studentTag = normalizeStudentTag(state.playerTags[i]);
+            const classroomNameCandidates = getClassroomNameCandidates(studentTag);
+            if (classroomNameCandidates.length) {
+              const presetSelect = document.createElement('select');
+              presetSelect.className = 'confirm-player-preset-select';
+              const directOption = document.createElement('option');
+              directOption.value = '';
+              directOption.textContent = '이름 직접 입력';
+              presetSelect.appendChild(directOption);
+              classroomNameCandidates.forEach((candidate) => {
+                const option = document.createElement('option');
+                option.value = candidate;
+                option.textContent = `학급관리 이름: ${candidate}`;
+                presetSelect.appendChild(option);
+              });
+              const currentName = String(input.value || '').trim();
+              presetSelect.value = classroomNameCandidates.includes(currentName) ? currentName : '';
+              presetSelect.addEventListener('change', () => {
+                const selected = String(presetSelect.value || '').trim();
+                if (!selected) return;
+                input.value = selected;
+                state.playerNames[i] = selected;
+                persistAndRefresh();
+              });
+              input.addEventListener('input', () => {
+                const current = String(input.value || '').trim();
+                presetSelect.value = classroomNameCandidates.includes(current) ? current : '';
+              });
+              field.appendChild(presetSelect);
+            }
+            row.append(badge, field);
             els.startConfirmPlayerFields.appendChild(row);
           }
         }
