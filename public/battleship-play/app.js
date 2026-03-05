@@ -182,7 +182,7 @@ const setup = (() => {
   return {
     players: requestedPlayers,
     participants,
-    launcherQuizPresetId: typeof source.quizPresetId === 'string' ? source.quizPresetId : 'jumpmap-net-30',
+    launcherQuizPresetId: typeof source.quizPresetId === 'string' ? source.quizPresetId : 'jumpmap-net-100',
     customCsvEnabled: source.customCsvEnabled === true,
     customCsvText: typeof source.customCsvText === 'string' ? source.customCsvText : '',
     customCsvFileName: typeof source.customCsvFileName === 'string' ? source.customCsvFileName : '',

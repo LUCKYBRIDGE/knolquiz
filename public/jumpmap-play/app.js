@@ -37,7 +37,7 @@ const normalizeSetup = (setup) => {
   const players = Math.max(1, Math.min(6, Math.round(Number(setup.players) || 1)));
   const quizPresetId = typeof setup.quizPresetId === 'string' && setup.quizPresetId.trim()
     ? setup.quizPresetId.trim()
-    : 'jumpmap-net-30';
+    : 'jumpmap-net-100';
   const characterId = typeof setup.characterId === 'string' && setup.characterId.trim()
     ? setup.characterId.trim()
     : 'sejong';

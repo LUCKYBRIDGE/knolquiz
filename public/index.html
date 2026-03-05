@@ -701,26 +701,18 @@
             <div class="section-title">3-1. 문제 생성/업로드</div>
             <div class="csv-tools">
               <div class="csv-tools-row">
-                <button type="button" class="csv-tool-btn" id="csv-template-btn">문제양식 다운받기</button>
-                <button type="button" class="csv-tool-btn" id="csv-upload-btn">문제 파일 업로드</button>
+                <button type="button" class="csv-tool-btn" id="csv-template-btn">문제양식(csv) 다운받기</button>
+                <button type="button" class="csv-tool-btn" id="csv-upload-btn">문제 파일(csv) 업로드</button>
               </div>
               <div class="csv-tools-row">
                 <button type="button" class="csv-tool-btn" id="csv-clear-btn">업로드 해제</button>
-                <a class="csv-tool-btn" href="https://luckybridge.github.io/math-net-master-quiz/quiz/">기존 문제은행 퀴즈 앱</a>
+                <div class="note" style="display:flex;align-items:center;justify-content:center;">CSV 업로드 파일은 로컬에 자동 저장됩니다.</div>
               </div>
-              <div class="csv-tools-row">
-                <a class="csv-tool-btn" href="./quiz/?mode=csv">업로드 문제 생성 퀴즈</a>
-                <div class="note" style="display:flex;align-items:center;justify-content:center;">CSV/JSON 업로드 파일을 로컬 저장목록(최대 20개)에 보관</div>
-              </div>
-              <input type="file" id="csv-file-input" class="csv-file-input hidden-input" accept=".csv,.json,text/csv,application/json,text/plain" />
-              <div class="note" style="display:flex;align-items:center;justify-content:center;">math-net 문제은행 퀴즈 앱에서 저장한 문제팩(JSON)도 업로드할 수 있습니다.</div>
-              <div class="note" style="display:flex;align-items:center;justify-content:center;">권장 흐름: math-net에서 문제팩(JSON) 다운로드 → 현재 기기에서 이곳에 업로드 → 퀴즈 선택 후 시작</div>
+              <input type="file" id="csv-file-input" class="csv-file-input hidden-input" accept=".csv,text/csv,text/plain" />
+              <div class="note" style="display:flex;align-items:center;justify-content:center;">CSV 파일 업로드 후 퀴즈 선택에서 업로드 문제를 바로 사용할 수 있습니다.</div>
               <div class="csv-status" id="csv-status">현재 업로드된 문제 파일 없음</div>
               <div class="csv-preview" id="csv-preview">
                 <div class="csv-preview-empty">업로드된 문제 미리보기가 여기에 표시됩니다.</div>
-              </div>
-              <div class="csv-saved-list" id="csv-saved-list">
-                <div class="csv-saved-empty">저장된 업로드 파일이 없습니다.</div>
               </div>
             </div>
           </div>
@@ -839,30 +831,6 @@
         ];
         const QUIZ_PRESETS = [
           {
-            id: 'jumpmap-net-30',
-            title: '전개도 학습 30문제 (점프맵 기본 추천)',
-            desc: '30문제 · 전개도 유형 균형 · 점프맵 게이지 충전에 적합',
-            thumbSrc: './quiz/nets/cube-01.svg'
-          },
-          {
-            id: 'jumpmap-net-12',
-            title: '전개도 학습 12문제 (짧은 라운드)',
-            desc: '12문제 · 빠른 반복 테스트용',
-            thumbSrc: './quiz/nets/cuboid-01-01.svg'
-          },
-          {
-            id: 'cube-only-24',
-            title: '정육면체 중심 24문제',
-            desc: '정육면체 전개도 중심 출제',
-            thumbSrc: './quiz/nets/cube-06.svg'
-          },
-          {
-            id: 'cuboid-only-24',
-            title: '직육면체 중심 24문제',
-            desc: '직육면체 전개도 중심 출제',
-            thumbSrc: './quiz/nets/cuboid-04-01.svg'
-          },
-          {
             id: 'cube-only-100',
             title: '정육면체 100문제',
             desc: '100문제 · 정육면체 전개도 집중 훈련',
@@ -879,12 +847,6 @@
             title: '종합 100문제',
             desc: '100문제 · 정육면체/직육면체 종합',
             thumbSrc: './quiz/nets/cuboid-08-02.svg'
-          },
-          {
-            id: 'pvam-area-2digit',
-            title: '몇십몇×몇십몇(영역모델)',
-            desc: '영역모델 + 자릿값 세로셈 과정을 채우는 학습 퀴즈',
-            thumbKind: 'pvam'
           },
           {
             id: 'pvam-area-2digit-100',
@@ -930,7 +892,7 @@
           version: 1,
           players: 1,
           gameMode: 'jumpmap',
-          quizPresetId: 'jumpmap-net-30',
+          quizPresetId: 'jumpmap-net-100',
           pvamCarryMode: 'none',
           characterId: 'sejong',
           playerCharacterIds: ['sejong'],
@@ -1058,8 +1020,8 @@
           const file = event?.target?.files?.[0];
           if (!file) return;
           const lowerName = String(file.name || '').toLowerCase();
-          if (!lowerName.endsWith('.csv') && !lowerName.endsWith('.json')) {
-            updateCsvStatus('CSV(.csv) 또는 JSON(.json) 파일만 업로드할 수 있습니다.', 'fail');
+          if (!lowerName.endsWith('.csv')) {
+            updateCsvStatus('CSV(.csv) 파일만 업로드할 수 있습니다.', 'fail');
             return;
           }
           const text = await file.text();
@@ -1114,19 +1076,10 @@
 
         function resolveQuizPresetQuestionCount(presetId, csvText) {
           switch (presetId) {
-            case 'jumpmap-net-30':
-              return 30;
-            case 'jumpmap-net-12':
-              return 12;
-            case 'cube-only-24':
-            case 'cuboid-only-24':
-              return 24;
             case 'cube-only-100':
             case 'cuboid-only-100':
             case 'jumpmap-net-100':
               return 100;
-            case 'pvam-area-2digit':
-              return 12;
             case 'pvam-area-2digit-100':
               return 100;
             case 'gugudan-2to9-csv':
@@ -1136,7 +1089,7 @@
               return preview.total > 0 ? preview.total : 0;
             }
             default:
-              return 12;
+              return 100;
           }
         }
 
@@ -1463,7 +1416,7 @@
             version: 1,
             players: Math.max(1, Math.min(6, Math.round(Number(source.players) || 1))),
             gameMode: normalizedGameMode,
-            quizPresetId: typeof source.quizPresetId === 'string' ? source.quizPresetId : 'jumpmap-net-30',
+            quizPresetId: typeof source.quizPresetId === 'string' ? source.quizPresetId : 'jumpmap-net-100',
             pvamCarryMode: ['none', 'low', 'high', 'any'].includes(String(source.pvamCarryMode || '').trim().toLowerCase())
               ? String(source.pvamCarryMode || '').trim().toLowerCase()
               : 'none',
@@ -1765,51 +1718,6 @@
           };
         }
 
-        function resolveQuestionBankFromJsonPayload(payload) {
-          if (!payload) return null;
-          if (Array.isArray(payload)) {
-            return { version: 1, questions: payload };
-          }
-          if (typeof payload !== 'object') return null;
-          if (Array.isArray(payload.questions)) return payload;
-          if (payload.bank && typeof payload.bank === 'object' && Array.isArray(payload.bank.questions)) {
-            return payload.bank;
-          }
-          if (payload.questionBank && typeof payload.questionBank === 'object' && Array.isArray(payload.questionBank.questions)) {
-            return payload.questionBank;
-          }
-          return null;
-        }
-
-        function buildQuestionBankPreviewModel(bank) {
-          const questions = Array.isArray(bank?.questions) ? bank.questions : [];
-          const list = [];
-          let subjective = 0;
-          let objective = 0;
-          questions.forEach((question, index) => {
-            if (!question || typeof question !== 'object') return;
-            const promptText = String(question.prompt || question.question || `문항 ${index + 1}`).trim();
-            if (!promptText) return;
-            const hasChoices = Array.isArray(question.choices) && question.choices.length > 0;
-            const acceptedAnswers = Array.isArray(question.acceptedAnswers) ? question.acceptedAnswers.filter(Boolean) : [];
-            const explicitSubjective = question.renderKind === 'text_short_answer' || question.type === 'csv_subjective';
-            const isSubjective = explicitSubjective || (!hasChoices && acceptedAnswers.length > 0);
-            if (isSubjective) subjective += 1;
-            else objective += 1;
-            list.push({
-              no: list.length + 1,
-              type: isSubjective ? '주관식' : '객관식',
-              text: promptText
-            });
-          });
-          return {
-            total: list.length,
-            subjective,
-            objective,
-            list
-          };
-        }
-
         function parseUploadedQuestionBankPreview(text, fileName) {
           const sourceText = String(text || '');
           const trimmed = sourceText.trim();
@@ -1822,54 +1730,25 @@
             };
           }
           const normalizedName = String(fileName || '').trim().toLowerCase();
-          const forceJson = normalizedName.endsWith('.json');
-          const forceCsv = normalizedName.endsWith('.csv');
-          const tryJsonFirst = forceJson || (!forceCsv && /^[\[{]/.test(trimmed));
-
-          const parseJson = () => {
-            try {
-              const payload = JSON.parse(trimmed);
-              const bank = resolveQuestionBankFromJsonPayload(payload);
-              if (!bank?.questions?.length) {
-                return { ok: false, message: 'JSON 문제팩에서 questions 목록을 찾지 못했습니다.', format: 'json' };
-              }
-              return { ok: true, format: 'json', preview: buildQuestionBankPreviewModel(bank) };
-            } catch (error) {
-              return { ok: false, message: `JSON 파싱 실패: ${error?.message || 'invalid json'}`, format: 'json' };
-            }
-          };
-
-          const parseCsv = () => {
-            const headerCheck = hasCsvCoreHeaders(sourceText);
-            if (!headerCheck.ok) {
-              return { ok: false, message: headerCheck.message, format: 'csv' };
-            }
-            return { ok: true, format: 'csv', preview: buildCsvPreviewModel(sourceText) };
-          };
-
-          if (tryJsonFirst) {
-            const jsonResult = parseJson();
-            if (jsonResult.ok || forceJson) return jsonResult;
-            if (!forceCsv) {
-              const csvResult = parseCsv();
-              if (csvResult.ok) return csvResult;
-              return {
-                ok: false,
-                message: `${jsonResult.message} / ${csvResult.message}`,
-                format: ''
-              };
-            }
-            return jsonResult;
+          if (normalizedName && !normalizedName.endsWith('.csv')) {
+            return {
+              ok: false,
+              message: 'CSV(.csv) 파일만 업로드할 수 있습니다.',
+              format: ''
+            };
           }
-
-          const csvResult = parseCsv();
-          if (csvResult.ok || forceCsv) return csvResult;
-          const jsonResult = parseJson();
-          if (jsonResult.ok) return jsonResult;
+          const headerCheck = hasCsvCoreHeaders(sourceText);
+          if (!headerCheck.ok) {
+            return {
+              ok: false,
+              message: headerCheck.message,
+              format: 'csv'
+            };
+          }
           return {
-            ok: false,
-            message: `${csvResult.message} / ${jsonResult.message}`,
-            format: ''
+            ok: true,
+            format: 'csv',
+            preview: buildCsvPreviewModel(sourceText)
           };
         }
 
@@ -2203,7 +2082,7 @@
               `;
             } else if (preset.thumbKind === 'upload') {
               thumb.classList.add('is-upload');
-              thumb.textContent = 'CSV/JSON';
+              thumb.textContent = 'CSV';
             } else if (preset.thumbSrc) {
               const img = document.createElement('img');
               img.loading = 'lazy';
@@ -2344,7 +2223,7 @@
         function renderGameConditional() {
           const isJumpmap = state.gameMode === 'jumpmap';
           els.characterSection.classList.toggle('hidden', !isJumpmap);
-          const isPvamPreset = state.quizPresetId === 'pvam-area-2digit' || state.quizPresetId === 'pvam-area-2digit-100';
+          const isPvamPreset = state.quizPresetId === 'pvam-area-2digit-100';
           const showPvamDifficulty = isPvamPreset && state.gameMode === 'basic-quiz';
           if (els.pvamDifficultyField) {
             els.pvamDifficultyField.classList.toggle('hidden', !showPvamDifficulty);
@@ -2491,7 +2370,7 @@
           const quizShort = state.customCsvEnabled && state.customCsvFileName
             ? `${quiz.title} (${state.customCsvFileName})`
             : quiz.title;
-          const isPvamPreset = state.quizPresetId === 'pvam-area-2digit' || state.quizPresetId === 'pvam-area-2digit-100';
+          const isPvamPreset = state.quizPresetId === 'pvam-area-2digit-100';
           els.summaryBox.innerHTML = `
             <div class="summary-meta">
               <div class="summary-pill">

@@ -69,7 +69,7 @@ export const normalizeJumpmapLauncherSetup = (setup) => {
     quizPresetId:
       typeof setup.quizPresetId === 'string' && setup.quizPresetId.trim()
         ? setup.quizPresetId.trim()
-        : 'jumpmap-net-30',
+        : 'jumpmap-net-100',
     characterId,
     jumpmapStartPointId: typeof setup.jumpmapStartPointId === 'string' ? setup.jumpmapStartPointId : '',
     endMode,

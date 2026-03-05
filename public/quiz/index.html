@@ -246,20 +246,19 @@
           <div class="settings-block tone-teal">
             <div class="settings-group">
               <div class="group-title">교사 커스텀 문제</div>
-              <div class="group-note">이 페이지에서 문제를 만든 뒤 문제팩(JSON)으로 저장하고, knolquiz 메인화면에서 업로드해 사용합니다.</div>
+              <div class="group-note">CSV 양식으로 문제를 작성해 업로드하고, 메인화면에서 바로 사용할 수 있습니다.</div>
             </div>
             <input type="hidden" id="setting-custom-enabled" value="false" />
             <input type="hidden" id="setting-custom-csv-enabled" value="false" />
             <input type="hidden" id="setting-custom-ids" value="" />
             <div class="custom-panel hidden" id="custom-panel">
               <div class="csv-upload" id="csv-upload-panel">
-                <div class="csv-upload-header">문제 파일 업로드 (CSV/JSON)</div>
+                <div class="csv-upload-header">문제 파일 업로드 (CSV)</div>
                 <div class="group-note">헤더: 문제 내용, 선택지1, 선택지2, 선택지3(선택), 선택지4(선택), 정답번호, 문제시간(초), 정답인정단어, 단어포함시정답처리여부</div>
-                <div class="group-note">권장 흐름: 1) 문제 설계 → 2) 문제팩(JSON) 저장 → 3) knolquiz 첫 화면(2-1)에서 업로드</div>
-                <input type="file" id="custom-csv-file" accept=".csv,.json,text/csv,application/json,text/plain" />
+                <div class="group-note">권장 흐름: 1) 문제 설계(CSV) → 2) knolquiz 첫 화면(2-1)에서 업로드</div>
+                <input type="file" id="custom-csv-file" accept=".csv,text/csv,text/plain" />
                 <div class="csv-upload-actions">
                   <button class="secondary" type="button" id="custom-csv-template">CSV 양식 다운로드</button>
-                  <button class="secondary" type="button" id="custom-pack-export">문제팩(JSON) 저장</button>
                   <button class="secondary" type="button" id="custom-csv-clear">업로드 해제</button>
                 </div>
                 <div class="csv-upload-status" id="custom-csv-status"></div>
