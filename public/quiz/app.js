@@ -9,6 +9,8 @@ import {
 } from './renderers/place-value-area-model.js';
 import { saveQuizSessionRecord } from '../shared/local-game-records.js';
 import { createProceduralSfx } from '../shared/procedural-sfx.js';
+import { createProceduralBgm } from '../shared/procedural-bgm.js';
+import { mountAudioControls } from '../shared/audio-ui.js';
 
 const $ = (selector) => document.querySelector(selector);
 const launchParams = new URLSearchParams(window.location.search);
@@ -112,6 +114,17 @@ const resultRecordsLink = $('#result-records-link');
 const resultClassroomLink = $('#result-classroom-link');
 const LAUNCHER_SETUP_STORAGE_KEY = 'jumpmap.launcher.setup.v1';
 const quizSfx = createProceduralSfx({ masterGain: 0.11 });
+const quizBgm = createProceduralBgm({ masterGain: 0.075, stepMs: 210 });
+let quizAudioUi = null;
+
+const ensureQuizAudioControls = () => {
+  if (quizAudioUi) return;
+  quizAudioUi = mountAudioControls({
+    title: '사운드',
+    placement: 'bottom-right',
+    defaultOpen: false
+  });
+};
 
 const setQuizPlayingChrome = (playing) => {
   const active = Boolean(playing);
@@ -3629,6 +3642,8 @@ const restartQuiz = () => {
 };
 
 const init = async () => {
+  ensureQuizAudioControls();
+  quizBgm.start();
   try {
     banks.facecolor = await loadJson('./data/facecolor-questions.json');
     banks.edgecolor = await loadJson('./data/edgecolor-questions.json');

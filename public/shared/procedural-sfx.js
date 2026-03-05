@@ -1,3 +1,5 @@
+import { loadAudioSettings, subscribeAudioSettings, getEffectiveSfxGain } from './audio-settings.js';
+
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const triggerCorrectHaptic = () => {
   try {
@@ -22,7 +24,9 @@ export const createProceduralSfx = (options = {}) => {
   const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
   if (typeof AudioContextCtor !== 'function') return buildNoopSfx();
 
-  const masterGainLevel = clamp(Number(options.masterGain) || 0.1, 0.01, 0.6);
+  const baseMasterGain = clamp(Number(options.masterGain) || 0.1, 0.01, 0.6);
+  let audioSettings = loadAudioSettings();
+  let effectiveMasterGain = baseMasterGain * getEffectiveSfxGain(audioSettings);
   let ctx = null;
   let masterGainNode = null;
 
@@ -30,11 +34,18 @@ export const createProceduralSfx = (options = {}) => {
     if (!ctx) ctx = new AudioContextCtor();
     if (!masterGainNode) {
       masterGainNode = ctx.createGain();
-      masterGainNode.gain.value = masterGainLevel;
+      masterGainNode.gain.value = effectiveMasterGain;
       masterGainNode.connect(ctx.destination);
     }
     return { ctx, masterGainNode };
   };
+
+  subscribeAudioSettings((next) => {
+    audioSettings = next;
+    effectiveMasterGain = baseMasterGain * getEffectiveSfxGain(audioSettings);
+    if (!masterGainNode || !ctx) return;
+    masterGainNode.gain.setTargetAtTime(effectiveMasterGain, ctx.currentTime, 0.01);
+  }, { immediate: false });
 
   const ensureUnlocked = () => {
     const { ctx: audioCtx } = ensureNodes();
@@ -50,6 +61,7 @@ export const createProceduralSfx = (options = {}) => {
   document.addEventListener('keydown', unlockOnFirstGesture, { capture: true, once: true });
 
   const playPattern = (notes = []) => {
+    if (effectiveMasterGain <= 0) return;
     const { ctx: audioCtx, masterGainNode: master } = ensureNodes();
     if (audioCtx.state === 'suspended') {
       audioCtx.resume().catch(() => {});

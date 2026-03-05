@@ -253,8 +253,74 @@
       ready: false,
       promise: null
     };
+    const AUDIO_SETTINGS_STORAGE_KEY = 'knolquiz.audio.settings.v1';
+    const AUDIO_SETTINGS_CHANGE_EVENT = 'knolquiz:audio-settings-change';
+    const AUDIO_SETTINGS_DEFAULTS = Object.freeze({
+      sfxVolume: 0.9,
+      bgmVolume: 0.55,
+      sfxMuted: false,
+      bgmMuted: false,
+      masterMuted: false
+    });
+    const normalizeRuntimeAudioSettings = (value = {}) => ({
+      sfxVolume: Math.max(0, Math.min(1, Number(value?.sfxVolume ?? AUDIO_SETTINGS_DEFAULTS.sfxVolume) || 0)),
+      bgmVolume: Math.max(0, Math.min(1, Number(value?.bgmVolume ?? AUDIO_SETTINGS_DEFAULTS.bgmVolume) || 0)),
+      sfxMuted: value?.sfxMuted === true,
+      bgmMuted: value?.bgmMuted === true,
+      masterMuted: value?.masterMuted === true
+    });
+    const readRuntimeAudioSettings = () => {
+      try {
+        const raw = window.localStorage.getItem(AUDIO_SETTINGS_STORAGE_KEY);
+        if (!raw) {
+          const normalized = normalizeRuntimeAudioSettings(AUDIO_SETTINGS_DEFAULTS);
+          window.localStorage.setItem(AUDIO_SETTINGS_STORAGE_KEY, JSON.stringify(normalized));
+          return normalized;
+        }
+        return normalizeRuntimeAudioSettings(JSON.parse(raw));
+      } catch (_error) {
+        return normalizeRuntimeAudioSettings(AUDIO_SETTINGS_DEFAULTS);
+      }
+    };
+    const writeRuntimeAudioSettings = (settings) => {
+      try {
+        window.localStorage.setItem(AUDIO_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+      } catch (_error) {
+        // best effort only
+      }
+    };
+    const updateRuntimeAudioSettings = (patch = {}) => {
+      const current = readRuntimeAudioSettings();
+      const nextPatch = typeof patch === 'function' ? patch(current) : patch;
+      const next = normalizeRuntimeAudioSettings({ ...current, ...(nextPatch || {}) });
+      writeRuntimeAudioSettings(next);
+      window.dispatchEvent(new CustomEvent(AUDIO_SETTINGS_CHANGE_EVENT, { detail: next }));
+      return next;
+    };
+    const subscribeRuntimeAudioSettings = (listener, { immediate = true } = {}) => {
+      if (typeof listener !== 'function') return () => {};
+      const handler = (event) => {
+        listener(normalizeRuntimeAudioSettings(event?.detail || readRuntimeAudioSettings()));
+      };
+      window.addEventListener(AUDIO_SETTINGS_CHANGE_EVENT, handler);
+      if (immediate) listener(readRuntimeAudioSettings());
+      return () => {
+        window.removeEventListener(AUDIO_SETTINGS_CHANGE_EVENT, handler);
+      };
+    };
+    const getRuntimeEffectiveSfxGain = (settings = readRuntimeAudioSettings()) => {
+      if (settings.masterMuted || settings.sfxMuted) return 0;
+      return Math.max(0, Math.min(1, Number(settings.sfxVolume) || 0));
+    };
+    const getRuntimeEffectiveBgmGain = (settings = readRuntimeAudioSettings()) => {
+      if (settings.masterMuted || settings.bgmMuted) return 0;
+      return Math.max(0, Math.min(1, Number(settings.bgmVolume) || 0));
+    };
     const createRuntimeSfx = () => {
       const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+      const baseMasterGain = 0.11;
+      let audioSettings = readRuntimeAudioSettings();
+      let effectiveMasterGain = baseMasterGain * getRuntimeEffectiveSfxGain(audioSettings);
       const playCorrectHaptic = () => {
         try {
           if (document.hidden) return;
@@ -278,11 +344,17 @@
         if (!audioCtx) audioCtx = new AudioContextCtor();
         if (!masterNode) {
           masterNode = audioCtx.createGain();
-          masterNode.gain.value = 0.11;
+          masterNode.gain.value = effectiveMasterGain;
           masterNode.connect(audioCtx.destination);
         }
         return { audioCtx, masterNode };
       };
+      subscribeRuntimeAudioSettings((next) => {
+        audioSettings = next;
+        effectiveMasterGain = baseMasterGain * getRuntimeEffectiveSfxGain(audioSettings);
+        if (!masterNode || !audioCtx) return;
+        masterNode.gain.setTargetAtTime(effectiveMasterGain, audioCtx.currentTime, 0.01);
+      }, { immediate: false });
       const unlock = () => {
         const { audioCtx: ctx } = ensureAudio();
         if (ctx.state === 'suspended') {
@@ -293,6 +365,7 @@
       document.addEventListener('keydown', unlock, { capture: true, once: true });
 
       const playPattern = (notes = []) => {
+        if (effectiveMasterGain <= 0) return;
         const { audioCtx: ctx, masterNode: master } = ensureAudio();
         if (ctx.state === 'suspended') {
           ctx.resume().catch(() => {});
@@ -353,6 +426,140 @@
       };
     };
     const runtimeSfx = createRuntimeSfx();
+    const createRuntimeBgm = () => {
+      const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+      if (typeof AudioContextCtor !== 'function') {
+        return {
+          start: () => {},
+          stop: () => {},
+          isRunning: () => false
+        };
+      }
+      const leadPattern = [440, 0, 587, 0, 659, 0, 587, 0, 523, 0, 659, 0, 698, 0, 659, 0];
+      const bassPattern = [110, 110, 147, 147, 98, 98, 147, 147];
+      const stepSec = 0.22;
+      const baseMasterGain = 0.075;
+      let audioSettings = readRuntimeAudioSettings();
+      let effectiveMasterGain = baseMasterGain * getRuntimeEffectiveBgmGain(audioSettings);
+      let audioCtx = null;
+      let masterNode = null;
+      let running = false;
+      let timerId = null;
+      let stepIndex = 0;
+      let nextNoteAt = 0;
+
+      const ensureAudio = () => {
+        if (!audioCtx) audioCtx = new AudioContextCtor();
+        if (!masterNode) {
+          masterNode = audioCtx.createGain();
+          masterNode.gain.value = effectiveMasterGain;
+          masterNode.connect(audioCtx.destination);
+        }
+        return { audioCtx, masterNode };
+      };
+      const applyGain = () => {
+        effectiveMasterGain = baseMasterGain * getRuntimeEffectiveBgmGain(audioSettings);
+        if (!masterNode || !audioCtx) return;
+        masterNode.gain.setTargetAtTime(effectiveMasterGain, audioCtx.currentTime, 0.015);
+      };
+      subscribeRuntimeAudioSettings((next) => {
+        audioSettings = next;
+        applyGain();
+      }, { immediate: false });
+      const unlock = () => {
+        if (!running) return;
+        const { audioCtx: ctx } = ensureAudio();
+        if (ctx.state !== 'suspended') return;
+        ctx.resume().then(() => {
+          nextNoteAt = 0;
+        }).catch(() => {});
+      };
+      document.addEventListener('pointerdown', unlock, { passive: true, capture: true });
+      document.addEventListener('keydown', unlock, { capture: true });
+
+      const playTone = ({ when, duration, frequency, wave, gain }) => {
+        if (!audioCtx || !masterNode) return;
+        if (!frequency || frequency <= 0) return;
+        const osc = audioCtx.createOscillator();
+        const amp = audioCtx.createGain();
+        osc.type = wave;
+        osc.frequency.setValueAtTime(Math.max(60, Math.min(2400, frequency)), when);
+        amp.gain.setValueAtTime(0.0001, when);
+        amp.gain.exponentialRampToValueAtTime(Math.max(0.003, Math.min(0.25, gain)), when + Math.min(0.03, duration * 0.35));
+        amp.gain.exponentialRampToValueAtTime(0.0001, when + duration + 0.02);
+        osc.connect(amp);
+        amp.connect(masterNode);
+        osc.start(when);
+        osc.stop(when + duration + 0.03);
+      };
+
+      const tick = () => {
+        if (!running) return;
+        const { audioCtx: ctx } = ensureAudio();
+        if (ctx.state === 'suspended') return;
+        if (nextNoteAt <= 0) nextNoteAt = ctx.currentTime + 0.04;
+        while (nextNoteAt < ctx.currentTime + 0.3) {
+          const lead = Number(leadPattern[stepIndex % leadPattern.length]) || 0;
+          const bass = Number(bassPattern[stepIndex % bassPattern.length]) || 0;
+          if (lead > 0 && effectiveMasterGain > 0) {
+            playTone({
+              when: nextNoteAt,
+              duration: stepSec * 0.74,
+              frequency: lead,
+              wave: 'square',
+              gain: 0.06
+            });
+          }
+          if (bass > 0 && effectiveMasterGain > 0) {
+            playTone({
+              when: nextNoteAt,
+              duration: stepSec * 0.9,
+              frequency: bass,
+              wave: 'triangle',
+              gain: 0.05
+            });
+          }
+          stepIndex += 1;
+          nextNoteAt += stepSec;
+        }
+      };
+
+      return {
+        start: () => {
+          if (running) return;
+          running = true;
+          ensureAudio();
+          applyGain();
+          tick();
+          timerId = window.setInterval(tick, 90);
+        },
+        stop: () => {
+          running = false;
+          if (timerId != null) {
+            window.clearInterval(timerId);
+            timerId = null;
+          }
+          nextNoteAt = 0;
+          stepIndex = 0;
+        },
+        isRunning: () => running
+      };
+    };
+    const runtimeBgm = createRuntimeBgm();
+    const runtimeAudioUiState = {
+      root: null,
+      panel: null,
+      toggleBtn: null,
+      sfxRange: null,
+      bgmRange: null,
+      sfxValue: null,
+      bgmValue: null,
+      sfxMuteBtn: null,
+      bgmMuteBtn: null,
+      masterMuteBtn: null,
+      unsub: null,
+      open: false
+    };
     const getPlayerSpriteUrlsForWarmup = () => {
       const urls = new Set();
       Object.values(CHARACTER_SETS).forEach((set) => {
@@ -2274,6 +2481,130 @@
       });
     };
 
+    const renderRuntimeAudioControls = (settings) => {
+      const ui = runtimeAudioUiState;
+      if (!ui.root) return;
+      const sfxPct = Math.round(Math.max(0, Math.min(1, Number(settings?.sfxVolume) || 0)) * 100);
+      const bgmPct = Math.round(Math.max(0, Math.min(1, Number(settings?.bgmVolume) || 0)) * 100);
+      if (ui.sfxRange) ui.sfxRange.value = String(sfxPct);
+      if (ui.bgmRange) ui.bgmRange.value = String(bgmPct);
+      if (ui.sfxValue) ui.sfxValue.textContent = `${sfxPct}%`;
+      if (ui.bgmValue) ui.bgmValue.textContent = `${bgmPct}%`;
+      if (ui.sfxMuteBtn) ui.sfxMuteBtn.textContent = settings?.sfxMuted ? '해제' : '음소거';
+      if (ui.bgmMuteBtn) ui.bgmMuteBtn.textContent = settings?.bgmMuted ? '해제' : '음소거';
+      if (ui.masterMuteBtn) ui.masterMuteBtn.textContent = settings?.masterMuted ? '전체 해제' : '전체 음소거';
+      if (ui.toggleBtn) {
+        ui.toggleBtn.textContent = `사운드 · ${settings?.masterMuted ? '전체 음소거' : '켜짐'}`;
+      }
+    };
+
+    const ensureRuntimeAudioControls = () => {
+      if (runtimeAudioUiState.root) return runtimeAudioUiState.root;
+      const root = document.createElement('div');
+      root.className = 'jumpmap-audio-widget hidden';
+
+      const toggleBtn = document.createElement('button');
+      toggleBtn.type = 'button';
+      toggleBtn.className = 'jumpmap-audio-toggle';
+      toggleBtn.textContent = '사운드';
+
+      const panel = document.createElement('div');
+      panel.className = 'jumpmap-audio-panel hidden';
+
+      const buildRow = (labelText) => {
+        const row = document.createElement('div');
+        row.className = 'jumpmap-audio-row';
+        const label = document.createElement('span');
+        label.className = 'jumpmap-audio-label';
+        label.textContent = labelText;
+        const range = document.createElement('input');
+        range.type = 'range';
+        range.min = '0';
+        range.max = '100';
+        range.step = '1';
+        range.className = 'jumpmap-audio-range';
+        const value = document.createElement('span');
+        value.className = 'jumpmap-audio-value';
+        value.textContent = '0%';
+        const muteBtn = document.createElement('button');
+        muteBtn.type = 'button';
+        muteBtn.className = 'jumpmap-audio-btn';
+        muteBtn.textContent = '음소거';
+        row.appendChild(label);
+        row.appendChild(range);
+        row.appendChild(value);
+        row.appendChild(muteBtn);
+        return { row, range, value, muteBtn };
+      };
+
+      const sfx = buildRow('효과');
+      const bgm = buildRow('배경');
+      const masterWrap = document.createElement('div');
+      masterWrap.className = 'jumpmap-audio-master';
+      const masterMuteBtn = document.createElement('button');
+      masterMuteBtn.type = 'button';
+      masterMuteBtn.className = 'jumpmap-audio-btn';
+      masterMuteBtn.textContent = '전체 음소거';
+      masterWrap.appendChild(masterMuteBtn);
+
+      panel.appendChild(sfx.row);
+      panel.appendChild(bgm.row);
+      panel.appendChild(masterWrap);
+      root.appendChild(toggleBtn);
+      root.appendChild(panel);
+      els.testOverlay?.appendChild(root);
+
+      suppressContextMenu(root);
+      suppressContextMenu(toggleBtn);
+      suppressContextMenu(panel);
+
+      const setOpen = (open) => {
+        runtimeAudioUiState.open = !!open;
+        panel.classList.toggle('hidden', !runtimeAudioUiState.open);
+        toggleBtn.setAttribute('aria-expanded', runtimeAudioUiState.open ? 'true' : 'false');
+      };
+
+      toggleBtn.addEventListener('click', () => {
+        setOpen(!runtimeAudioUiState.open);
+      });
+      sfx.range.addEventListener('input', () => {
+        const next = Math.max(0, Math.min(100, Number(sfx.range.value) || 0)) / 100;
+        updateRuntimeAudioSettings({ sfxVolume: next, sfxMuted: next <= 0 });
+      });
+      bgm.range.addEventListener('input', () => {
+        const next = Math.max(0, Math.min(100, Number(bgm.range.value) || 0)) / 100;
+        updateRuntimeAudioSettings({ bgmVolume: next, bgmMuted: next <= 0 });
+      });
+      sfx.muteBtn.addEventListener('click', () => {
+        updateRuntimeAudioSettings((current) => ({ sfxMuted: !current.sfxMuted }));
+      });
+      bgm.muteBtn.addEventListener('click', () => {
+        updateRuntimeAudioSettings((current) => ({ bgmMuted: !current.bgmMuted }));
+      });
+      masterMuteBtn.addEventListener('click', () => {
+        updateRuntimeAudioSettings((current) => ({ masterMuted: !current.masterMuted }));
+      });
+
+      runtimeAudioUiState.root = root;
+      runtimeAudioUiState.panel = panel;
+      runtimeAudioUiState.toggleBtn = toggleBtn;
+      runtimeAudioUiState.sfxRange = sfx.range;
+      runtimeAudioUiState.bgmRange = bgm.range;
+      runtimeAudioUiState.sfxValue = sfx.value;
+      runtimeAudioUiState.bgmValue = bgm.value;
+      runtimeAudioUiState.sfxMuteBtn = sfx.muteBtn;
+      runtimeAudioUiState.bgmMuteBtn = bgm.muteBtn;
+      runtimeAudioUiState.masterMuteBtn = masterMuteBtn;
+      runtimeAudioUiState.unsub = subscribeRuntimeAudioSettings(renderRuntimeAudioControls, { immediate: true });
+      setOpen(false);
+      return root;
+    };
+
+    const setRuntimeAudioControlsVisible = (visible) => {
+      const root = ensureRuntimeAudioControls();
+      root.classList.toggle('hidden', !visible);
+    };
+
     const createControls = (index, quizButton = null) => {
       const wrap = document.createElement('div');
       wrap.className = 'virtual-controls';
@@ -3851,6 +4182,9 @@
       ensureQuizGatewayInstalled();
       clearAllInputs();
       state.test.active = true;
+      ensureRuntimeAudioControls();
+      setRuntimeAudioControlsVisible(true);
+      runtimeBgm.start();
       els.testOverlay.classList.remove('hidden');
       suppressContextMenu(els.testOverlay);
       suppressContextMenu(els.testViews);
@@ -3875,6 +4209,8 @@
       saveCurrentJumpmapSessionRecord(reason);
       clearAllInputs();
       state.test.active = false;
+      runtimeBgm.stop();
+      setRuntimeAudioControlsVisible(false);
       els.testOverlay.classList.add('hidden');
       stopTestLoop();
       quizRuntimeState.sessions.clear();

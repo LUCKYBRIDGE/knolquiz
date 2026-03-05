@@ -8,6 +8,8 @@ import {
 } from '../quiz/renderers/place-value-area-model.js';
 import { saveBattleshipSessionRecord } from '../shared/local-game-records.js';
 import { createProceduralSfx } from '../shared/procedural-sfx.js';
+import { createProceduralBgm } from '../shared/procedural-bgm.js';
+import { mountAudioControls } from '../shared/audio-ui.js';
 
 const STORAGE_KEY = 'jumpmap.launcher.setup.v1';
 const SHIP_IMAGE_SRC = '../quiz_battleship/battleship-ship.png';
@@ -95,6 +97,19 @@ const LOADING_HISTORY_FACTS = Object.freeze([
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 const battleshipSfx = createProceduralSfx({ masterGain: 0.11 });
+let battleshipBgm = null;
+let battleshipAudioUi = null;
+
+const ensureBattleshipAudio = () => {
+  if (battleshipAudioUi) return;
+  battleshipAudioUi = mountAudioControls({
+    title: '사운드',
+    placement: 'bottom-right',
+    defaultOpen: false
+  });
+  battleshipBgm = createProceduralBgm({ masterGain: 0.08, stepMs: 220 });
+  battleshipBgm.start();
+};
 
 const els = {
   shipHp: document.getElementById('ship-hp'),
@@ -1959,6 +1974,7 @@ if (shouldRedirectToSplitHost) {
   splitUrl.searchParams.set('fromLauncher', query.get('fromLauncher') || '1');
   window.location.replace(splitUrl.toString());
 } else {
+  ensureBattleshipAudio();
   if (splitMode) {
     document.body.classList.add('split-mode');
   }
