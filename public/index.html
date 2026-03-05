@@ -1076,7 +1076,7 @@
         ];
 
         const defaultSetup = () => ({
-          version: 1,
+          version: 2,
           players: 1,
           gameMode: 'jumpmap',
           quizPresetId: 'jumpmap-net-100',
@@ -1619,12 +1619,34 @@
           return created;
         }
 
+        function migrateLegacyLauncherSetup(rawSetup) {
+          const source = rawSetup && typeof rawSetup === 'object' ? rawSetup : {};
+          const migrated = { ...source };
+          const rawVersion = Math.max(0, Math.round(Number(source.version) || 0));
+          if (rawVersion < 2) {
+            const legacyEndMode = String(source.endMode || '').trim().toLowerCase();
+            const legacyGameMode = String(source.gameMode || '').trim().toLowerCase();
+            const legacyQuizTimeLimitSec = Math.round(Number(source.quizTimeLimitSec) || 0);
+            const shouldPromoteTo300 = (
+              legacyQuizTimeLimitSec === 180 &&
+              (legacyGameMode === 'jumpmap' || legacyEndMode === 'time-attack')
+            );
+            if (shouldPromoteTo300) {
+              migrated.quizTimeLimitSec = 300;
+            }
+          }
+          migrated.version = 2;
+          return migrated;
+        }
+
         function loadSetup() {
           try {
             const raw = window.localStorage.getItem(STORAGE_KEY);
             if (!raw) return defaultSetup();
             const parsed = JSON.parse(raw);
-            return parsed && typeof parsed === 'object' ? { ...defaultSetup(), ...parsed } : defaultSetup();
+            return parsed && typeof parsed === 'object'
+              ? { ...defaultSetup(), ...migrateLegacyLauncherSetup(parsed) }
+              : defaultSetup();
           } catch (error) {
             console.warn('[Launcher] setup load failed', error);
             return defaultSetup();
@@ -1666,7 +1688,7 @@
           const quizEndMode = (endMode === 'time' || endMode === 'time-attack') ? 'time' : 'count';
           const jumpmapEndMode = endMode === 'reach-top' ? 'reach-top' : 'none';
           return {
-            version: 1,
+            version: 2,
             players: Math.max(1, Math.min(6, Math.round(Number(source.players) || 1))),
             gameMode: normalizedGameMode,
             quizPresetId: typeof source.quizPresetId === 'string' ? source.quizPresetId : 'jumpmap-net-100',
