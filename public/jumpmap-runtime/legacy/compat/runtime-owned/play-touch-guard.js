@@ -24,6 +24,13 @@
     );
   };
 
+  const isContinuousControlTouchTarget = (target) => {
+    if (!(target instanceof Element)) return false;
+    return !!target.closest(
+      '.dpad button, .jump-btn button, .control-box-resize'
+    );
+  };
+
   const blockNativeUi = (event) => {
     if (shouldAllowNativeUi(event.target)) return;
     if (!isRuntimeUiTarget(event.target)) return;
@@ -53,13 +60,13 @@
 
   document.addEventListener('touchstart', (event) => {
     if (shouldAllowNativeUi(event.target)) return;
-    if (!isControlTouchTarget(event.target)) return;
+    if (!isContinuousControlTouchTarget(event.target)) return;
     event.preventDefault();
   }, { capture: true, passive: false });
 
   document.addEventListener('touchmove', (event) => {
     if (shouldAllowNativeUi(event.target)) return;
-    if (!isControlTouchTarget(event.target)) return;
+    if (!isContinuousControlTouchTarget(event.target)) return;
     event.preventDefault();
   }, { capture: true, passive: false });
 })();
