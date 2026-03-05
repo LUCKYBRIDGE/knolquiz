@@ -735,6 +735,13 @@ export const renderPlaceValueAreaModelQuestion = ({ choicesEl, question, onSubmi
     return 0;
   };
 
+  const clampSlotIndex = (meta, index) => {
+    const max = Math.max(0, meta.digits.length - 1);
+    return Math.max(0, Math.min(max, Number(index) || 0));
+  };
+
+  const hasEmptySlots = (meta) => meta.digits.some((digit) => !digit);
+
   const syncStackInputValue = (input, meta) => {
     const digitText = canonicalizeDigitText(meta.digits.join(''));
     input.value = digitText;
@@ -793,10 +800,8 @@ export const renderPlaceValueAreaModelQuestion = ({ choicesEl, question, onSubmi
       slots.forEach((slot) => {
         slot.addEventListener('click', (event) => {
           event.preventDefault();
-          // Always keep entry flow from ones place to higher places.
-          meta.activeIndex = getNextPlaceIndex(meta);
-          setActiveInput(hiddenInput);
-          refreshStackInputUi(hiddenInput, meta);
+          // Keep the exact tapped place so users can edit any digit directly.
+          setActiveInput(hiddenInput, { slotIndex: slots.indexOf(slot) });
         });
       });
 
@@ -824,9 +829,14 @@ export const renderPlaceValueAreaModelQuestion = ({ choicesEl, question, onSubmi
       activeInput.dispatchEvent(new Event('input', { bubbles: true }));
       return;
     }
-    const idx = Math.max(0, Math.min(stackMeta.digits.length - 1, stackMeta.activeIndex));
+    const idx = clampSlotIndex(stackMeta, stackMeta.activeIndex);
     stackMeta.digits[idx] = digitChar;
-    stackMeta.activeIndex = idx > 0 ? idx - 1 : 0;
+    if (hasEmptySlots(stackMeta)) {
+      // After overwrite, jump to the next still-empty place.
+      stackMeta.activeIndex = getNextPlaceIndex(stackMeta);
+    } else {
+      stackMeta.activeIndex = idx;
+    }
     syncStackInputValue(activeInput, stackMeta);
     refreshStackInputUi(activeInput, stackMeta);
   };
@@ -839,23 +849,10 @@ export const renderPlaceValueAreaModelQuestion = ({ choicesEl, question, onSubmi
       activeInput.dispatchEvent(new Event('input', { bubbles: true }));
       return;
     }
-    const idx = Math.max(0, Math.min(stackMeta.digits.length - 1, stackMeta.activeIndex));
-    if (stackMeta.digits[idx]) {
-      stackMeta.digits[idx] = '';
-      stackMeta.activeIndex = idx;
-    } else {
-      let clearIndex = -1;
-      for (let probe = idx + 1; probe < stackMeta.digits.length; probe += 1) {
-        if (stackMeta.digits[probe]) {
-          clearIndex = probe;
-          break;
-        }
-      }
-      if (clearIndex >= 0) {
-        stackMeta.digits[clearIndex] = '';
-        stackMeta.activeIndex = clearIndex;
-      }
-    }
+    const idx = clampSlotIndex(stackMeta, stackMeta.activeIndex);
+    // Backspace clears only the current place.
+    stackMeta.digits[idx] = '';
+    stackMeta.activeIndex = idx;
     syncStackInputValue(activeInput, stackMeta);
     refreshStackInputUi(activeInput, stackMeta);
   };
@@ -874,7 +871,7 @@ export const renderPlaceValueAreaModelQuestion = ({ choicesEl, question, onSubmi
     refreshStackInputUi(activeInput, stackMeta);
   };
 
-  const setActiveInput = (input) => {
+  const setActiveInput = (input, options = {}) => {
     if (!(input instanceof HTMLInputElement)) return;
     structuredInputs.forEach((el) => {
       el.classList.remove('pvam-active-input');
@@ -885,7 +882,11 @@ export const renderPlaceValueAreaModelQuestion = ({ choicesEl, question, onSubmi
     activeInput.classList.add('pvam-active-input');
     const activeMeta = getStackMeta(activeInput);
     if (activeMeta) {
-      activeMeta.activeIndex = getNextPlaceIndex(activeMeta);
+      if (Number.isFinite(Number(options?.slotIndex))) {
+        activeMeta.activeIndex = clampSlotIndex(activeMeta, Number(options.slotIndex));
+      } else if (options?.preserveSlot !== true) {
+        activeMeta.activeIndex = getNextPlaceIndex(activeMeta);
+      }
       refreshStackInputUi(activeInput, activeMeta);
     }
     try {
