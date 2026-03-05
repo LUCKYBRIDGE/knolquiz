@@ -151,6 +151,7 @@
     let rafId = null;
     let obstacleCache = null;
     const backgroundLayerStyleCache = new WeakMap();
+    const contextMenuSuppressedTargets = new WeakSet();
     const keyboardState = { left: false, right: false };
     let editorRuntimeAssetBaseHrefCache = '';
     const PLAYER_NAME_COLORS = ['#ef4444', '#3b82f6', '#22c55e', '#f59e0b', '#a855f7', '#06b6d4'];
@@ -1825,9 +1826,11 @@
       icon.textContent = iconText;
       const line1 = document.createElement('div');
       line1.className = 'test-start-guide-line';
+      line1.classList.add('is-primary');
       line1.textContent = line1Text || (winnerName ? `${winnerName} 님이 꼭대기에 도달했습니다.` : '플레이가 종료되었습니다.');
       const line2 = document.createElement('div');
       line2.className = 'test-start-guide-line';
+      line2.classList.add('is-secondary');
       line2.textContent = line2Text || '결과를 확인한 뒤 다시 시작하거나 기록/학급관리 화면으로 이동할 수 있습니다.';
       guide.append(title, icon, line1, line2);
 
@@ -1837,8 +1840,13 @@
         rankingRows.forEach((row, rankIndex) => {
           const item = document.createElement('div');
           item.className = 'test-start-guide-summary-row';
-          item.textContent =
-            `${rankIndex + 1}위 ${row.name} · 최고 ${toHeightMetersText(row.bestHeightPx)} · 퀴즈 ${row.quizCorrect}/${row.quizAttempts}`;
+          const rank = document.createElement('span');
+          rank.className = 'test-start-guide-rank';
+          rank.textContent = `${rankIndex + 1}위`;
+          const text = document.createElement('span');
+          text.className = 'test-start-guide-rank-text';
+          text.textContent = `${row.name} · 최고 ${toHeightMetersText(row.bestHeightPx)} · 퀴즈 ${row.quizCorrect}/${row.quizAttempts}`;
+          item.append(rank, text);
           summary.appendChild(item);
         });
         guide.appendChild(summary);
@@ -1849,7 +1857,7 @@
       if (typeof onRestart === 'function') {
         const restartBtn = document.createElement('button');
         restartBtn.type = 'button';
-        restartBtn.className = 'test-start-guide-action-btn';
+        restartBtn.className = 'test-start-guide-action-btn is-primary';
         restartBtn.textContent = '즉시 재시작';
         restartBtn.addEventListener('click', () => {
           onRestart();
@@ -1897,6 +1905,7 @@
       actions.appendChild(classroomLink);
       const launcherLink = document.createElement('a');
       launcherLink.className = 'test-start-guide-action-btn';
+      launcherLink.classList.add('is-primary');
       launcherLink.href = resolveEditorRuntimeAssetUrl('../../../../');
       launcherLink.textContent = '메인화면으로';
       actions.appendChild(launcherLink);
@@ -2135,6 +2144,30 @@
       return world;
     };
 
+    const shouldAllowNativeContextMenu = (target) => {
+      if (!(target instanceof Element)) return false;
+      return !!target.closest(
+        'input, textarea, select, [contenteditable=\"true\"], [data-allow-contextmenu=\"true\"]'
+      );
+    };
+
+    const suppressContextMenu = (target) => {
+      if (!target) return;
+      if (contextMenuSuppressedTargets.has(target)) return;
+      contextMenuSuppressedTargets.add(target);
+      target.addEventListener('contextmenu', (e) => {
+        if (shouldAllowNativeContextMenu(e.target)) return;
+        e.preventDefault();
+        e.stopPropagation();
+      });
+      target.addEventListener('auxclick', (e) => {
+        if (e.button !== 2) return;
+        if (shouldAllowNativeContextMenu(e.target)) return;
+        e.preventDefault();
+        e.stopPropagation();
+      });
+    };
+
     const createControls = (index, quizButton = null) => {
       const wrap = document.createElement('div');
       wrap.className = 'virtual-controls';
@@ -2203,19 +2236,6 @@
         quizBox.appendChild(quizButton);
         quizBox.appendChild(quizResize);
       }
-
-      const suppressContextMenu = (target) => {
-        if (!target) return;
-        target.addEventListener('contextmenu', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-        });
-        target.addEventListener('auxclick', (e) => {
-          if (e.button !== 2) return;
-          e.preventDefault();
-          e.stopPropagation();
-        });
-      };
 
       const bind = (btn, key) => {
         const activePointers = new Set();
@@ -3101,6 +3121,7 @@
         const view = document.createElement('div');
         view.className = 'test-view';
         view.style.backgroundColor = state.background.color || PLAY_FALLBACK_BG_COLOR;
+        suppressContextMenu(view);
         const bgLayer = document.createElement('div');
         bgLayer.className = 'test-background-layer';
         applyTestBackgroundLayer(bgLayer);
@@ -3647,6 +3668,8 @@
       clearAllInputs();
       state.test.active = true;
       els.testOverlay.classList.remove('hidden');
+      suppressContextMenu(els.testOverlay);
+      suppressContextMenu(els.testViews);
       buildTestViews(state.test.players);
       warmupRuntimeSceneAssets(getViews());
       startTestLoop();
@@ -3825,10 +3848,16 @@
       if (document.hidden) clearAllInputs();
     };
 
+    const isSessionFinished = () => !!jumpmapGoalState.reached;
+
+    const isTestActive = () => !!state.test.active;
+
     return {
       enterTestMode,
       restartTestMode,
       exitTestMode,
+      isSessionFinished,
+      isTestActive,
       warpToSavePoint,
       setPlayerCount,
       onPlayerCountClick,

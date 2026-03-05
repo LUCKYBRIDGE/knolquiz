@@ -69,6 +69,15 @@ const faceModal = $('#face-modal');
 const faceBackdrop = $('#face-backdrop');
 const faceNormalBtn = $('#face-normal');
 const faceConfirmBtn = $('#face-confirm');
+const inplayMainMenuBtn = $('#inplay-main-menu-btn');
+const resultMainMenuBtn = $('#result-main-menu-btn');
+const leaveModal = $('#leave-modal');
+const leaveBackdrop = $('#leave-backdrop');
+const leaveCancelBtn = $('#leave-cancel');
+const leaveConfirmBtn = $('#leave-confirm');
+const leaveMessageEl = $('#leave-message');
+const leaveConsentWrap = $('#leave-consent-wrap');
+const leaveConsentList = $('#leave-consent-list');
 const retryListEl = $('#retry-list');
 const retryNoteEl = $('#retry-note');
 const savedWrongListEl = $('#wrong-list');
@@ -103,7 +112,11 @@ const resultClassroomLink = $('#result-classroom-link');
 const LAUNCHER_SETUP_STORAGE_KEY = 'jumpmap.launcher.setup.v1';
 
 const setQuizPlayingChrome = (playing) => {
-  document.body.classList.toggle('quiz-playing', Boolean(playing));
+  const active = Boolean(playing);
+  document.body.classList.toggle('quiz-playing', active);
+  if (inplayMainMenuBtn) {
+    inplayMainMenuBtn.classList.toggle('hidden', !active);
+  }
 };
 
 const settingsInputs = {
@@ -159,6 +172,7 @@ let questionBank = null;
 let defaultSettings = null;
 let players = [];
 let sessionSettings = null;
+let quizSessionFinished = false;
 let resizeHandlerBound = false;
 let pendingPreset = null;
 let pendingStartSettings = null;
@@ -234,6 +248,92 @@ let latestQuizResultPayload = null;
 let cachedSavedWrongs = [];
 let cachedStudentNames = [];
 let cachedGroupNames = [];
+
+const resolveActivePlayerLabels = () => {
+  const count = Math.max(1, Math.round(Number(sessionSettings?.playerCount) || players.length || 1));
+  const names = Array.isArray(sessionSettings?.groupNames) ? sessionSettings.groupNames : [];
+  const labels = [];
+  for (let index = 0; index < count; index += 1) {
+    const preferredName = String(names[index] || '').trim();
+    if (preferredName) {
+      labels.push(preferredName);
+      continue;
+    }
+    labels.push(`플레이어 ${index + 1}`);
+  }
+  return labels;
+};
+
+const isQuizSessionInProgress = () => (
+  document.body.classList.contains('quiz-playing')
+  && players.length > 0
+  && !quizSessionFinished
+);
+
+const closeLeaveModal = () => {
+  if (!leaveModal) return;
+  leaveModal.classList.add('hidden');
+};
+
+const syncLeaveConfirmButtonState = () => {
+  if (!leaveConfirmBtn || !leaveConsentWrap || leaveConsentWrap.classList.contains('hidden')) return;
+  const checkboxes = [...leaveConsentList.querySelectorAll('input[type="checkbox"]')];
+  const allChecked = checkboxes.length > 0 && checkboxes.every((inputEl) => inputEl.checked);
+  leaveConfirmBtn.disabled = !allChecked;
+};
+
+const renderLeaveConsentChecks = (labels = []) => {
+  if (!leaveConsentWrap || !leaveConsentList || !leaveConfirmBtn) return;
+  leaveConsentList.innerHTML = '';
+  if (!Array.isArray(labels) || labels.length <= 1) {
+    leaveConsentWrap.classList.add('hidden');
+    leaveConfirmBtn.disabled = false;
+    return;
+  }
+  leaveConsentWrap.classList.remove('hidden');
+  labels.forEach((label, index) => {
+    const row = document.createElement('label');
+    row.className = 'leave-consent-item';
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.addEventListener('change', syncLeaveConfirmButtonState);
+    const text = document.createElement('span');
+    text.textContent = `${label} 동의`;
+    row.append(input, text);
+    leaveConsentList.appendChild(row);
+    if (index === labels.length - 1) {
+      requestAnimationFrame(() => syncLeaveConfirmButtonState());
+    }
+  });
+  syncLeaveConfirmButtonState();
+};
+
+const openLeaveModal = () => {
+  const inProgress = isQuizSessionInProgress();
+  if (!leaveModal || !leaveMessageEl) {
+    const fallbackMessage = inProgress
+      ? '진행 중에 메인메뉴로 돌아가면 이번 게임 결과는 저장되지 않습니다. 계속하시겠습니까?'
+      : '메인메뉴로 돌아가시겠습니까?';
+    if (window.confirm(fallbackMessage)) {
+      window.location.href = '../';
+    }
+    return;
+  }
+  leaveMessageEl.textContent = inProgress
+    ? '진행 중에 메인메뉴로 돌아가면 이번 게임 결과는 저장되지 않습니다.'
+    : '메인메뉴로 이동합니다. 저장된 결과는 그대로 유지됩니다.';
+  renderLeaveConsentChecks(inProgress ? resolveActivePlayerLabels() : []);
+  leaveModal.classList.remove('hidden');
+};
+
+const leaveToMainMenu = () => {
+  if (isQuizSessionInProgress()) {
+    players.forEach((player) => player.destroy());
+    players = [];
+  }
+  closeLeaveModal();
+  window.location.href = '../';
+};
 
 const escapeReportCsvCell = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
 
@@ -1233,22 +1333,40 @@ const buildLauncherBasicQuizSettings = () => {
   ) ? 'time' : 'count';
   const launcherQuizCountLimitRaw = Math.round(Number(launcher.quizCountLimit) || 0);
   const launcherQuizTimeLimitSec = Math.max(10, Math.min(3600, Math.round(Number(launcher.quizTimeLimitSec) || 300)));
-  const playerCount = Math.max(1, Math.min(6, Math.round(Number(launcher.players) || 1)));
-  const playerNames = Array.isArray(launcher.playerNames)
+  const splitMode = params.get('split') === '1';
+  const launcherPlayerCount = Math.max(1, Math.min(6, Math.round(Number(launcher.players) || 1)));
+  const requestedSplitIndex = Math.round(Number(params.get('playerIndex')));
+  const splitPlayerIndex = Math.max(
+    0,
+    Math.min(
+      launcherPlayerCount - 1,
+      Number.isFinite(requestedSplitIndex) ? requestedSplitIndex : 0
+    )
+  );
+
+  const normalizedLauncherNames = Array.isArray(launcher.playerNames)
     ? launcher.playerNames
-        .slice(0, playerCount)
+        .slice(0, launcherPlayerCount)
         .map((name, idx) => (typeof name === 'string' && name.trim()) ? name.trim() : `사용자${idx + 1}`)
-    : Array.from({ length: playerCount }, (_, idx) => `사용자${idx + 1}`);
-  const playerTags = Array.isArray(launcher.playerTags)
+    : Array.from({ length: launcherPlayerCount }, (_, idx) => `사용자${idx + 1}`);
+  const normalizedLauncherTags = Array.isArray(launcher.playerTags)
     ? launcher.playerTags
-        .slice(0, playerCount)
+        .slice(0, launcherPlayerCount)
         .map((tag) => (typeof tag === 'string' ? tag.trim() : ''))
-    : Array.from({ length: playerCount }, () => '');
+    : Array.from({ length: launcherPlayerCount }, () => '');
+
+  const playerCount = splitMode ? 1 : launcherPlayerCount;
+  const playerNames = splitMode
+    ? [normalizedLauncherNames[splitPlayerIndex] || `사용자${splitPlayerIndex + 1}`]
+    : normalizedLauncherNames.slice(0, playerCount);
+  const playerTags = splitMode
+    ? [normalizedLauncherTags[splitPlayerIndex] || '']
+    : normalizedLauncherTags.slice(0, playerCount);
 
   const baseMode = basicModes['12q']?.settings || {};
   const settings = mergeSettings(defaultSettings, baseMode);
   settings.playerCount = playerCount;
-  settings.twoPlayerLayout = '1x2';
+  settings.twoPlayerLayout = '2x1';
   settings.groupNames = playerNames;
   settings.studentIds = playerTags;
   settings.studentId = '01';
@@ -3114,13 +3232,12 @@ const createPlayerSession = ({ index, studentId, groupName, settings, questionBa
   };
 };
 
-const getGridLayout = (count, twoPlayerLayout, isMobile) => {
+const getGridLayout = (count, twoPlayerLayout, _isMobile) => {
   if (count <= 1) {
     return { cols: 1, rows: 1 };
   }
   if (count === 2) {
-    const forcedLayout = isMobile ? '1x2' : twoPlayerLayout;
-    return forcedLayout === '2x1'
+    return twoPlayerLayout === '2x1'
       ? { cols: 2, rows: 1 }
       : { cols: 1, rows: 2 };
   }
@@ -3132,17 +3249,7 @@ const updateGridLayout = (count, twoPlayerLayout, isMobile) => {
   const layout = getGridLayout(count, twoPlayerLayout, isMobile);
   quizGrid.style.setProperty('--player-cols', `${layout.cols}`);
   quizGrid.style.setProperty('--player-rows', `${layout.rows}`);
-  const header = document.querySelector('header');
-  const main = document.querySelector('main');
-  if (header && main) {
-    const styles = getComputedStyle(main);
-    const padTop = parseFloat(styles.paddingTop) || 0;
-    const padBottom = parseFloat(styles.paddingBottom) || 0;
-    const available = window.innerHeight - header.offsetHeight - padTop - padBottom;
-    if (available > 0) {
-      quizGrid.style.height = `${available}px`;
-    }
-  }
+  quizGrid.style.removeProperty('height');
 };
 
 const scheduleLayoutAll = () => {
@@ -3273,6 +3380,7 @@ const renderRanking = (logs, rankingEnabled) => {
 };
 
 const finishAllPlayers = () => {
+  quizSessionFinished = true;
   setQuizPlayingChrome(false);
   summaryCard.classList.remove('hidden');
   quizGrid?.classList.add('hidden');
@@ -3350,6 +3458,21 @@ if (basicCancel) {
 if (basicStart) {
   basicStart.addEventListener('click', applyBasicMode);
 }
+if (inplayMainMenuBtn) {
+  inplayMainMenuBtn.addEventListener('click', openLeaveModal);
+}
+if (resultMainMenuBtn) {
+  resultMainMenuBtn.addEventListener('click', openLeaveModal);
+}
+if (leaveBackdrop) {
+  leaveBackdrop.addEventListener('click', closeLeaveModal);
+}
+if (leaveCancelBtn) {
+  leaveCancelBtn.addEventListener('click', closeLeaveModal);
+}
+if (leaveConfirmBtn) {
+  leaveConfirmBtn.addEventListener('click', leaveToMainMenu);
+}
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') {
     closeZoom();
@@ -3357,10 +3480,13 @@ document.addEventListener('keydown', (event) => {
     closeFaceModal();
     closeBasicModal();
     closeNameModal();
+    closeLeaveModal();
   }
 });
 
 const startQuizWithSettings = (settings, faceToFace, customBank) => {
+  quizSessionFinished = false;
+  closeLeaveModal();
   sessionSettings = { ...settings, faceToFace };
   if (logOutputEl) logOutputEl.value = '';
   const csvCustomBank = settings.customCsvMode && uploadedCsvQuestionBank?.questions?.length
@@ -3401,17 +3527,12 @@ const startQuizWithSettings = (settings, faceToFace, customBank) => {
   }
 
   const isMobile = window.innerWidth < 720;
-  const requestedPlayers = settings.playerCount || 1;
-  const playerCount = isMobile ? Math.min(requestedPlayers, 2) : requestedPlayers;
+  const requestedPlayers = Math.round(Number(settings.playerCount) || 1);
+  const playerCount = Math.max(1, Math.min(6, requestedPlayers));
   const layout = playerCount === 2
-    ? (isMobile ? '1x2' : settings.twoPlayerLayout)
+    ? (settings.twoPlayerLayout || '2x1')
     : null;
   const enableFaceToFace = Boolean(faceToFace && layout === '1x2' && playerCount === 2);
-  if (isMobile && requestedPlayers > 2) {
-    setLoadStatus('모바일에서는 2인까지 지원합니다. 2인으로 시작합니다.', 'fail');
-  } else {
-    setLoadStatus('', null);
-  }
 
   settingsCard.classList.add('hidden');
   summaryCard.classList.add('hidden');
@@ -3487,6 +3608,8 @@ const resetSettings = () => {
 };
 
 const restartQuiz = () => {
+  quizSessionFinished = false;
+  closeLeaveModal();
   setQuizPlayingChrome(false);
   settingsCard.classList.remove('hidden');
   quizGrid?.classList.add('hidden');

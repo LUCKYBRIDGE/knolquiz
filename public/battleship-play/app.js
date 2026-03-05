@@ -112,6 +112,7 @@ const els = {
   upgradeSpeedBtn: document.getElementById('upgrade-speed-btn'),
   upgradePowerBtn: document.getElementById('upgrade-power-btn'),
   upgradeBulletBtn: document.getElementById('upgrade-bullet-btn'),
+  sideMainMenuBtn: document.getElementById('side-main-menu-btn'),
   currentEnemyInfo: document.getElementById('current-enemy-info'),
   quizLayer: document.getElementById('quiz-layer'),
   quizCard: document.getElementById('quiz-card'),
@@ -135,7 +136,16 @@ const els = {
   gameoverLayer: document.getElementById('gameover-layer'),
   gameoverScore: document.getElementById('gameover-score'),
   gameoverTime: document.getElementById('gameover-time'),
-  restartBtn: document.getElementById('restart-btn')
+  gameoverReason: document.getElementById('gameover-reason'),
+  gameoverMainMenuBtn: document.getElementById('gameover-main-menu-btn'),
+  restartBtn: document.getElementById('restart-btn'),
+  mainMenuLeaveModal: document.getElementById('main-menu-leave-modal'),
+  mainMenuLeaveBackdrop: document.getElementById('main-menu-leave-backdrop'),
+  mainMenuLeaveMessage: document.getElementById('main-menu-leave-message'),
+  mainMenuLeaveConsent: document.getElementById('main-menu-leave-consent'),
+  mainMenuLeaveConsentList: document.getElementById('main-menu-leave-consent-list'),
+  mainMenuLeaveCancel: document.getElementById('main-menu-leave-cancel'),
+  mainMenuLeaveConfirm: document.getElementById('main-menu-leave-confirm')
 };
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -313,6 +323,85 @@ const state = {
   enemies: [],
   projectiles: [],
   statusText: '전투 시작'
+};
+
+const resolveParticipantConsentLabels = () => {
+  const participants = Array.isArray(setup.participants) ? setup.participants : [];
+  const labels = participants.map((participant, index) => {
+    const name = String(participant?.name || '').trim() || `사용자${index + 1}`;
+    const tag = String(participant?.tag || '').trim();
+    return tag ? `${name}(${tag})` : name;
+  });
+  return labels.length ? labels : ['플레이어 1'];
+};
+
+const isBattleInProgress = () => !state.gameover;
+let pausedForMainMenuLeave = false;
+
+const closeMainMenuLeaveModal = () => {
+  if (!els.mainMenuLeaveModal) return;
+  els.mainMenuLeaveModal.classList.add('hidden');
+  if (pausedForMainMenuLeave && !state.gameover) {
+    pausedForMainMenuLeave = false;
+    state.running = true;
+    state.lastFrameMs = performance.now();
+  }
+};
+
+const syncMainMenuLeaveConfirmState = () => {
+  if (!els.mainMenuLeaveConfirm || !els.mainMenuLeaveConsent || els.mainMenuLeaveConsent.classList.contains('hidden')) return;
+  const checks = [...els.mainMenuLeaveConsentList.querySelectorAll('input[type="checkbox"]')];
+  const allChecked = checks.length > 0 && checks.every((inputEl) => inputEl.checked);
+  els.mainMenuLeaveConfirm.disabled = !allChecked;
+};
+
+const renderMainMenuLeaveConsent = (labels = []) => {
+  if (!els.mainMenuLeaveConsent || !els.mainMenuLeaveConsentList || !els.mainMenuLeaveConfirm) return;
+  els.mainMenuLeaveConsentList.innerHTML = '';
+  if (!Array.isArray(labels) || labels.length <= 1) {
+    els.mainMenuLeaveConsent.classList.add('hidden');
+    els.mainMenuLeaveConfirm.disabled = false;
+    return;
+  }
+  els.mainMenuLeaveConsent.classList.remove('hidden');
+  labels.forEach((label) => {
+    const row = document.createElement('label');
+    row.className = 'leave-consent-item';
+    const check = document.createElement('input');
+    check.type = 'checkbox';
+    check.addEventListener('change', syncMainMenuLeaveConfirmState);
+    const text = document.createElement('span');
+    text.textContent = `${label} 동의`;
+    row.append(check, text);
+    els.mainMenuLeaveConsentList.appendChild(row);
+  });
+  syncMainMenuLeaveConfirmState();
+};
+
+const openMainMenuLeaveModal = () => {
+  const inProgress = isBattleInProgress();
+  const message = inProgress
+    ? '진행 중에 메인메뉴로 돌아가면 이번 전투 결과는 저장되지 않습니다.'
+    : '메인메뉴로 이동합니다. 저장된 결과는 그대로 유지됩니다.';
+  if (!els.mainMenuLeaveModal || !els.mainMenuLeaveMessage) {
+    if (window.confirm(message)) {
+      window.location.href = '../';
+    }
+    return;
+  }
+  els.mainMenuLeaveMessage.textContent = message;
+  renderMainMenuLeaveConsent(inProgress ? resolveParticipantConsentLabels() : []);
+  if (inProgress && state.running) {
+    pausedForMainMenuLeave = true;
+    state.running = false;
+  }
+  els.mainMenuLeaveModal.classList.remove('hidden');
+};
+
+const leaveToMainMenu = () => {
+  pausedForMainMenuLeave = false;
+  closeMainMenuLeaveModal();
+  window.location.href = '../';
 };
 
 const shipImage = new Image();
@@ -1611,9 +1700,13 @@ const saveSessionRecord = async () => {
 
 const showGameover = async () => {
   await saveSessionRecord();
-  els.gameoverScore.textContent = `점수(격파 수): ${state.score.kills}`;
+  els.gameoverScore.textContent = String(state.score.kills);
   const reasonLabel = state.endReason || '종료';
-  els.gameoverTime.textContent = `생존 시간: ${Math.max(0, Math.round(state.waves.elapsedSec))}초 · 기준: ${reasonLabel}`;
+  const survivedSec = Math.max(0, Math.round(state.waves.elapsedSec));
+  els.gameoverTime.textContent = `${survivedSec}초`;
+  if (els.gameoverReason) {
+    els.gameoverReason.textContent = `종료 기준: ${reasonLabel}`;
+  }
   els.gameoverLayer.classList.add('show');
 };
 
@@ -1682,6 +1775,14 @@ els.openQuizBtn.addEventListener('click', () => {
   openQuizLayer();
 });
 
+els.sideMainMenuBtn?.addEventListener('click', () => {
+  openMainMenuLeaveModal();
+});
+
+els.gameoverMainMenuBtn?.addEventListener('click', () => {
+  openMainMenuLeaveModal();
+});
+
 els.quizCloseBtn?.addEventListener('click', () => {
   closeQuizLayer({ keepStatus: false });
 });
@@ -1698,6 +1799,16 @@ els.quizReturnBtn?.addEventListener('click', () => {
 els.quizLayer.addEventListener('click', (event) => {
   if (event.target !== els.quizLayer) return;
   closeQuizLayer({ keepStatus: false });
+});
+
+els.mainMenuLeaveBackdrop?.addEventListener('click', closeMainMenuLeaveModal);
+els.mainMenuLeaveCancel?.addEventListener('click', closeMainMenuLeaveModal);
+els.mainMenuLeaveConfirm?.addEventListener('click', leaveToMainMenu);
+
+window.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') {
+    closeMainMenuLeaveModal();
+  }
 });
 
 els.restartBtn.addEventListener('click', restart);

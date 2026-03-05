@@ -11297,6 +11297,135 @@ const applyLauncherSetupToState = (setup) => {
     .map((value) => normalizeCharacterId(value, launcherCharacterId));
 };
 
+const isJumpmapPlayLaunchMode = () => {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const launchMode = String(params.get('launchMode') || '').trim().toLowerCase();
+    const fromLauncherRaw = String(params.get('fromLauncher') || '').trim().toLowerCase();
+    const fromLauncher = ['1', 'true', 'yes', 'on'].includes(fromLauncherRaw);
+    return launchMode === 'play' && fromLauncher;
+  } catch (_error) {
+    return false;
+  }
+};
+
+const JUMPMAP_MAIN_MENU_HREF = '../../../../';
+
+const createJumpmapMainMenuLeaveModal = () => {
+  const root = document.createElement('section');
+  root.className = 'jumpmap-leave-modal hidden';
+  root.innerHTML = `
+    <div class="jumpmap-leave-modal-backdrop" data-role="backdrop"></div>
+    <div class="jumpmap-leave-modal-card">
+      <h3>메인메뉴로 돌아가기</h3>
+      <p data-role="message">진행 중에 메인메뉴로 돌아가면 이번 점프맵 결과는 저장되지 않습니다.</p>
+      <div class="jumpmap-leave-consent hidden" data-role="consent-wrap">
+        <div class="jumpmap-leave-consent-title">다인 플레이 진행 중입니다. 전원 동의를 체크해 주세요.</div>
+        <div class="jumpmap-leave-consent-list" data-role="consent-list"></div>
+      </div>
+      <div class="row jumpmap-leave-actions">
+        <button class="secondary" type="button" data-role="cancel">취소</button>
+        <button class="primary" type="button" data-role="confirm">메인메뉴 이동</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(root);
+  return {
+    root,
+    backdrop: root.querySelector('[data-role="backdrop"]'),
+    message: root.querySelector('[data-role="message"]'),
+    consentWrap: root.querySelector('[data-role="consent-wrap"]'),
+    consentList: root.querySelector('[data-role="consent-list"]'),
+    cancelBtn: root.querySelector('[data-role="cancel"]'),
+    confirmBtn: root.querySelector('[data-role="confirm"]')
+  };
+};
+
+const jumpmapLeaveModalUi = createJumpmapMainMenuLeaveModal();
+
+const resolveJumpmapLeaveConsentLabels = () => {
+  const count = Math.max(1, Math.min(6, Math.round(Number(state.test.players) || 1)));
+  const names = Array.isArray(state.test.playerNames) ? state.test.playerNames : [];
+  const tags = Array.isArray(state.test.playerTags) ? state.test.playerTags : [];
+  const labels = [];
+  for (let index = 0; index < count; index += 1) {
+    const name = String(names[index] || '').trim() || `사용자${index + 1}`;
+    const tag = String(tags[index] || '').trim();
+    labels.push(tag ? `${name}(${tag})` : name);
+  }
+  return labels;
+};
+
+const syncJumpmapLeaveConfirmState = () => {
+  if (!jumpmapLeaveModalUi.confirmBtn || !jumpmapLeaveModalUi.consentWrap || jumpmapLeaveModalUi.consentWrap.classList.contains('hidden')) return;
+  const checks = [...jumpmapLeaveModalUi.consentList.querySelectorAll('input[type="checkbox"]')];
+  const allChecked = checks.length > 0 && checks.every((inputEl) => inputEl.checked);
+  jumpmapLeaveModalUi.confirmBtn.disabled = !allChecked;
+};
+
+const renderJumpmapLeaveConsent = (labels = []) => {
+  if (!jumpmapLeaveModalUi.consentWrap || !jumpmapLeaveModalUi.consentList || !jumpmapLeaveModalUi.confirmBtn) return;
+  jumpmapLeaveModalUi.consentList.innerHTML = '';
+  if (!Array.isArray(labels) || labels.length <= 1) {
+    jumpmapLeaveModalUi.consentWrap.classList.add('hidden');
+    jumpmapLeaveModalUi.confirmBtn.disabled = false;
+    return;
+  }
+  jumpmapLeaveModalUi.consentWrap.classList.remove('hidden');
+  labels.forEach((label) => {
+    const row = document.createElement('label');
+    row.className = 'jumpmap-leave-consent-item';
+    const check = document.createElement('input');
+    check.type = 'checkbox';
+    check.addEventListener('change', syncJumpmapLeaveConfirmState);
+    const text = document.createElement('span');
+    text.textContent = `${label} 동의`;
+    row.append(check, text);
+    jumpmapLeaveModalUi.consentList.appendChild(row);
+  });
+  syncJumpmapLeaveConfirmState();
+};
+
+const closeJumpmapMainMenuLeaveModal = () => {
+  jumpmapLeaveModalUi.root?.classList.add('hidden');
+};
+
+const openJumpmapMainMenuLeaveModal = () => {
+  const testActive = Boolean(testRuntime.isTestActive?.());
+  const finished = Boolean(testRuntime.isSessionFinished?.());
+  const inProgress = testActive && !finished;
+  const message = inProgress
+    ? '진행 중에 메인메뉴로 돌아가면 이번 점프맵 결과는 저장되지 않습니다.'
+    : '메인메뉴로 이동합니다. 저장된 결과는 그대로 유지됩니다.';
+  if (!jumpmapLeaveModalUi.root || !jumpmapLeaveModalUi.message) {
+    if (window.confirm(message)) {
+      window.location.href = JUMPMAP_MAIN_MENU_HREF;
+    }
+    return;
+  }
+  jumpmapLeaveModalUi.message.textContent = message;
+  renderJumpmapLeaveConsent(inProgress ? resolveJumpmapLeaveConsentLabels() : []);
+  jumpmapLeaveModalUi.root.classList.remove('hidden');
+};
+
+const leaveJumpmapToMainMenu = () => {
+  closeJumpmapMainMenuLeaveModal();
+  window.location.href = JUMPMAP_MAIN_MENU_HREF;
+};
+
+const ensureJumpmapMainMenuFloatingButton = () => {
+  if (!isJumpmapPlayLaunchMode()) return null;
+  const existing = document.querySelector('.jumpmap-main-menu-btn');
+  if (existing) return existing;
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'jumpmap-main-menu-btn';
+  button.textContent = '메인메뉴';
+  button.addEventListener('click', openJumpmapMainMenuLeaveModal);
+  document.body.appendChild(button);
+  return button;
+};
+
 const maybeAutoStartJumpmapPlayMode = () => {
   const tryLoadLaunchRuntimeMap = async () => {
     for (const url of LAUNCH_RUNTIME_MAP_URLS) {
@@ -11335,6 +11464,10 @@ const maybeAutoStartJumpmapPlayMode = () => {
       document.documentElement.classList.add('jumpmap-play-launch');
       document.body.classList.add('play-launch');
       document.title = '놀퀴즈 - 점프맵';
+      ensureJumpmapMainMenuFloatingButton();
+      if (els.testExit) {
+        els.testExit.textContent = '메인메뉴';
+      }
     }
     if (!(launchMode === 'play' && autoStartTest === '1')) return;
     const setup = readLauncherSetup();
@@ -11374,7 +11507,21 @@ els.testRestart?.addEventListener('click', () => {
 els.testDebugHitbox?.addEventListener('change', (e) => {
   state.test.showDebugHitbox = !!e.target.checked;
 });
-els.testExit.addEventListener('click', testRuntime.exitTestMode);
+els.testExit.addEventListener('click', () => {
+  if (isJumpmapPlayLaunchMode()) {
+    openJumpmapMainMenuLeaveModal();
+    return;
+  }
+  testRuntime.exitTestMode();
+});
+jumpmapLeaveModalUi.backdrop?.addEventListener('click', closeJumpmapMainMenuLeaveModal);
+jumpmapLeaveModalUi.cancelBtn?.addEventListener('click', closeJumpmapMainMenuLeaveModal);
+jumpmapLeaveModalUi.confirmBtn?.addEventListener('click', leaveJumpmapToMainMenu);
+window.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') {
+    closeJumpmapMainMenuLeaveModal();
+  }
+});
 els.playerCount.addEventListener('click', testRuntime.onPlayerCountClick);
 
 // Init

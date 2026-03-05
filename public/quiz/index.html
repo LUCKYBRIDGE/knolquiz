@@ -504,11 +504,12 @@
         <div class="result-actions">
           <a class="secondary" id="result-records-link" href="../play/records/">전체 기록 보기(로컬)</a>
           <a class="secondary" id="result-classroom-link" href="../play/classroom/">학급관리 / 명예의 전당</a>
-          <a class="secondary" href="../">메인화면으로</a>
+          <button class="secondary" id="result-main-menu-btn" type="button">메인화면으로</button>
         </div>
         <button class="primary" id="restart-btn" style="margin-top: 12px;">다시 시작</button>
       </section>
     </main>
+    <button class="inplay-main-menu-btn hidden" id="inplay-main-menu-btn" type="button">메인메뉴</button>
     <div class="zoom-modal hidden" id="zoom-modal">
       <div class="zoom-backdrop" id="zoom-backdrop"></div>
       <div class="zoom-content">
@@ -547,6 +548,21 @@
         </div>
         <div class="modal-actions">
           <button class="primary" type="button" id="name-modal-close">닫기</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal hidden" id="leave-modal">
+      <div class="modal-backdrop" id="leave-backdrop"></div>
+      <div class="modal-card leave-modal-card">
+        <h3>메인메뉴로 돌아가기</h3>
+        <p id="leave-message">진행 중에 메인메뉴로 돌아가면 이번 게임 결과는 저장되지 않습니다.</p>
+        <div class="leave-consent hidden" id="leave-consent-wrap">
+          <div class="leave-consent-title">다인 플레이 진행 중입니다. 전원 동의를 체크해 주세요.</div>
+          <div class="leave-consent-list" id="leave-consent-list"></div>
+        </div>
+        <div class="modal-actions">
+          <button class="secondary" id="leave-cancel" type="button">취소</button>
+          <button class="primary" id="leave-confirm" type="button">메인메뉴 이동</button>
         </div>
       </div>
     </div>

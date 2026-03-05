@@ -521,19 +521,144 @@
         inset: 0;
         display: none;
         place-items: center;
-        background: rgba(7, 11, 25, 0.62);
+        background:
+          radial-gradient(circle at top, rgba(59, 130, 246, 0.24), transparent 55%),
+          rgba(7, 11, 25, 0.72);
         z-index: 20;
       }
       .gameover.show { display: grid; }
       .gameover-panel {
-        width: min(420px, calc(100% - 24px));
-        border: 2px solid #12203f;
-        border-radius: 14px;
-        background: rgba(255, 252, 244, 0.98);
-        padding: 16px;
+        width: min(520px, calc(100% - 24px));
+        border: 2px solid #163a66;
+        border-radius: 18px;
+        background:
+          radial-gradient(circle at 0% 0%, rgba(147, 197, 253, 0.18), transparent 45%),
+          rgba(255, 252, 244, 0.98);
+        padding: 18px;
+        box-shadow: 0 20px 44px rgba(2, 6, 23, 0.45);
       }
-      .gameover-panel h3 { margin: 0 0 8px; font-size: 24px; }
-      .gameover-panel p { margin: 6px 0; font-weight: 700; }
+      .gameover-title-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .gameover-title-row h3 {
+        margin: 0;
+        font-size: clamp(28px, 3.2vw, 36px);
+        color: #0a2847;
+        letter-spacing: -0.02em;
+      }
+      .gameover-badge {
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(15, 118, 110, 0.36);
+        background: rgba(204, 251, 241, 0.72);
+        color: #0f766e;
+        font-weight: 800;
+        font-size: 12px;
+      }
+      .gameover-stats {
+        margin-top: 14px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .gameover-stat {
+        border: 1px solid rgba(22, 58, 102, 0.28);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.8);
+        padding: 12px;
+      }
+      .gameover-stat .k {
+        display: block;
+        font-size: 12px;
+        font-weight: 800;
+        color: #475569;
+        margin-bottom: 4px;
+      }
+      .gameover-stat strong {
+        font-size: clamp(24px, 3.4vw, 34px);
+        color: #102a43;
+      }
+      .gameover-reason {
+        margin: 12px 0 0;
+        font-size: 14px;
+        font-weight: 800;
+        color: #334155;
+      }
+      .gameover-actions {
+        margin-top: 14px;
+      }
+      .leave-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 40;
+        display: grid;
+        place-items: center;
+      }
+      .leave-modal.hidden {
+        display: none;
+      }
+      .leave-modal-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(2, 6, 23, 0.62);
+      }
+      .leave-modal-card {
+        position: relative;
+        z-index: 1;
+        width: min(440px, calc(100% - 24px));
+        border: 2px solid #15345c;
+        border-radius: 14px;
+        background: #fffef6;
+        padding: 16px;
+        box-shadow: 0 18px 36px rgba(2, 6, 23, 0.4);
+      }
+      .leave-modal-card h3 {
+        margin: 0;
+        font-size: 22px;
+        color: #102a43;
+      }
+      .leave-modal-card p {
+        margin: 8px 0 0;
+        font-size: 14px;
+        font-weight: 700;
+        color: #334155;
+        line-height: 1.5;
+      }
+      .leave-consent {
+        margin-top: 12px;
+        border: 1px solid rgba(30, 41, 59, 0.2);
+        border-radius: 10px;
+        background: #f8fafc;
+        padding: 10px;
+      }
+      .leave-consent.hidden {
+        display: none;
+      }
+      .leave-consent-title {
+        margin-bottom: 8px;
+        font-size: 12px;
+        font-weight: 800;
+        color: #334155;
+      }
+      .leave-consent-list {
+        display: grid;
+        gap: 6px;
+      }
+      .leave-consent-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #1e293b;
+      }
+      .leave-consent-item input {
+        width: 18px;
+        height: 18px;
+      }
       @media (max-width: 980px) {
         .layout { grid-template-columns: 1fr; height: auto; min-height: calc(100% - 16px); }
         .stage-wrap { max-height: none; }
@@ -598,7 +723,7 @@
           </div>
           <div class="row">
             <button class="btn" id="upgrade-bullet-btn" type="button">총알 개수 업</button>
-            <a class="btn" href="../" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;color:inherit;">메인화면</a>
+            <button class="btn" id="side-main-menu-btn" type="button">메인메뉴</button>
           </div>
           <p class="hint">시간이 지날수록 01→10 단계 적이 열리고, 이후 붉은 특수효과 적이 01부터 순차 해금됩니다.</p>
         </section>
@@ -677,12 +802,40 @@
 
     <div class="gameover" id="gameover-layer">
       <div class="gameover-panel">
-        <h3>게임 종료</h3>
-        <p id="gameover-score">점수: 0</p>
-        <p id="gameover-time">생존 시간: 0초</p>
-        <div class="row" style="margin-top:10px;">
+        <div class="gameover-title-row">
+          <h3>전투 종료</h3>
+          <span class="gameover-badge">거북선 디펜스</span>
+        </div>
+        <div class="gameover-stats">
+          <div class="gameover-stat">
+            <span class="k">격파 수(점수)</span>
+            <strong id="gameover-score">0</strong>
+          </div>
+          <div class="gameover-stat">
+            <span class="k">생존 시간</span>
+            <strong id="gameover-time">0초</strong>
+          </div>
+        </div>
+        <p class="gameover-reason" id="gameover-reason">종료 기준: -</p>
+        <div class="row gameover-actions">
           <button class="btn primary" id="restart-btn" type="button">다시 시작</button>
-          <a class="btn" href="../" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;color:inherit;">메인화면</a>
+          <button class="btn" id="gameover-main-menu-btn" type="button">메인메뉴</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="leave-modal hidden" id="main-menu-leave-modal">
+      <div class="leave-modal-backdrop" id="main-menu-leave-backdrop"></div>
+      <div class="leave-modal-card">
+        <h3>메인메뉴로 돌아가기</h3>
+        <p id="main-menu-leave-message">진행 중에 메인메뉴로 돌아가면 이번 전투 결과는 저장되지 않습니다.</p>
+        <div class="leave-consent hidden" id="main-menu-leave-consent">
+          <div class="leave-consent-title">다인 플레이 진행 중입니다. 전원 동의를 체크해 주세요.</div>
+          <div class="leave-consent-list" id="main-menu-leave-consent-list"></div>
+        </div>
+        <div class="row" style="margin-top:12px;">
+          <button class="btn" id="main-menu-leave-cancel" type="button">취소</button>
+          <button class="btn primary" id="main-menu-leave-confirm" type="button">메인메뉴 이동</button>
         </div>
       </div>
     </div>
