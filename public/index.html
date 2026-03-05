@@ -512,26 +512,23 @@
         font-size: 18px;
       }
       .summary-box {
-        border-radius: 14px;
-        border: 2px dashed rgba(47, 38, 31, 0.3);
-        background: rgba(255, 255, 255, 0.68);
+        border-radius: 12px;
+        border: 1px solid rgba(47, 38, 31, 0.22);
+        background: rgba(255, 255, 255, 0.76);
         padding: 8px;
-        font-size: 13px;
-        line-height: 1.4;
         display: grid;
-        gap: 6px;
+        gap: 8px;
       }
-      .summary-box strong { font-weight: 900; }
       .summary-meta {
         display: grid;
         grid-template-columns: 1fr;
         gap: 6px;
       }
       .summary-pill {
-        border: 1px solid rgba(47, 38, 31, 0.2);
+        border: 1px solid rgba(47, 38, 31, 0.14);
         border-radius: 10px;
-        background: rgba(255, 255, 255, 0.82);
-        padding: 7px 8px;
+        background: rgba(255, 255, 255, 0.92);
+        padding: 8px 9px;
       }
       .summary-pill-k {
         display: block;
@@ -542,37 +539,14 @@
       .summary-pill-v {
         display: block;
         margin-top: 1px;
-        font-size: 14px;
+        font-size: 15px;
         font-weight: 900;
-        color: #2f261f;
-      }
-      .summary-list {
-        display: grid;
-        gap: 4px;
-      }
-      .summary-item {
-        display: grid;
-        grid-template-columns: 66px 1fr;
-        gap: 8px;
-        align-items: start;
-      }
-      .summary-item-k {
-        font-size: 12px;
-        font-weight: 900;
-        color: #4f4134;
-      }
-      .summary-item-v {
-        min-width: 0;
-        word-break: break-word;
-        overflow-wrap: anywhere;
         color: #2f261f;
       }
       .summary-help {
-        margin-top: 2px;
-        padding-top: 6px;
-        border-top: 1px dashed rgba(47, 38, 31, 0.28);
         font-size: 12px;
         color: #5a4b3e;
+        line-height: 1.45;
       }
       .actions {
         display: grid;
@@ -624,6 +598,92 @@
         border-radius: 10px;
         font-size: 13px;
       }
+      .confirm-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 1200;
+        display: grid;
+        place-items: center;
+        padding: 14px;
+      }
+      .confirm-modal-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(20, 14, 10, 0.5);
+      }
+      .confirm-modal-card {
+        position: relative;
+        width: min(640px, calc(100vw - 28px));
+        max-height: min(86vh, 780px);
+        overflow: auto;
+        border: 3px solid var(--line);
+        border-radius: 16px;
+        background: #fff9ef;
+        box-shadow: 0 18px 40px rgba(28, 18, 10, 0.3);
+        padding: 14px;
+        display: grid;
+        gap: 12px;
+      }
+      .confirm-title {
+        margin: 0;
+        font-size: 22px;
+        line-height: 1.2;
+      }
+      .confirm-sub {
+        margin: 0;
+        font-size: 13px;
+        color: #5a4b3e;
+      }
+      .confirm-grid {
+        display: grid;
+        gap: 8px;
+      }
+      .confirm-item {
+        border: 1px solid rgba(47, 38, 31, 0.18);
+        border-radius: 10px;
+        background: #fff;
+        padding: 8px 10px;
+      }
+      .confirm-item-k {
+        font-size: 12px;
+        color: #5e4f40;
+        font-weight: 800;
+      }
+      .confirm-item-v {
+        margin-top: 2px;
+        font-size: 16px;
+        color: #2f261f;
+        font-weight: 900;
+        word-break: break-word;
+      }
+      .confirm-player-list {
+        margin: 0;
+        padding-left: 18px;
+        display: grid;
+        gap: 4px;
+      }
+      .confirm-player-list li {
+        font-size: 14px;
+        color: #352a20;
+        line-height: 1.35;
+      }
+      .confirm-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .confirm-btn {
+        border: 2px solid var(--line);
+        border-radius: 12px;
+        min-height: 48px;
+        font: inherit;
+        font-weight: 900;
+        cursor: pointer;
+        background: #fffaf0;
+      }
+      .confirm-btn.primary {
+        background: linear-gradient(180deg, #fff4c9 0%, #f0c74b 100%);
+      }
       .note {
         font-size: 12px;
         color: #5b4c3e;
@@ -649,7 +709,7 @@
         .quiz-item-thumb { width: 92px; height: 58px; }
         .tool-links { grid-template-columns: 1fr; }
         .start-btn { font-size: 19px; min-height: 56px; }
-        .summary-item { grid-template-columns: 72px 1fr; }
+        .confirm-actions { grid-template-columns: 1fr; }
       }
     </style>
   </head>
@@ -771,31 +831,71 @@
                 </select>
               </div>
             </div>
-            <p class="note">플레이어별 캐릭터는 아래 학생 번호 행에서 개별 변경할 수 있고, 해당 번호의 대표 캐릭터로 저장됩니다.</p>
-            <p class="note" id="startpoint-note">운영 맵에서 시작 위치 목록을 불러오는 중입니다.</p>
+            <p class="note">플레이어별 캐릭터는 아래 이름 설정에서 개별 변경할 수 있습니다.</p>
+            <p class="note" id="startpoint-note">시작 위치 목록을 불러오는 중입니다.</p>
           </div>
 
           <div class="section">
-            <div class="section-title">5. 플레이어 이름 (로컬 저장)</div>
+            <div class="section-title">5. 플레이어 이름</div>
             <div class="names-list" id="names-list"></div>
           </div>
         </section>
 
         <section class="panel summary">
-          <h2>시작 요약</h2>
+          <h2>시작하기</h2>
           <div class="summary-box" id="summary-box"></div>
           <div class="actions">
-            <button class="start-btn" id="start-btn" type="button">바로 시작</button>
+            <button class="start-btn" id="start-btn" type="button">시작 전 확인</button>
             <div class="tool-links">
-              <a class="tool-link" href="https://luckybridge.github.io/knolquiz-editor/jumpmap-editor/">맵 에디터 (개발도구)</a>
-              <a class="tool-link" href="./play/classroom/">학급관리 (로컬)</a>
+              <a class="tool-link" href="./play/classroom/">학급관리</a>
               <a class="tool-link" href="./play/classroom/#hall-of-fame">명예의 전당</a>
             </div>
-            <div class="note">현재 점프맵 런타임 분리 작업 중입니다. 사용자 플레이는 운영 경로를 우선 사용하고, 일부 경계 구간은 레거시 호환 모드로 연결됩니다.</div>
           </div>
         </section>
       </section>
     </main>
+
+    <div class="confirm-modal hidden" id="start-confirm-modal" aria-hidden="true">
+      <div class="confirm-modal-backdrop" id="start-confirm-backdrop"></div>
+      <div class="confirm-modal-card" role="dialog" aria-modal="true" aria-labelledby="start-confirm-title">
+        <h3 class="confirm-title" id="start-confirm-title">시작 전 최종 확인</h3>
+        <p class="confirm-sub">종료/진행 설정과 참여 플레이어를 확인한 뒤 시작하세요.</p>
+        <div class="confirm-grid">
+          <div class="confirm-item">
+            <div class="confirm-item-k">게임</div>
+            <div class="confirm-item-v" id="start-confirm-game">-</div>
+          </div>
+          <div class="confirm-item">
+            <div class="confirm-item-k">퀴즈</div>
+            <div class="confirm-item-v" id="start-confirm-quiz">-</div>
+          </div>
+          <div class="confirm-item">
+            <div class="confirm-item-k">종료 기준</div>
+            <div class="confirm-item-v" id="start-confirm-endmode">-</div>
+          </div>
+          <div class="confirm-item">
+            <div class="confirm-item-k">종료 상세</div>
+            <div class="confirm-item-v" id="start-confirm-enddetail">-</div>
+          </div>
+          <div class="confirm-item hidden" id="start-confirm-pvam-item">
+            <div class="confirm-item-k">자리올림 난이도</div>
+            <div class="confirm-item-v" id="start-confirm-pvam">-</div>
+          </div>
+          <div class="confirm-item">
+            <div class="confirm-item-k">플레이어 수</div>
+            <div class="confirm-item-v" id="start-confirm-player-count">-</div>
+          </div>
+          <div class="confirm-item">
+            <div class="confirm-item-k">참여 플레이어</div>
+            <ul class="confirm-player-list" id="start-confirm-player-list"></ul>
+          </div>
+        </div>
+        <div class="confirm-actions">
+          <button class="confirm-btn" type="button" id="start-confirm-cancel">설정으로 돌아가기</button>
+          <button class="confirm-btn primary" type="button" id="start-confirm-submit">확정하고 시작</button>
+        </div>
+      </div>
+    </div>
 
     <script>
       (function () {
@@ -956,7 +1056,19 @@
           battleshipTimeLimitInput: document.getElementById('battleship-time-limit-input'),
           battleshipKillField: document.getElementById('battleship-kill-field'),
           battleshipKillLimitInput: document.getElementById('battleship-kill-limit-input'),
-          endModeNote: document.getElementById('endmode-note')
+          endModeNote: document.getElementById('endmode-note'),
+          startConfirmModal: document.getElementById('start-confirm-modal'),
+          startConfirmBackdrop: document.getElementById('start-confirm-backdrop'),
+          startConfirmCancel: document.getElementById('start-confirm-cancel'),
+          startConfirmSubmit: document.getElementById('start-confirm-submit'),
+          startConfirmGame: document.getElementById('start-confirm-game'),
+          startConfirmQuiz: document.getElementById('start-confirm-quiz'),
+          startConfirmEndMode: document.getElementById('start-confirm-endmode'),
+          startConfirmEndDetail: document.getElementById('start-confirm-enddetail'),
+          startConfirmPvamItem: document.getElementById('start-confirm-pvam-item'),
+          startConfirmPvam: document.getElementById('start-confirm-pvam'),
+          startConfirmPlayerCount: document.getElementById('start-confirm-player-count'),
+          startConfirmPlayerList: document.getElementById('start-confirm-player-list')
         };
 
         renderAll();
@@ -965,6 +1077,13 @@
         loadRuntimeMapStartPoints();
 
         els.startBtn.addEventListener('click', () => {
+          openStartConfirmModal();
+        });
+        const handleStartConfirmClose = () => closeStartConfirmModal();
+        els.startConfirmBackdrop?.addEventListener('click', handleStartConfirmClose);
+        els.startConfirmCancel?.addEventListener('click', handleStartConfirmClose);
+        els.startConfirmSubmit?.addEventListener('click', () => {
+          closeStartConfirmModal();
           normalizeState(state);
           state.savedAt = new Date().toISOString();
           saveSetup(state);
@@ -972,6 +1091,11 @@
           playUrl.searchParams.set('fromLauncher', '1');
           playUrl.searchParams.set('launchMode', 'play');
           window.location.href = playUrl.toString();
+        });
+        window.addEventListener('keydown', (event) => {
+          if (event.key !== 'Escape') return;
+          if (els.startConfirmModal?.classList.contains('hidden')) return;
+          closeStartConfirmModal();
         });
 
         els.characterSelect.addEventListener('change', (e) => {
@@ -1979,9 +2103,8 @@
 
         function renderModeSettingsSummary() {
           if (!els.modeSettingsNote) return;
-          const currentGame = GAME_OPTIONS.find((item) => item.id === state.gameMode) || GAME_OPTIONS[0];
           if (state.gameMode === 'jumpmap') {
-            els.modeSettingsNote.textContent = `현재 선택 게임: ${currentGame.label} · 종료 기준(문제 수/시간/타임어택/꼭대기 도달) 중 하나가 점프맵 종료 조건으로 적용됩니다.`;
+            els.modeSettingsNote.textContent = '점프맵 종료 기준을 선택해 주세요. 시작 전 확인 팝업에서 한 번 더 확인됩니다.';
             return;
           }
           if (state.gameMode === 'battleship-defense') {
@@ -1990,10 +2113,10 @@
               : (state.battleshipEndMode === 'kills'
                 ? `목표 격파 수 ${state.battleshipKillLimit}킬`
                 : '거북선 체력 0');
-            els.modeSettingsNote.textContent = `현재 선택 게임: ${currentGame.label} · 종료 기준(${battleshipSummary})을 적용합니다. 거북선 체력 0은 항상 즉시 종료 조건입니다.`;
+            els.modeSettingsNote.textContent = `현재 종료 기준: ${battleshipSummary}`;
             return;
           }
-          els.modeSettingsNote.textContent = `현재 선택 게임: ${currentGame.label} · 종료 기준(문제 수/시간/타임어택)이 기본 퀴즈 종료 조건으로 적용됩니다.`;
+          els.modeSettingsNote.textContent = '기본 퀴즈 종료 기준을 선택해 주세요. 시작 전 확인 팝업에서 한 번 더 확인됩니다.';
         }
 
         function getQuizPresetOptions() {
@@ -2266,12 +2389,11 @@
           if (els.startPointNote) {
             if (state.runtimeMapInfo.loaded) {
               const loadedCount = points.length;
-              const loadedFrom = state.runtimeMapInfo.source ? ` · 소스: ${state.runtimeMapInfo.source}` : '';
               els.startPointNote.textContent = loadedCount > 0
-                ? `운영 맵에서 시작 위치 ${loadedCount}개를 불러왔습니다${loadedFrom}.`
-                : `운영 맵을 불러왔지만 저장된 시작 위치가 없습니다${loadedFrom}.`;
+                ? `시작 위치 ${loadedCount}개를 불러왔습니다.`
+                : '저장된 시작 위치가 없어 기본 시작 위치로 진행됩니다.';
             } else {
-              els.startPointNote.textContent = '운영 맵을 아직 불러오지 못해 기본 시작 지점만 사용합니다.';
+              els.startPointNote.textContent = '시작 위치를 불러오지 못해 기본 시작 위치로 진행됩니다.';
             }
           }
         }
@@ -2312,28 +2434,21 @@
           renderGameConditional();
         }
 
-        function renderSummary() {
+        function getPvamCarryLabel(value) {
+          if (value === 'none') return '없음';
+          if (value === 'low') return '1~2회';
+          if (value === 'high') return '많음';
+          return '혼합';
+        }
+
+        function buildLaunchPreview() {
           const quizOptions = getQuizPresetOptions();
           const quiz = quizOptions.find((item) => item.id === state.quizPresetId) || quizOptions[0] || QUIZ_PRESETS[0];
           const game = GAME_OPTIONS.find((item) => item.id === state.gameMode) || GAME_OPTIONS[0];
           const names = state.playerNames.slice(0, state.players).map((name, idx) => {
             const tag = state.playerTags[idx];
-            const characterId = normalizeCharacterId(state.playerCharacterIds[idx], state.characterId);
-            const characterLabel = CHARACTER_LABELS[characterId] || characterId;
-            return tag ? `${name}(${tag}번·${characterLabel})` : `${name}(${characterLabel})`;
-          }).join(', ');
-          const jumpmapCharacterSummary = state.playerCharacterIds
-            .slice(0, state.players)
-            .map((characterId, idx) => {
-              const normalizedCharacterId = normalizeCharacterId(characterId, state.characterId);
-              const label = CHARACTER_LABELS[normalizedCharacterId] || normalizedCharacterId;
-              const studentTag = normalizeStudentTag(state.playerTags[idx]);
-              return studentTag ? `${idx + 1}P:${label}(${studentTag}번)` : `${idx + 1}P:${label}`;
-            })
-            .join(', ');
-          const csvSummary = state.customCsvEnabled && state.customCsvText.trim()
-            ? `업로드 문제 사용 (${state.customCsvFileName || '이름 없음'})${state.gameMode === 'jumpmap' ? ' · 현재는 기본 퀴즈 경로에서 적용' : ''}`
-            : '업로드 문제 사용 안 함';
+            return tag ? `${name} (${tag}번)` : name;
+          });
           const presetQuestionCount = resolveQuizPresetQuestionCount(state.quizPresetId, state.customCsvText);
           const availableCount = Math.max(1, presetQuestionCount || state.quizCountLimit || 1);
           const minCountLimit = resolveMinQuizCountLimit(availableCount);
@@ -2364,61 +2479,76 @@
           const endModeSummaryLabel = state.gameMode === 'battleship-defense'
             ? battleshipEndSummary
             : endModeSummary;
-          const sourceSummary = state.customCsvEnabled && state.customCsvText.trim()
-            ? '업로드 문제'
-            : '기본 프리셋';
           const quizShort = state.customCsvEnabled && state.customCsvFileName
             ? `${quiz.title} (${state.customCsvFileName})`
             : quiz.title;
-          const isPvamPreset = state.quizPresetId === 'pvam-area-2digit-100';
+          const isPvamPreset = state.quizPresetId === 'pvam-area-2digit-100' && state.gameMode === 'basic-quiz';
+          return {
+            gameLabel: game.label,
+            quizLabel: quizShort,
+            players: names,
+            playerCount: state.players,
+            endModeLabel: endModePillLabel,
+            endModeDetail: endModeSummaryLabel,
+            isPvamPreset,
+            pvamCarryLabel: getPvamCarryLabel(state.pvamCarryMode)
+          };
+        }
+
+        function openStartConfirmModal() {
+          if (!els.startConfirmModal) return;
+          const preview = buildLaunchPreview();
+          if (els.startConfirmGame) els.startConfirmGame.textContent = preview.gameLabel;
+          if (els.startConfirmQuiz) els.startConfirmQuiz.textContent = preview.quizLabel;
+          if (els.startConfirmEndMode) els.startConfirmEndMode.textContent = preview.endModeLabel;
+          if (els.startConfirmEndDetail) els.startConfirmEndDetail.textContent = preview.endModeDetail;
+          if (els.startConfirmPlayerCount) els.startConfirmPlayerCount.textContent = `${preview.playerCount}명`;
+          if (els.startConfirmPvamItem) {
+            els.startConfirmPvamItem.classList.toggle('hidden', !preview.isPvamPreset);
+          }
+          if (preview.isPvamPreset && els.startConfirmPvam) {
+            els.startConfirmPvam.textContent = preview.pvamCarryLabel;
+          }
+          if (els.startConfirmPlayerList) {
+            els.startConfirmPlayerList.innerHTML = '';
+            preview.players.forEach((playerName, index) => {
+              const li = document.createElement('li');
+              li.textContent = `${index + 1}P · ${playerName}`;
+              els.startConfirmPlayerList.appendChild(li);
+            });
+          }
+          els.startConfirmModal.classList.remove('hidden');
+          els.startConfirmModal.setAttribute('aria-hidden', 'false');
+        }
+
+        function closeStartConfirmModal() {
+          if (!els.startConfirmModal) return;
+          els.startConfirmModal.classList.add('hidden');
+          els.startConfirmModal.setAttribute('aria-hidden', 'true');
+        }
+
+        function renderSummary() {
+          const preview = buildLaunchPreview();
           els.summaryBox.innerHTML = `
             <div class="summary-meta">
               <div class="summary-pill">
                 <span class="summary-pill-k">게임</span>
-                <span class="summary-pill-v">${game.label}</span>
+                <span class="summary-pill-v">${preview.gameLabel}</span>
               </div>
               <div class="summary-pill">
                 <span class="summary-pill-k">인원</span>
-                <span class="summary-pill-v">${state.players}명</span>
+                <span class="summary-pill-v">${preview.playerCount}명</span>
               </div>
               <div class="summary-pill">
-                <span class="summary-pill-k">종료 기준</span>
-                <span class="summary-pill-v">${endModePillLabel}</span>
+                <span class="summary-pill-k">퀴즈</span>
+                <span class="summary-pill-v">${preview.quizLabel}</span>
               </div>
             </div>
-            <div class="summary-list">
-              <div class="summary-item">
-                <div class="summary-item-k">퀴즈</div>
-                <div class="summary-item-v">${quizShort}</div>
-              </div>
-              ${isPvamPreset ? `
-              <div class="summary-item">
-                <div class="summary-item-k">자리올림 난이도</div>
-                <div class="summary-item-v">${state.pvamCarryMode === 'none' ? '없음' : (state.pvamCarryMode === 'low' ? '1~2회' : (state.pvamCarryMode === 'high' ? '많음' : '혼합'))}</div>
-              </div>` : ''}
-              <div class="summary-item">
-                <div class="summary-item-k">문제 소스</div>
-                <div class="summary-item-v">${csvSummary}</div>
-              </div>
-              <div class="summary-item">
-                <div class="summary-item-k">플레이어</div>
-                <div class="summary-item-v">${names}</div>
-              </div>
-              ${state.gameMode === 'jumpmap' ? `
-              <div class="summary-item">
-                <div class="summary-item-k">캐릭터</div>
-                <div class="summary-item-v">${jumpmapCharacterSummary}</div>
-              </div>` : ''}
-              <div class="summary-item">
-                <div class="summary-item-k">종료 상세</div>
-                <div class="summary-item-v">${endModeSummaryLabel}</div>
-              </div>
-            </div>
-            <div class="summary-help">시작 버튼을 누르면 현재 설정이 로컬에 저장되고 게임이 바로 시작됩니다. (${sourceSummary})</div>
+            <div class="summary-help">시작 전 확인 버튼을 누르면 종료/진행 설정과 참여 플레이어를 한 번 더 확인할 수 있습니다.</div>
           `;
           els.startBtn.textContent = state.gameMode === 'jumpmap'
-            ? '점프맵 바로 시작'
-            : (state.gameMode === 'battleship-defense' ? '거북선 디펜스 시작' : '기본 퀴즈 바로 시작');
+            ? '점프맵 시작 전 확인'
+            : (state.gameMode === 'battleship-defense' ? '거북선 시작 전 확인' : '기본 퀴즈 시작 전 확인');
         }
       })();
     </script>
