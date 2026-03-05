@@ -8,6 +8,7 @@ import {
   renderPlaceValueAreaModelQuestion
 } from './renderers/place-value-area-model.js';
 import { saveQuizSessionRecord } from '../shared/local-game-records.js';
+import { createProceduralSfx } from '../shared/procedural-sfx.js';
 
 const $ = (selector) => document.querySelector(selector);
 const launchParams = new URLSearchParams(window.location.search);
@@ -110,6 +111,7 @@ const resultDownloadNoteEl = $('#result-download-note');
 const resultRecordsLink = $('#result-records-link');
 const resultClassroomLink = $('#result-classroom-link');
 const LAUNCHER_SETUP_STORAGE_KEY = 'jumpmap.launcher.setup.v1';
+const quizSfx = createProceduralSfx({ masterGain: 0.11 });
 
 const setQuizPlayingChrome = (playing) => {
   const active = Boolean(playing);
@@ -3164,13 +3166,16 @@ const createPlayerSession = ({ index, studentId, groupName, settings, questionBa
     }
 
     if (result.correct) {
+      quizSfx.playCorrect();
       setFeedback('정답입니다!', 'success');
     } else if (result.answerKind === 'structured') {
+      quizSfx.playWrong();
       const wrongSteps = summarizeStructuredWrongSteps(result.wrongFields || []);
       const stepSummary = wrongSteps.length ? ` 틀린 단계: ${wrongSteps.join(', ')}` : '';
       const baseMessage = isTimeout ? '시간 초과! 오답입니다.' : '오답입니다.';
       setFeedback(`${baseMessage}${stepSummary}`, 'fail');
     } else {
+      quizSfx.playWrong();
       setFeedback(isTimeout ? '시간 초과! 오답입니다.' : '오답입니다.', 'fail');
     }
 

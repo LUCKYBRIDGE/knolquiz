@@ -7,6 +7,7 @@ import {
   renderPlaceValueAreaModelQuestion
 } from '../quiz/renderers/place-value-area-model.js';
 import { saveBattleshipSessionRecord } from '../shared/local-game-records.js';
+import { createProceduralSfx } from '../shared/procedural-sfx.js';
 
 const STORAGE_KEY = 'jumpmap.launcher.setup.v1';
 const SHIP_IMAGE_SRC = '../quiz_battleship/battleship-ship.png';
@@ -15,11 +16,11 @@ const SHIP_RENDER_LONG_EDGE = 72;
 const ELITE_UNLOCK_TIME_SEC = 180;
 const ENEMY_TIER_UNLOCK_STEP_SEC = 18;
 const ELITE_TIER_UNLOCK_STEP_SEC = 24;
-const SPAWN_START_COOLDOWN_MS = 2000;
-const SPAWN_MIN_COOLDOWN_MS = 620;
-const SPAWN_DECAY_PER_SEC = 4.4;
+const SPAWN_START_COOLDOWN_MS = 1700;
+const SPAWN_MIN_COOLDOWN_MS = 460;
+const SPAWN_DECAY_PER_SEC = 5.6;
 const HP_GROWTH_STEP_SEC = 24;
-const HP_GROWTH_PER_STEP = 0.18;
+const HP_GROWTH_PER_STEP = 0.12;
 const SPEED_GROWTH_STEP_SEC = 34;
 const SPEED_GROWTH_PER_STEP = 0.09;
 const TOUCH_GROWTH_STEP_SEC = 40;
@@ -30,9 +31,9 @@ const ELITE_CHANCE_MAX = 0.55;
 const ELITE_CHANCE_GROWTH_WINDOW_SEC = 280;
 const EARLY_ONE_SHOT_WINDOW_SEC = 55;
 const EARLY_EASE_WINDOW_SEC = 120;
-const EARLY_SOFTCAP_T1 = 7;
-const EARLY_SOFTCAP_T2 = 11;
-const EARLY_SOFTCAP_T3 = 16;
+const EARLY_SOFTCAP_T1 = 9;
+const EARLY_SOFTCAP_T2 = 14;
+const EARLY_SOFTCAP_T3 = 21;
 const FLOW_CYCLE_SEC = 54;
 const FLOW_LULL_START_SEC = 10;
 const FLOW_LULL_END_SEC = 20;
@@ -45,16 +46,16 @@ const SHIP_ATTACK_SPEED_LEVEL_STEP = 0.1;
 const EARLY_ATTACK_SLOW_WINDOW_SEC = 70;
 const EARLY_ATTACK_SLOW_MAX_RATIO = 1.22;
 const ENEMY_DEFINITIONS = Object.freeze([
-  { tier: 1, code: '01', name: '도깨비불', file: 'battleship-01ddokaebibul.png', baseHp: 34, baseSpeed: 58, baseTouchDamage: 8, baseSize: 56 },
-  { tier: 2, code: '02', name: '물귀신', file: 'battleship-02mulguisin.png', baseHp: 46, baseSpeed: 62, baseTouchDamage: 9, baseSize: 58 },
-  { tier: 3, code: '03', name: '창귀', file: 'battleship-03chang-gwi.png', baseHp: 58, baseSpeed: 65, baseTouchDamage: 10, baseSize: 60 },
-  { tier: 4, code: '04', name: '어둑시니', file: 'battleship-04eoduksini.png', baseHp: 72, baseSpeed: 68, baseTouchDamage: 11, baseSize: 62 },
-  { tier: 5, code: '05', name: '영노', file: 'battleship-05yeongno.png', baseHp: 88, baseSpeed: 71, baseTouchDamage: 13, baseSize: 64 },
-  { tier: 6, code: '06', name: '묘두사', file: 'battleship-06myodusa.png', baseHp: 106, baseSpeed: 74, baseTouchDamage: 14, baseSize: 66 },
-  { tier: 7, code: '07', name: '그슨대', file: 'battleship-07geuseundae.png', baseHp: 126, baseSpeed: 78, baseTouchDamage: 16, baseSize: 68 },
-  { tier: 8, code: '08', name: '불가사리', file: 'battleship-08bulgasari.png', baseHp: 148, baseSpeed: 82, baseTouchDamage: 18, baseSize: 70 },
-  { tier: 9, code: '09', name: '두억시니', file: 'battleship-09dueoksini.png', baseHp: 174, baseSpeed: 86, baseTouchDamage: 20, baseSize: 72 },
-  { tier: 10, code: '10', name: '이무기', file: 'battleship-10imugi.png', baseHp: 202, baseSpeed: 90, baseTouchDamage: 23, baseSize: 74 }
+  { tier: 1, code: '01', name: '도깨비불', file: 'battleship-01ddokaebibul.png', baseHp: 24, baseSpeed: 58, baseTouchDamage: 8, baseSize: 56 },
+  { tier: 2, code: '02', name: '물귀신', file: 'battleship-02mulguisin.png', baseHp: 32, baseSpeed: 62, baseTouchDamage: 9, baseSize: 58 },
+  { tier: 3, code: '03', name: '창귀', file: 'battleship-03chang-gwi.png', baseHp: 40, baseSpeed: 65, baseTouchDamage: 10, baseSize: 60 },
+  { tier: 4, code: '04', name: '어둑시니', file: 'battleship-04eoduksini.png', baseHp: 52, baseSpeed: 68, baseTouchDamage: 11, baseSize: 62 },
+  { tier: 5, code: '05', name: '영노', file: 'battleship-05yeongno.png', baseHp: 64, baseSpeed: 71, baseTouchDamage: 13, baseSize: 64 },
+  { tier: 6, code: '06', name: '묘두사', file: 'battleship-06myodusa.png', baseHp: 78, baseSpeed: 74, baseTouchDamage: 14, baseSize: 66 },
+  { tier: 7, code: '07', name: '그슨대', file: 'battleship-07geuseundae.png', baseHp: 92, baseSpeed: 78, baseTouchDamage: 16, baseSize: 68 },
+  { tier: 8, code: '08', name: '불가사리', file: 'battleship-08bulgasari.png', baseHp: 108, baseSpeed: 82, baseTouchDamage: 18, baseSize: 70 },
+  { tier: 9, code: '09', name: '두억시니', file: 'battleship-09dueoksini.png', baseHp: 126, baseSpeed: 86, baseTouchDamage: 20, baseSize: 72 },
+  { tier: 10, code: '10', name: '이무기', file: 'battleship-10imugi.png', baseHp: 146, baseSpeed: 90, baseTouchDamage: 23, baseSize: 74 }
 ]);
 
 const PRESET_TYPE_COUNTS = Object.freeze({
@@ -93,6 +94,7 @@ const LOADING_HISTORY_FACTS = Object.freeze([
 
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
+const battleshipSfx = createProceduralSfx({ masterGain: 0.11 });
 
 const els = {
   shipHp: document.getElementById('ship-hp'),
@@ -323,6 +325,33 @@ const state = {
   enemies: [],
   projectiles: [],
   statusText: '전투 시작'
+};
+const eliteTintSpriteCache = new Map();
+
+const getEliteTintedSprite = (image, tone = 'normal') => {
+  if (!image || !image.naturalWidth || !image.naturalHeight) return image;
+  const cacheKey = `${image.currentSrc || image.src || `tier-${image.naturalWidth}x${image.naturalHeight}`}:${tone}`;
+  const cached = eliteTintSpriteCache.get(cacheKey);
+  if (cached) return cached;
+  const offscreen = document.createElement('canvas');
+  offscreen.width = image.naturalWidth;
+  offscreen.height = image.naturalHeight;
+  const offCtx = offscreen.getContext('2d');
+  if (!offCtx) return image;
+  offCtx.drawImage(image, 0, 0);
+  offCtx.globalCompositeOperation = 'source-atop';
+  if (tone === 'max') {
+    offCtx.fillStyle = 'rgba(255, 24, 24, 0.74)';
+    offCtx.fillRect(0, 0, offscreen.width, offscreen.height);
+    offCtx.fillStyle = 'rgba(85, 0, 0, 0.34)';
+    offCtx.fillRect(0, 0, offscreen.width, offscreen.height);
+  } else {
+    offCtx.fillStyle = 'rgba(255, 30, 30, 0.6)';
+    offCtx.fillRect(0, 0, offscreen.width, offscreen.height);
+  }
+  offCtx.globalCompositeOperation = 'source-over';
+  eliteTintSpriteCache.set(cacheKey, offscreen);
+  return offscreen;
 };
 
 const resolveParticipantConsentLabels = () => {
@@ -889,8 +918,8 @@ const createEnemyFromDefinition = (def, elapsedSec, options = {}) => {
 
   let hp = elite
     ? Math.round(Math.max(
-      normalHp * (2.3 + eliteStrengthStep * 0.15),
-      normalTier10Hp * (1.18 + eliteStrengthStep * 0.14)
+      normalHp * (1.9 + eliteStrengthStep * 0.12),
+      normalTier10Hp * (1.08 + eliteStrengthStep * 0.1)
     ))
     : normalHp;
   let speed = elite
@@ -933,7 +962,7 @@ const createEnemyFromDefinition = (def, elapsedSec, options = {}) => {
   }
 
   if (hardened && !elite) {
-    hp = Math.round(hp * (1.78 + (def.tier - 1) * 0.04));
+    hp = Math.round(hp * (1.55 + (def.tier - 1) * 0.03));
     speed *= 0.92;
     touchDamage = Math.max(1, Math.round(touchDamage * (1.52 + (def.tier - 1) * 0.03)));
   }
@@ -968,22 +997,27 @@ const spawnEnemy = (flow) => {
   const adjustedSoftCap = Math.max(5, softCap + (Number(flow?.capBonus) || 0));
   if (state.enemies.length >= adjustedSoftCap) return;
 
-  const unlockedTier = getUnlockedEnemyTier(elapsedSec);
-  const eliteTier = getEliteUnlockedTier(elapsedSec);
-  const elite = shouldSpawnEliteEnemy(elapsedSec, eliteTier);
-  const maxTier = elite ? eliteTier : unlockedTier;
-  const def = pickEnemyDefinition(maxTier, { preferHigh: elite });
-  if (!def || !state.enemyImageReady.get(def.tier)) return;
-  const hardened = !elite && shouldSpawnHardenedEnemy(elapsedSec, flow, def);
-  const enemy = createEnemyFromDefinition(def, elapsedSec, {
-    elite,
-    hardened,
-    flowSpeedMul: Number(flow?.speedMul) || 1
-  });
-  state.enemies.push(enemy);
+  const burstChance = clamp(0.16 + (elapsedSec / 960), 0.16, 0.44);
+  const spawnCount = Math.random() < burstChance ? 2 : 1;
+  for (let spawnIndex = 0; spawnIndex < spawnCount; spawnIndex += 1) {
+    if (state.enemies.length >= adjustedSoftCap) break;
+    const unlockedTier = getUnlockedEnemyTier(elapsedSec);
+    const eliteTier = getEliteUnlockedTier(elapsedSec);
+    const elite = shouldSpawnEliteEnemy(elapsedSec, eliteTier);
+    const maxTier = elite ? eliteTier : unlockedTier;
+    const def = pickEnemyDefinition(maxTier, { preferHigh: elite });
+    if (!def || !state.enemyImageReady.get(def.tier)) continue;
+    const hardened = !elite && shouldSpawnHardenedEnemy(elapsedSec, flow, def);
+    const enemy = createEnemyFromDefinition(def, elapsedSec, {
+      elite,
+      hardened,
+      flowSpeedMul: Number(flow?.speedMul) || 1
+    });
+    state.enemies.push(enemy);
 
-  if (hardened && Math.random() < 0.12) {
-    setStatus(`강화 ${def.name} 출현! 체력과 접촉 피해가 높습니다.`);
+    if (hardened && Math.random() < 0.12) {
+      setStatus(`강화 ${def.name} 출현! 체력과 접촉 피해가 높습니다.`);
+    }
   }
 };
 
@@ -1063,6 +1097,7 @@ const addKillReward = (enemy) => {
   const tier = Math.max(1, Number(enemy?.tier) || 1);
   const eliteBonus = enemy?.elite ? 2 : 0;
   const gainedExp = Math.max(1, 1 + Math.floor((tier - 1) / 2) + (enemy?.elite ? 2 : 0));
+  battleshipSfx.playKill();
   state.score.kills += 1;
   state.score.gold += 2 + tier + eliteBonus;
   state.score.exp += gainedExp;
@@ -1180,6 +1215,11 @@ const submitQuizAnswer = (rawAnswer) => {
   }
 
   applyQuizRewards(question, correct);
+  if (correct) {
+    battleshipSfx.playCorrect();
+  } else {
+    battleshipSfx.playWrong();
+  }
   setQuizFeedback(correct ? '정답! 보상을 반영했습니다.' : '오답입니다.', correct ? 'is-success' : 'is-fail');
   const fxClass = correct ? 'quiz-fx-success' : 'quiz-fx-fail';
   els.quizCard?.classList.add(fxClass);
@@ -1536,18 +1576,35 @@ const drawGame = () => {
   }
 
   drawHpBar(shipX, shipY - 12, shipW, state.ship.hp, state.ship.maxHp, '#22c55e');
+  const eliteUnlockedTier = getEliteUnlockedTier(state.waves.elapsedSec);
+  const eliteMaxUnlocked = eliteUnlockedTier >= 10;
+  const auraPulse = (Math.sin(performance.now() * 0.012) + 1) * 0.5;
 
   for (let i = 0; i < state.enemies.length; i += 1) {
     const enemy = state.enemies[i];
     const image = enemy?.image;
     if (enemy.elite) {
       ctx.save();
-      ctx.shadowColor = 'rgba(255, 30, 30, 0.75)';
-      ctx.shadowBlur = 16;
-      ctx.beginPath();
-      ctx.fillStyle = 'rgba(255, 40, 40, 0.35)';
-      ctx.arc(enemy.x, enemy.y, enemy.radius * 1.18, 0, Math.PI * 2);
-      ctx.fill();
+      if (eliteMaxUnlocked) {
+        ctx.shadowColor = `rgba(96, 0, 0, ${0.58 + auraPulse * 0.24})`;
+        ctx.shadowBlur = 18 + auraPulse * 8;
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(84, 0, 0, ${0.22 + auraPulse * 0.16})`;
+        ctx.arc(enemy.x, enemy.y, enemy.radius * (1.18 + auraPulse * 0.14), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.lineWidth = 2.2;
+        ctx.strokeStyle = `rgba(150, 15, 15, ${0.28 + auraPulse * 0.26})`;
+        ctx.arc(enemy.x, enemy.y, enemy.radius * (1.42 + auraPulse * 0.18), 0, Math.PI * 2);
+        ctx.stroke();
+      } else {
+        ctx.shadowColor = 'rgba(255, 30, 30, 0.75)';
+        ctx.shadowBlur = 16;
+        ctx.beginPath();
+        ctx.fillStyle = 'rgba(255, 40, 40, 0.35)';
+        ctx.arc(enemy.x, enemy.y, enemy.radius * 1.18, 0, Math.PI * 2);
+        ctx.fill();
+      }
       ctx.restore();
     }
     if (image && image.complete && image.naturalWidth > 0) {
@@ -1556,14 +1613,10 @@ const drawGame = () => {
       const drawH = enemySize ? enemySize.height : enemy.renderSize;
       const drawX = enemy.x - drawW / 2;
       const drawY = enemy.y - drawH / 2;
-      ctx.drawImage(image, drawX, drawY, drawW, drawH);
-      if (enemy.elite) {
-        ctx.save();
-        ctx.globalCompositeOperation = 'source-atop';
-        ctx.fillStyle = 'rgba(255, 30, 30, 0.22)';
-        ctx.fillRect(drawX, drawY, drawW, drawH);
-        ctx.restore();
-      }
+      const renderImage = enemy.elite
+        ? getEliteTintedSprite(image, eliteMaxUnlocked ? 'max' : 'normal')
+        : image;
+      ctx.drawImage(renderImage, drawX, drawY, drawW, drawH);
       drawHpBar(enemy.x - 22, drawY - 10, 44, enemy.hp, enemy.maxHp, enemy.elite ? '#dc2626' : '#f97316');
     } else {
       ctx.beginPath();
@@ -1598,9 +1651,11 @@ const drawGame = () => {
   ctx.fillText(`Wave Lv.${state.waves.level}`, 14, 26);
   const unlockedTier = getUnlockedEnemyTier(state.waves.elapsedSec);
   ctx.fillText(`적 ${state.enemies.length}명 · 출현 01~${String(unlockedTier).padStart(2, '0')}`, 14, 48);
-  const eliteTier = getEliteUnlockedTier(state.waves.elapsedSec);
-  if (eliteTier > 0) {
-    ctx.fillText(`붉은특수 01~${String(eliteTier).padStart(2, '0')} 출현`, 14, 70);
+  if (eliteUnlockedTier > 0) {
+    const eliteLabel = eliteMaxUnlocked
+      ? '붉은특수 MAX · 검붉은 오라 활성'
+      : `붉은특수 01~${String(eliteUnlockedTier).padStart(2, '0')} 출현`;
+    ctx.fillText(eliteLabel, 14, 70);
   }
 };
 

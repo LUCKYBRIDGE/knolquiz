@@ -252,6 +252,94 @@
       ready: false,
       promise: null
     };
+    const createRuntimeSfx = () => {
+      const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+      if (typeof AudioContextCtor !== 'function') {
+        return {
+          playQuizResult: () => {},
+          playJump: () => {}
+        };
+      }
+      let audioCtx = null;
+      let masterNode = null;
+      const ensureAudio = () => {
+        if (!audioCtx) audioCtx = new AudioContextCtor();
+        if (!masterNode) {
+          masterNode = audioCtx.createGain();
+          masterNode.gain.value = 0.11;
+          masterNode.connect(audioCtx.destination);
+        }
+        return { audioCtx, masterNode };
+      };
+      const unlock = () => {
+        const { audioCtx: ctx } = ensureAudio();
+        if (ctx.state === 'suspended') {
+          ctx.resume().catch(() => {});
+        }
+      };
+      document.addEventListener('pointerdown', unlock, { passive: true, capture: true, once: true });
+      document.addEventListener('keydown', unlock, { capture: true, once: true });
+
+      const playPattern = (notes = []) => {
+        const { audioCtx: ctx, masterNode: master } = ensureAudio();
+        if (ctx.state === 'suspended') {
+          ctx.resume().catch(() => {});
+        }
+        const startAt = ctx.currentTime + 0.004;
+        notes.forEach((note) => {
+          const when = startAt + Math.max(0, Number(note?.t) || 0);
+          const duration = Math.max(0.02, Number(note?.d) || 0.08);
+          const frequency = Math.max(80, Number(note?.f) || 440);
+          const gain = Math.max(0.01, Number(note?.g) || 0.09);
+          const wave = typeof note?.w === 'string' ? note.w : 'triangle';
+          const glide = Number(note?.glide) || 0;
+          const osc = ctx.createOscillator();
+          const amp = ctx.createGain();
+          osc.type = wave;
+          osc.frequency.setValueAtTime(frequency, when);
+          if (glide) {
+            osc.frequency.exponentialRampToValueAtTime(Math.max(60, frequency + glide), when + duration);
+          }
+          amp.gain.setValueAtTime(0.0001, when);
+          amp.gain.exponentialRampToValueAtTime(gain, when + 0.006);
+          amp.gain.exponentialRampToValueAtTime(0.0001, when + duration + 0.07);
+          osc.connect(amp);
+          amp.connect(master);
+          osc.start(when);
+          osc.stop(when + duration + 0.09);
+        });
+      };
+
+      return {
+        playQuizResult: (correct) => {
+          if (correct) {
+            playPattern([
+              { t: 0, f: 820, d: 0.06, w: 'triangle', g: 0.12, glide: 45 },
+              { t: 0.06, f: 1200, d: 0.08, w: 'triangle', g: 0.13, glide: 65 }
+            ]);
+            return;
+          }
+          playPattern([
+            { t: 0, f: 320, d: 0.08, w: 'square', g: 0.11, glide: -70 },
+            { t: 0.08, f: 210, d: 0.12, w: 'sawtooth', g: 0.09, glide: -50 }
+          ]);
+        },
+        playJump: (isDouble = false) => {
+          if (isDouble) {
+            playPattern([
+              { t: 0, f: 560, d: 0.05, w: 'square', g: 0.1, glide: 120 },
+              { t: 0.04, f: 860, d: 0.06, w: 'triangle', g: 0.08, glide: 80 }
+            ]);
+            return;
+          }
+          playPattern([
+            { t: 0, f: 500, d: 0.045, w: 'square', g: 0.09, glide: 90 },
+            { t: 0.035, f: 720, d: 0.055, w: 'triangle', g: 0.075, glide: 70 }
+          ]);
+        }
+      };
+    };
+    const runtimeSfx = createRuntimeSfx();
     const getPlayerSpriteUrlsForWarmup = () => {
       const urls = new Set();
       Object.values(CHARACTER_SETS).forEach((set) => {
@@ -2541,6 +2629,7 @@
     const playQuizResultFx = (playerView, correct) => {
       const ui = playerView?.quizUi;
       if (!ui) return;
+      runtimeSfx.playQuizResult(!!correct);
       clearQuizResultFx(playerView);
       const fxClass = correct ? 'quiz-fx-success' : 'quiz-fx-fail';
       const targets = [ui.panelCard, ui.feedback].filter(Boolean);
@@ -3432,13 +3521,16 @@
           }
 
           const nextJumpsUsed = ps.jumpsUsed || 0;
-          if (!controlBlocking && nextJumpsUsed > prevJumpsUsed && typeof integration.consumeAction === 'function') {
+          if (!controlBlocking && nextJumpsUsed > prevJumpsUsed) {
             const action = prevJumpsUsed === 0 ? 'jump' : 'doubleJump';
-            integration.consumeAction(
-              action,
-              { playerId, zoneId, onGroundBefore: wasOnGround },
-              { playerId, zoneId, source: 'jumpmap-test-runtime', timestamp: now }
-            );
+            runtimeSfx.playJump(action === 'doubleJump');
+            if (typeof integration.consumeAction === 'function') {
+              integration.consumeAction(
+                action,
+                { playerId, zoneId, onGroundBefore: wasOnGround },
+                { playerId, zoneId, source: 'jumpmap-test-runtime', timestamp: now }
+              );
+            }
             if (playerView?.sessionStats) {
               if (action === 'doubleJump') {
                 playerView.sessionStats.doubleJumps = (Number(playerView.sessionStats.doubleJumps) || 0) + 1;
