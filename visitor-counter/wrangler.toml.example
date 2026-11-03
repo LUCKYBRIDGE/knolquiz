@@ -1,0 +1,15 @@
+name = "knol-visitor-counter"
+main = "worker.mjs"
+compatibility_date = "2026-11-03"
+
+# Copy this to wrangler.toml, create a D1 database and replace the ID.
+[[d1_databases]]
+binding = "DB"
+database_name = "knol-visitors"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+
+# Configure the custom domain stats.knolquiz.com in the Cloudflare dashboard
+# or add the following after the domain exists in your account:
+# [[routes]]
+# pattern = "stats.knolquiz.com"
+# custom_domain = true
