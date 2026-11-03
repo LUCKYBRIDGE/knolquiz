@@ -40,7 +40,7 @@ if (LABELS[SITE] && HOSTS[SITE]?.has(location.hostname)) {
   let id;
   try {
     id = localStorage.getItem(key);
-    if (!id || !/^[0-9a-f-]{36}$/i.test(id)) {
+    if (!id || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
       id = crypto.randomUUID();
       localStorage.setItem(key, id);
     }
