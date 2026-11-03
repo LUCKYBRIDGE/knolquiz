@@ -1,8 +1,9 @@
 const ORIGINS = {
-  quiz: 'https://knolquiz.com',
-  print: 'https://print.knolquiz.com',
-  art: 'https://art.knolquiz.com'
+  quiz: new Set(['https://knolquiz.com', 'https://www.knolquiz.com']),
+  print: new Set(['https://print.knolquiz.com']),
+  art: new Set(['https://art.knolquiz.com'])
 };
+const isAllowedOrigin = origin => Object.values(ORIGINS).some(origins => origins.has(origin));
 const headersFor = origin => ({
   'Access-Control-Allow-Origin': origin,
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -31,14 +32,14 @@ export default {
     const url = new URL(request.url);
     if (url.pathname !== '/api/visit') return new Response('Not found', { status: 404 });
     const origin = request.headers.get('Origin');
-    if (!Object.values(ORIGINS).includes(origin)) return new Response('Forbidden', { status: 403 });
+    if (!isAllowedOrigin(origin)) return new Response('Forbidden', { status: 403 });
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: headersFor(origin) });
     if (request.method !== 'POST') return json({ error: 'Method not allowed' }, 405, origin);
     if (!env.DB || !env.VISITOR_SALT) return json({ error: 'Service not configured' }, 503, origin);
     if (Number(request.headers.get('content-length') || 0) > 1024) return json({ error: 'Too large' }, 413, origin);
     try {
       const body = await request.json();
-      if (!body || !Object.hasOwn(ORIGINS, body.site) || ORIGINS[body.site] !== origin ||
+      if (!body || !Object.hasOwn(ORIGINS, body.site) || !ORIGINS[body.site].has(origin) ||
           typeof body.visitorId !== 'string' ||
           !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.visitorId)) {
         return json({ error: 'Invalid request' }, 400, origin);
