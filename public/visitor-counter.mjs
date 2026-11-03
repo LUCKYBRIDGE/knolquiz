@@ -1,148 +1,128 @@
-const SITE = Object.freeze({
-  "id": "knolquiz",
-  "label": "놀퀴즈",
-  "namespace": "knolquiz.com",
-  "productionHosts": [
-    "knolquiz.com",
-    "www.knolquiz.com"
-  ]
-});
-
+const SITE_ID = 'knolquiz';
+const SITE_LABEL = '놀퀴즈';
+const COUNTER_NAMESPACE = 'knol-series-2026';
+const COUNTER_ACTION = 'visit';
 const API_BASE = 'https://counterapi.com/api';
 
-function koreaDateKey(date = new Date()) {
+const params = new URL(import.meta.url).searchParams;
+const shouldDisplay = params.get('display') !== '0';
+
+function koreaDateKey() {
   const parts = new Intl.DateTimeFormat('en-US', {
     timeZone: 'Asia/Seoul',
     year: 'numeric',
     month: '2-digit',
     day: '2-digit'
-  }).formatToParts(date);
+  }).formatToParts(new Date());
   const values = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
   return `${values.year}-${values.month}-${values.day}`;
 }
 
-function endpointFor(key, readOnly) {
-  const query = new URLSearchParams({ unique: 'true' });
-  if (readOnly) query.set('readOnly', 'true');
-  return `${API_BASE}/${encodeURIComponent(SITE.namespace)}/visit/${encodeURIComponent(key)}?${query.toString()}`;
+function storageGet(key) {
+  try { return localStorage.getItem(key); } catch { return null; }
 }
 
-async function fetchCount(key, readOnly) {
-  const response = await fetch(endpointFor(key, readOnly), {
+function storageSet(key, value) {
+  try { localStorage.setItem(key, value); } catch {}
+}
+
+function counterUrl(key, readOnly) {
+  const url = new URL(`${API_BASE}/${encodeURIComponent(COUNTER_NAMESPACE)}/${encodeURIComponent(COUNTER_ACTION)}/${encodeURIComponent(key)}`);
+  if (readOnly) url.searchParams.set('readOnly', 'true');
+  return url.toString();
+}
+
+async function readOrIncrement(key, markerKey) {
+  const alreadyCounted = storageGet(markerKey) === '1';
+  const response = await fetch(counterUrl(key, alreadyCounted), {
     method: 'GET',
     cache: 'no-store',
     credentials: 'omit',
     referrerPolicy: 'no-referrer'
   });
-  if (!response.ok) throw new Error(`visitor counter request failed: ${response.status}`);
+  if (!response.ok) throw new Error(`counter request failed: ${response.status}`);
   const data = await response.json();
   const value = Number(data?.value);
-  if (!Number.isFinite(value)) throw new Error('visitor counter returned an invalid value');
-  return Math.max(0, Math.trunc(value));
+  if (!Number.isFinite(value)) throw new Error('counter response is invalid');
+  if (!alreadyCounted) storageSet(markerKey, '1');
+  return value;
 }
 
-function mountCounter() {
-  const existing = document.querySelector('[data-visitor-counter]');
-  if (existing) return existing;
-
-  const counter = document.createElement('div');
-  counter.className = 'visitor-counter';
-  counter.dataset.visitorCounter = SITE.id;
-  counter.setAttribute('role', 'status');
-  counter.setAttribute('aria-live', 'polite');
-  counter.title = '같은 사용자의 반복 새로고침은 중복 집계를 줄여 표시합니다.';
-  counter.innerHTML = `
-    <span class="visitor-counter__label">방문자</span>
-    <span>오늘 <strong data-visitor-today>–</strong></span>
-    <span class="visitor-counter__dot" aria-hidden="true">·</span>
-    <span>누적 <strong data-visitor-total>–</strong></span>
-  `;
-
+function mountWidget() {
+  if (!shouldDisplay) return null;
   const style = document.createElement('style');
   style.textContent = `
-    .visitor-counter {
+    .knol-visitor-counter {
+      position: fixed;
+      right: max(12px, env(safe-area-inset-right));
+      bottom: max(12px, env(safe-area-inset-bottom));
+      z-index: 70;
       display: inline-flex;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 0.38rem;
-      width: fit-content;
-      margin-left: auto;
-      padding: 0.38rem 0.58rem;
-      border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+      gap: 8px;
+      min-height: 34px;
+      padding: 7px 10px;
+      border: 1px solid rgba(71, 85, 105, .18);
       border-radius: 999px;
-      background: color-mix(in srgb, Canvas 88%, transparent);
-      color: inherit;
+      background: rgba(255, 255, 255, .94);
+      box-shadow: 0 6px 18px rgba(15, 23, 42, .10);
+      color: #475569;
       font: 700 12px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
-      opacity: 0.76;
-      white-space: nowrap;
+      letter-spacing: -.01em;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
-    .visitor-counter__label {
-      font-weight: 800;
-      opacity: 0.72;
-    }
-    .visitor-counter strong {
-      font-variant-numeric: tabular-nums;
-      font-weight: 900;
-    }
-    .visitor-counter__dot {
-      opacity: 0.5;
-    }
-    .hero > .visitor-counter,
-    .intro > .visitor-counter {
-      margin: 0.7rem 0 0;
-    }
+    .knol-visitor-counter strong { color: #0f172a; font-weight: 800; }
+    .knol-visitor-counter .knol-visitor-dot { color: #94a3b8; }
     @media (max-width: 640px) {
-      .visitor-counter {
-        margin-left: 0;
+      .knol-visitor-counter {
+        right: 8px;
+        bottom: 8px;
+        min-height: 32px;
+        padding: 6px 9px;
         font-size: 11px;
       }
     }
+    @media print { .knol-visitor-counter { display: none !important; } }
   `;
   document.head.append(style);
 
-  const host =
-    document.querySelector('.site-footer') ||
-    document.querySelector('footer') ||
-    document.querySelector('.hero') ||
-    document.querySelector('.intro') ||
-    document.querySelector('.topbar') ||
-    document.body;
-  host.append(counter);
-  return counter;
+  const widget = document.createElement('div');
+  widget.className = 'knol-visitor-counter';
+  widget.setAttribute('role', 'status');
+  widget.setAttribute('aria-live', 'polite');
+  widget.setAttribute('aria-label', `${SITE_LABEL} 방문자 수`);
+  widget.innerHTML = '<span>오늘 <strong data-visitor-today>–</strong></span><span class="knol-visitor-dot" aria-hidden="true">·</span><span>누적 <strong data-visitor-total>–</strong></span>';
+  document.body.append(widget);
+  return widget;
 }
 
-async function updateCounter() {
-  const counter = mountCounter();
-  const todayEl = counter.querySelector('[data-visitor-today]');
-  const totalEl = counter.querySelector('[data-visitor-total]');
-  const readOnly = !SITE.productionHosts.includes(window.location.hostname);
-  const todayKey = `visitors-${koreaDateKey()}`;
+async function run() {
+  const widget = mountWidget();
+  const date = koreaDateKey();
+  const totalKey = `${SITE_ID}-total`;
+  const todayKey = `${SITE_ID}-${date}`;
+  const totalMarker = `knol-visitor:v1:${SITE_ID}:total:${date}`;
+  const todayMarker = `knol-visitor:v1:${SITE_ID}:today:${date}`;
 
-  const [todayResult, totalResult] = await Promise.allSettled([
-    fetchCount(todayKey, readOnly),
-    fetchCount('visitors-total', readOnly)
-  ]);
-
-  const format = value => new Intl.NumberFormat('ko-KR').format(value);
-
-  if (todayResult.status === 'fulfilled') {
-    todayEl.textContent = format(todayResult.value);
-  }
-  if (totalResult.status === 'fulfilled') {
-    totalEl.textContent = format(totalResult.value);
-  }
-
-  if (todayResult.status === 'rejected' || totalResult.status === 'rejected') {
-    counter.title = '방문자 수를 일부 불러오지 못했습니다. 잠시 후 다시 확인해 주세요.';
-    console.warn('[visitor-counter] 일부 집계 값을 불러오지 못했습니다.', {
-      today: todayResult.status === 'rejected' ? todayResult.reason : null,
-      total: totalResult.status === 'rejected' ? totalResult.reason : null
-    });
+  try {
+    const [today, total] = await Promise.all([
+      readOrIncrement(todayKey, todayMarker),
+      readOrIncrement(totalKey, totalMarker)
+    ]);
+    if (widget) {
+      widget.querySelector('[data-visitor-today]').textContent = today.toLocaleString('ko-KR');
+      widget.querySelector('[data-visitor-total]').textContent = total.toLocaleString('ko-KR');
+      widget.title = '같은 브라우저에서는 하루 한 번만 방문으로 집계합니다.';
+    }
+  } catch (error) {
+    console.warn('[visitor-counter] 방문자 수를 불러오지 못했습니다.', error);
+    if (widget) widget.remove();
   }
 }
 
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', updateCounter, { once: true });
+  document.addEventListener('DOMContentLoaded', run, { once: true });
 } else {
-  updateCounter();
+  run();
 }
