@@ -1,5 +1,6 @@
-const SITE_ID = 'knolquiz';
-const SITE_LABEL = '놀퀴즈';
+const SITE_ID = "knolquiz";
+const SITE_LABEL = "놀퀴즈";
+const PRODUCTION_HOSTS = Object.freeze(["knolquiz.com","www.knolquiz.com"]);
 const COUNTER_NAMESPACE = 'knol-series-2026';
 const COUNTER_ACTION = 'visit';
 const API_BASE = 'https://counterapi.com/api';
@@ -32,9 +33,10 @@ function counterUrl(key, readOnly) {
   return url.toString();
 }
 
-async function readOrIncrement(key, markerKey) {
+async function readOrIncrement(key, markerKey, isProduction) {
   const alreadyCounted = storageGet(markerKey) === '1';
-  const response = await fetch(counterUrl(key, alreadyCounted), {
+  const shouldIncrement = isProduction && !alreadyCounted;
+  const response = await fetch(counterUrl(key, !shouldIncrement), {
     method: 'GET',
     cache: 'no-store',
     credentials: 'omit',
@@ -44,12 +46,15 @@ async function readOrIncrement(key, markerKey) {
   const data = await response.json();
   const value = Number(data?.value);
   if (!Number.isFinite(value)) throw new Error('counter response is invalid');
-  if (!alreadyCounted) storageSet(markerKey, '1');
-  return value;
+  if (shouldIncrement) storageSet(markerKey, '1');
+  return Math.max(0, Math.trunc(value));
 }
 
 function mountWidget() {
   if (!shouldDisplay) return null;
+  const existing = document.querySelector('[data-knol-visitor-counter]');
+  if (existing) return existing;
+
   const style = document.createElement('style');
   style.textContent = `
     .knol-visitor-counter {
@@ -59,7 +64,7 @@ function mountWidget() {
       z-index: 70;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 7px;
       min-height: 34px;
       padding: 7px 10px;
       border: 1px solid rgba(71, 85, 105, .18);
@@ -72,7 +77,8 @@ function mountWidget() {
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
     }
-    .knol-visitor-counter strong { color: #0f172a; font-weight: 800; }
+    .knol-visitor-counter strong { color: #0f172a; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .knol-visitor-counter .knol-visitor-label { color: #64748b; }
     .knol-visitor-counter .knol-visitor-dot { color: #94a3b8; }
     @media (max-width: 640px) {
       .knol-visitor-counter {
@@ -80,8 +86,10 @@ function mountWidget() {
         bottom: 8px;
         min-height: 32px;
         padding: 6px 9px;
+        gap: 6px;
         font-size: 11px;
       }
+      .knol-visitor-counter .knol-visitor-label { display: none; }
     }
     @media print { .knol-visitor-counter { display: none !important; } }
   `;
@@ -89,10 +97,11 @@ function mountWidget() {
 
   const widget = document.createElement('div');
   widget.className = 'knol-visitor-counter';
+  widget.dataset.knolVisitorCounter = SITE_ID;
   widget.setAttribute('role', 'status');
   widget.setAttribute('aria-live', 'polite');
   widget.setAttribute('aria-label', `${SITE_LABEL} 방문자 수`);
-  widget.innerHTML = '<span>오늘 <strong data-visitor-today>–</strong></span><span class="knol-visitor-dot" aria-hidden="true">·</span><span>누적 <strong data-visitor-total>–</strong></span>';
+  widget.innerHTML = '<span class="knol-visitor-label">방문자</span><span>오늘 <strong data-visitor-today>–</strong></span><span class="knol-visitor-dot" aria-hidden="true">·</span><span>누적 <strong data-visitor-total>–</strong></span>';
   document.body.append(widget);
   return widget;
 }
@@ -100,24 +109,35 @@ function mountWidget() {
 async function run() {
   const widget = mountWidget();
   const date = koreaDateKey();
-  const totalKey = `${SITE_ID}-total`;
+  const isProduction = PRODUCTION_HOSTS.includes(window.location.hostname);
   const todayKey = `${SITE_ID}-${date}`;
-  const totalMarker = `knol-visitor:v1:${SITE_ID}:total:${date}`;
-  const todayMarker = `knol-visitor:v1:${SITE_ID}:today:${date}`;
+  const totalKey = `${SITE_ID}-total`;
+  const todayMarker = `knol-visitor:v2:${SITE_ID}:today:${date}`;
+  const totalMarker = `knol-visitor:v2:${SITE_ID}:total:${date}`;
 
-  try {
-    const [today, total] = await Promise.all([
-      readOrIncrement(todayKey, todayMarker),
-      readOrIncrement(totalKey, totalMarker)
-    ]);
-    if (widget) {
-      widget.querySelector('[data-visitor-today]').textContent = today.toLocaleString('ko-KR');
-      widget.querySelector('[data-visitor-total]').textContent = total.toLocaleString('ko-KR');
-      widget.title = '같은 브라우저에서는 하루 한 번만 방문으로 집계합니다.';
+  const [todayResult, totalResult] = await Promise.allSettled([
+    readOrIncrement(todayKey, todayMarker, isProduction),
+    readOrIncrement(totalKey, totalMarker, isProduction)
+  ]);
+
+  if (widget) {
+    if (todayResult.status === 'fulfilled') {
+      widget.querySelector('[data-visitor-today]').textContent = todayResult.value.toLocaleString('ko-KR');
     }
-  } catch (error) {
-    console.warn('[visitor-counter] 방문자 수를 불러오지 못했습니다.', error);
-    if (widget) widget.remove();
+    if (totalResult.status === 'fulfilled') {
+      widget.querySelector('[data-visitor-total]').textContent = totalResult.value.toLocaleString('ko-KR');
+    }
+    widget.title = '같은 브라우저에서는 하루 한 번만 방문으로 집계합니다. 누적 수는 날짜별 방문을 계속 더한 값입니다.';
+    if (todayResult.status === 'rejected' && totalResult.status === 'rejected') {
+      widget.remove();
+    }
+  }
+
+  if (todayResult.status === 'rejected' || totalResult.status === 'rejected') {
+    console.warn('[visitor-counter] 일부 방문자 수를 불러오지 못했습니다.', {
+      today: todayResult.status === 'rejected' ? todayResult.reason : null,
+      total: totalResult.status === 'rejected' ? totalResult.reason : null
+    });
   }
 }
 
